@@ -13,7 +13,7 @@ export function StatusSelect({ reportId, status }: { reportId: string; status: s
       disabled={pending}
       aria-label="Ubah status laporan"
       onChange={(e) => startTransition(() => updateReportStatus(reportId, e.target.value))}
-      className="h-9 rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+      className="h-11 rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
     >
       <option value="terkirim">Baru masuk</option>
       <option value="ditinjau">Sedang ditinjau</option>

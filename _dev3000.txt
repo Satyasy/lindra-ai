@@ -1,0 +1,30 @@
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.23.16.1:3000
+- Environments: .env
+✓ Ready in 1204ms
+
+ GET / 200 in 1244ms (next.js: 168ms, proxy.ts: 515ms, application-code: 561ms)
+ GET /bk/seed-r2 200 in 2.1s (next.js: 1210ms, proxy.ts: 31ms, application-code: 896ms)
+✓ Compiled in 1093ms
+ GET / 200 in 1000ms (next.js: 131ms, proxy.ts: 207ms, application-code: 662ms)
+ GET /bk/seed-r2 200 in 999ms (next.js: 286ms, proxy.ts: 432ms, application-code: 280ms)
+ GET /bk/seed-r2 200 in 725ms (next.js: 27ms, proxy.ts: 34ms, application-code: 664ms)
+ POST /bk/seed-r2 200 in 99ms (next.js: 19ms, proxy.ts: 14ms, application-code: 66ms)
+  └─ ƒ revealIdentity("seed-r2") in 24ms app/bk/(dashboard)/[reportId]/actions.ts
+ GET /bk/seed-r3 404 in 316ms (next.js: 44ms, proxy.ts: 15ms, application-code: 257ms)
+ GET /bk 200 in 493ms (next.js: 75ms, proxy.ts: 21ms, application-code: 396ms)
+ GET /bk 200 in 348ms (next.js: 12ms, proxy.ts: 19ms, application-code: 317ms)
+ GET /bk?tab=selesai 200 in 362ms (next.js: 19ms, proxy.ts: 44ms, application-code: 299ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477:13)
+ GET /bk 200 in 47ms (next.js: 11ms, proxy.ts: 19ms, application-code: 17ms)
+ GET /bk 200 in 205ms (next.js: 12ms, proxy.ts: 17ms, application-code: 176ms)
+ GET /bk?tab=selesai 200 in 207ms (next.js: 11ms, proxy.ts: 21ms, application-code: 175ms)
+ GET /bk 200 in 62ms (next.js: 13ms, proxy.ts: 28ms, application-code: 21ms)
+ GET /bk 200 in 299ms (next.js: 14ms, proxy.ts: 27ms, application-code: 258ms)
+ GET /bk 200 in 115ms (next.js: 26ms, proxy.ts: 44ms, application-code: 45ms)
+ GET /bk 200 in 465ms (next.js: 23ms, proxy.ts: 48ms, application-code: 393ms)
+ GET /bk/seed-r2 200 in 331ms (next.js: 52ms, proxy.ts: 30ms, application-code: 250ms)
+ POST /bk/seed-r2 200 in 372ms (next.js: 22ms, proxy.ts: 18ms, application-code: 332ms)
+  └─ ƒ updateReportStatus("seed-r2", "ditinjau") in 73ms app/bk/(dashboard)/[reportId]/actions.ts
+ GET /bk 200 in 127ms (next.js: 10ms, proxy.ts: 14ms, application-code: 102ms)

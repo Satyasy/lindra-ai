@@ -3,10 +3,18 @@ import { Badge } from "@/components/ui/badge";
 
 // Varian badge DESIGN.md §3.6 — urgensi, tujuan rute, flag visum
 const URGENCY_STYLE: Record<string, string> = {
-  kritis: "bg-danger-soft text-danger border-transparent",
-  tinggi: "bg-danger-soft text-danger border-transparent",
+  kritis: "bg-danger-soft text-danger-deep border-transparent",
+  tinggi: "bg-danger-soft text-danger-deep border-transparent",
   sedang: "bg-warm-soft text-warm-deep border-transparent",
   rendah: "bg-primary-soft text-primary-ink border-transparent",
+};
+
+// Aksen garis kiri kartu — kode warna urgensi untuk pindai cepat (dari token, bukan hex)
+const URGENCY_ACCENT: Record<string, string> = {
+  kritis: "var(--danger)",
+  tinggi: "var(--danger)",
+  sedang: "var(--warm)",
+  rendah: "var(--primary-deep)",
 };
 
 export const DEST_BADGE: Record<string, { label: string; cls: string }> = {
@@ -37,28 +45,40 @@ export function ReportCard({
   destination: string;
 }) {
   const dest = DEST_BADGE[destination];
+  const urgency = report.urgencyLevel ?? "rendah";
   return (
     <Link
       href={`/bk/${report.id}`}
-      className="block rounded-[var(--radius-lg)] focus-visible:outline-2 focus-visible:outline-ring"
+      className="block rounded-[var(--radius-lg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <article className="rounded-[var(--radius-lg)] border bg-background p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <Badge className={URGENCY_STYLE[report.urgencyLevel ?? "rendah"]}>
-            {report.urgencyLevel ?? "belum terklasifikasi"}
-          </Badge>
-          {report.urgentVisum && (
-            <Badge className="border-transparent bg-danger text-white">visum urgent</Badge>
-          )}
-          {dest && <Badge className={`border-transparent ${dest.cls}`}>{dest.label}</Badge>}
-          <Badge variant="outline">{STATUS_LABEL[report.status] ?? report.status}</Badge>
-          <span className="ml-auto text-[0.8125rem] text-muted-foreground">
-            {report.createdAt.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
-          </span>
+      <article className="flex gap-4 rounded-[var(--radius-lg)] border bg-surface p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+        <span
+          className="w-1.5 shrink-0 self-stretch rounded-full"
+          style={{ background: URGENCY_ACCENT[urgency] }}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <Badge className={URGENCY_STYLE[urgency]}>
+              {report.urgencyLevel ?? "belum terklasifikasi"}
+            </Badge>
+            {report.urgentVisum && (
+              <Badge className="border-transparent bg-danger text-white">visum urgent</Badge>
+            )}
+            <span className="ml-auto text-[0.8125rem] text-muted-foreground">
+              {report.createdAt.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+            </span>
+          </div>
+
+          <p className="line-clamp-3 text-[0.9375rem] leading-relaxed text-text-soft">
+            {report.narrative ?? "(narasi belum tersusun)"}
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {dest && <Badge className={`border-transparent ${dest.cls}`}>{dest.label}</Badge>}
+            <Badge variant="outline">{STATUS_LABEL[report.status] ?? report.status}</Badge>
+          </div>
         </div>
-        <p className="line-clamp-3 text-[0.9375rem] leading-relaxed">
-          {report.narrative ?? "(narasi belum tersusun)"}
-        </p>
       </article>
     </Link>
   );

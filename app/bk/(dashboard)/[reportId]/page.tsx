@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, Route, Scale, User } from "lucide-react";
 import { auth, staffRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
@@ -12,16 +12,35 @@ import { IdentityReveal } from "@/components/bk/IdentityReveal";
 import { DEST_BADGE } from "@/components/bk/ReportCard";
 
 const URGENCY_STYLE: Record<string, string> = {
-  kritis: "bg-danger-soft text-danger",
-  tinggi: "bg-danger-soft text-danger",
+  kritis: "bg-danger-soft text-danger-deep",
+  tinggi: "bg-danger-soft text-danger-deep",
   sedang: "bg-warm-soft text-warm-deep",
   rendah: "bg-primary-soft text-primary-ink",
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+const STATUS_LABEL: Record<string, string> = {
+  terkirim: "Baru masuk",
+  ditinjau: "Sedang ditinjau",
+  selesai: "Selesai",
+};
+
+function Section({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number; "aria-hidden"?: boolean }>;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
-      <h2 className="mb-3 text-base font-semibold">{title}</h2>
+    <section className="rounded-[var(--radius-lg)] border bg-surface p-6 shadow-[var(--shadow-soft)]">
+      <h2 className="mb-4 flex items-center gap-2.5 text-base font-semibold">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft">
+          <Icon className="size-4 text-primary-ink" strokeWidth={2} aria-hidden />
+        </span>
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -51,6 +70,7 @@ export default async function ReportDetailPage({
   }
 
   const recommendations = await recommendArticles(report.narrative ?? "");
+  const urgency = report.urgencyLevel ?? "rendah";
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -61,10 +81,10 @@ export default async function ReportDetailPage({
         › #{report.referralCode?.code ?? report.id.slice(-6)}
       </nav>
 
-      <div className="sticky top-0 z-10 -mx-6 mb-6 flex items-center justify-between gap-3 bg-background/95 px-6 py-3">
+      <div className="sticky top-0 z-10 -mx-6 mb-6 flex items-center justify-between gap-3 bg-background/95 px-6 py-3 backdrop-blur">
         <Link
           href="/bk"
-          className="flex min-h-11 items-center gap-2 rounded-full border-2 px-4 text-sm font-semibold text-primary-ink hover:bg-primary-soft"
+          className="flex min-h-11 items-center gap-2 rounded-full border-2 px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
         >
           <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
           Kembali
@@ -75,22 +95,28 @@ export default async function ReportDetailPage({
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Rail sticky kiri */}
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
-            <p className="font-mono text-lg font-semibold tracking-widest text-primary-ink">
+          <div className="rounded-[var(--radius-lg)] border bg-surface p-6 shadow-[var(--shadow-soft)]">
+            <p className="text-[0.75rem] font-semibold uppercase tracking-wide text-muted-foreground">
+              Kode referensi
+            </p>
+            <p className="mt-1.5 font-mono text-2xl font-semibold tracking-widest text-primary-ink">
               {report.referralCode?.code ?? "-"}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               Masuk{" "}
               {report.createdAt.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}
             </p>
             <Badge variant="outline" className="mt-3">
-              {report.status}
+              {STATUS_LABEL[report.status] ?? report.status}
             </Badge>
           </div>
-          <div className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
-            <p className="mb-2 text-sm font-semibold">Urgensi</p>
+
+          <div className="rounded-[var(--radius-lg)] border bg-surface p-6 shadow-[var(--shadow-soft)]">
+            <p className="mb-2.5 text-[0.75rem] font-semibold uppercase tracking-wide text-muted-foreground">
+              Tingkat urgensi
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Badge className={`border-transparent ${URGENCY_STYLE[report.urgencyLevel ?? "rendah"]}`}>
+              <Badge className={`border-transparent ${URGENCY_STYLE[urgency]}`}>
                 {report.urgencyLevel ?? "belum terklasifikasi"}
               </Badge>
               {report.urgentVisum && (
@@ -102,11 +128,13 @@ export default async function ReportDetailPage({
 
         {/* Body kanan */}
         <div className="space-y-4">
-          <Section title="Narasi laporan">
-            <p className="leading-[1.65] whitespace-pre-wrap">{report.narrative ?? "(belum tersusun)"}</p>
+          <Section title="Narasi laporan" icon={FileText}>
+            <p className="leading-[1.65] whitespace-pre-wrap">
+              {report.narrative ?? "(belum tersusun)"}
+            </p>
           </Section>
 
-          <Section title="Identitas pelapor">
+          <Section title="Identitas pelapor" icon={User}>
             {!report.isAnonymous && report.identityData ? (
               <IdentityReveal reportId={report.id} />
             ) : (
@@ -116,7 +144,7 @@ export default async function ReportDetailPage({
             )}
           </Section>
 
-          <Section title="Rute laporan">
+          <Section title="Rute laporan" icon={Route}>
             <div className="space-y-3">
               {report.routingLogs.map((log) => {
                 const dest = DEST_BADGE[log.destination];
@@ -125,7 +153,7 @@ export default async function ReportDetailPage({
                     <Badge className={`border-transparent ${dest?.cls ?? ""}`}>
                       {dest?.label ?? log.destination}
                     </Badge>
-                    <p className="mt-1 text-sm text-text-soft">
+                    <p className="mt-1.5 text-sm text-text-soft">
                       {ROUTE_REASON[log.destination as RouteDestination]}
                     </p>
                   </div>
@@ -138,7 +166,7 @@ export default async function ReportDetailPage({
             </div>
           </Section>
 
-          <Section title="Rekomendasi pasal tata tertib">
+          <Section title="Rekomendasi pasal tata tertib" icon={Scale}>
             {recommendations.length === 0 ? (
               <p className="text-muted-foreground">
                 Tidak ditemukan pasal yang relevan. Rekomendasi hanya muncul bila ada kutipan asli
