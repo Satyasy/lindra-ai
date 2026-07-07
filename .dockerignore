@@ -1,7 +1,44 @@
+# Dependencies & build output — di-rebuild di dalam image
 node_modules
 .next
+out
+build
+
+# Version control & CI
 .git
+.gitignore
+.gitattributes
+.github
+
+# Env & secrets — jangan pernah masuk image
 .env
-*.docx
-DESIGN.md
+.env.*
+
+# Tooling agen & dokumentasi — tak dibutuhkan saat runtime
+.claude
+.vscode
+.idea
+*.md
+
+# File testing & coverage — tak ikut ke image produksi
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+coverage
+
+# File contoh / referensi / artefak sementara
 *.png
+*.jpg
+*.jpeg
+*.gif
+*.docx
+*.log
+.playwright-mcp
+_*.txt
+_*.mjs
+tsconfig.tsbuildinfo
+
+# Docker sendiri — tak perlu di dalam image
+Dockerfile
+.dockerignore
+docker-compose.yml

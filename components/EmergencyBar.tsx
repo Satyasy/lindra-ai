@@ -17,7 +17,9 @@ export function EmergencyBar({ title = "Sedang dalam bahaya sekarang?" }: { titl
             <a
               key={tel}
               href={`tel:${tel}`}
-              className="flex min-h-11 items-center gap-2 rounded-full bg-white/15 px-4 text-sm font-semibold hover:bg-white/25"
+              // Pil merah-tua (bg-danger-deep) + teks putih = 8.4:1 (bg-white/15 dulu
+              // hanya 3.4:1: overlay putih justru menerangkan latar di bawah teks putih)
+              className="flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-danger-deep px-4 text-sm font-semibold text-white transition-colors hover:border-white/60"
             >
               <Phone className="size-4" strokeWidth={2} aria-hidden />
               {label}

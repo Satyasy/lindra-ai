@@ -42,4 +42,14 @@ yarn-error.log*
 next-env.d.ts
 
 *.docx
+
+# gambar contoh / screenshot (referensi & artefak review, bukan aset app di /public)
 *.png
+*.jpg
+*.jpeg
+*.gif
+
+# scratch / temp sesi debugging (mis. _dev3000.txt) — jangan commit
+/_*.txt
+/_*.mjs
+*.log
