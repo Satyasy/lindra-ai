@@ -1,12 +1,31 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { ArrowLeft } from "lucide-react";
+import { auth, staffRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
 import { recommendArticles } from "@/lib/ai/recommend-policy";
-import { decryptIdentity } from "@/lib/identity-crypto";
+import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusSelect } from "@/components/bk/StatusSelect";
+import { IdentityReveal } from "@/components/bk/IdentityReveal";
+import { DEST_BADGE } from "@/components/bk/ReportCard";
+
+const URGENCY_STYLE: Record<string, string> = {
+  kritis: "bg-danger-soft text-danger",
+  tinggi: "bg-danger-soft text-danger",
+  sedang: "bg-warm-soft text-warm-deep",
+  rendah: "bg-primary-soft text-primary-ink",
+};
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
+      <h2 className="mb-3 text-base font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+}
 
 export default async function ReportDetailPage({
   params,
@@ -15,92 +34,133 @@ export default async function ReportDetailPage({
 }) {
   const { reportId } = await params;
   const session = await auth();
+  const myDestination = staffRole(session) === "satgas" ? "satgas-eksternal" : "dashboard-bk";
 
   const report = await prisma.report.findUnique({
     where: { id: reportId },
     include: { routingLogs: true, referralCode: true },
   });
-  // Hanya laporan yang memang dirutekan ke BK yang boleh dibuka di portal ini
-  const bkLog = report?.routingLogs.find((l) => l.destination === "dashboard-bk");
-  if (!report || !bkLog) notFound();
+  // Staf hanya boleh membuka laporan yang memang dirutekan ke antreannya
+  const myLog = report?.routingLogs.find((l) => l.destination === myDestination);
+  if (!report || !myLog) notFound();
 
-  // Catat pembukaan pertama saja — refresh tidak boleh membanjiri audit trail
-  if (!bkLog.openedAt) {
-    await prisma.routingLog.update({
-      where: { id: bkLog.id },
-      data: { openedAt: new Date() },
-    });
+  // Catat pembukaan pertama saja — refresh tidak membanjiri audit trail
+  if (!myLog.openedAt) {
+    await prisma.routingLog.update({ where: { id: myLog.id }, data: { openedAt: new Date() } });
     await logAction(reportId, session?.user?.email ?? "staff", "opened");
   }
 
   const recommendations = await recommendArticles(report.narrative ?? "");
-  const identity =
-    !report.isAnonymous && report.identityData
-      ? decryptIdentity(report.identityData)
-      : null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge
-          className={
-            report.urgencyLevel === "kritis"
-              ? "bg-destructive text-white"
-              : "bg-secondary text-secondary-foreground"
-          }
+    <div className="mx-auto max-w-5xl">
+      <nav className="mb-4 text-sm text-muted-foreground">
+        <Link href="/bk" className="text-primary-ink hover:underline">
+          Antrean
+        </Link>{" "}
+        › #{report.referralCode?.code ?? report.id.slice(-6)}
+      </nav>
+
+      <div className="sticky top-0 z-10 -mx-6 mb-6 flex items-center justify-between gap-3 bg-background/95 px-6 py-3">
+        <Link
+          href="/bk"
+          className="flex min-h-11 items-center gap-2 rounded-full border-2 px-4 text-sm font-semibold text-primary-ink hover:bg-primary-soft"
         >
-          {report.urgencyLevel ?? "belum terklasifikasi"}
-        </Badge>
-        {report.urgentVisum && <Badge variant="outline">visum urgent — koordinasi segera</Badge>}
-        <span className="text-sm text-muted-foreground">
-          Kode: {report.referralCode?.code ?? "-"}
-        </span>
-        <div className="ml-auto">
-          <StatusSelect reportId={report.id} status={report.status} />
-        </div>
+          <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
+          Kembali
+        </Link>
+        <StatusSelect reportId={report.id} status={report.status} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Narasi laporan</CardTitle>
-        </CardHeader>
-        <CardContent className="whitespace-pre-wrap text-sm leading-relaxed">
-          {report.narrative ?? "(belum tersusun)"}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Identitas pelapor</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm">
-          {identity ?? <span className="text-muted-foreground">Anonim — siswa memilih tidak membuka identitas.</span>}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Rekomendasi pasal tata tertib</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          {recommendations.length === 0 ? (
-            <p className="text-muted-foreground">
-              Tidak ada pasal yang cocok ditemukan. Rekomendasi hanya muncul bila benar-benar ada
-              kutipan relevan dari dokumen tata tertib — sistem tidak pernah mengarang kecocokan.
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        {/* Rail sticky kiri */}
+        <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <div className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
+            <p className="font-mono text-lg font-semibold tracking-widest text-primary-ink">
+              {report.referralCode?.code ?? "-"}
             </p>
-          ) : (
-            recommendations.map((rec) => (
-              <blockquote key={rec.chunkId} className="border-l-2 border-primary pl-3">
-                <p className="italic">&ldquo;{rec.quote}&rdquo;</p>
-                <p className="mt-1 text-muted-foreground">{rec.reasoning}</p>
-              </blockquote>
-            ))
-          )}
-          <p className="text-xs text-muted-foreground">
-            Kutipan + alasan, bukan angka final — penilaian konteks dan keputusan tetap di tangan BK.
-          </p>
-        </CardContent>
-      </Card>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Masuk{" "}
+              {report.createdAt.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}
+            </p>
+            <Badge variant="outline" className="mt-3">
+              {report.status}
+            </Badge>
+          </div>
+          <div className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
+            <p className="mb-2 text-sm font-semibold">Urgensi</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge className={`border-transparent ${URGENCY_STYLE[report.urgencyLevel ?? "rendah"]}`}>
+                {report.urgencyLevel ?? "belum terklasifikasi"}
+              </Badge>
+              {report.urgentVisum && (
+                <Badge className="border-transparent bg-danger text-white">visum urgent</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Body kanan */}
+        <div className="space-y-4">
+          <Section title="Narasi laporan">
+            <p className="leading-[1.65] whitespace-pre-wrap">{report.narrative ?? "(belum tersusun)"}</p>
+          </Section>
+
+          <Section title="Identitas pelapor">
+            {!report.isAnonymous && report.identityData ? (
+              <IdentityReveal reportId={report.id} />
+            ) : (
+              <p className="text-muted-foreground">
+                Anonim — siswa memilih tidak membuka identitas.
+              </p>
+            )}
+          </Section>
+
+          <Section title="Rute laporan">
+            <div className="space-y-3">
+              {report.routingLogs.map((log) => {
+                const dest = DEST_BADGE[log.destination];
+                return (
+                  <div key={log.id}>
+                    <Badge className={`border-transparent ${dest?.cls ?? ""}`}>
+                      {dest?.label ?? log.destination}
+                    </Badge>
+                    <p className="mt-1 text-sm text-text-soft">
+                      {ROUTE_REASON[log.destination as RouteDestination]}
+                    </p>
+                  </div>
+                );
+              })}
+              <p className="text-[0.8125rem] text-muted-foreground">
+                Rute ditentukan aturan business logic yang bisa diaudit — bukan keputusan AI, dan
+                bukan rekomendasi yang perlu disetujui.
+              </p>
+            </div>
+          </Section>
+
+          <Section title="Rekomendasi pasal tata tertib">
+            {recommendations.length === 0 ? (
+              <p className="text-muted-foreground">
+                Tidak ditemukan pasal yang relevan. Rekomendasi hanya muncul bila ada kutipan asli
+                dari dokumen tata tertib — sistem tidak pernah mengarang kecocokan.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recommendations.map((rec) => (
+                  <blockquote key={rec.chunkId} className="border-l-2 border-primary pl-3">
+                    <p className="italic">&ldquo;{rec.quote}&rdquo;</p>
+                    <p className="mt-1 text-sm text-text-soft">{rec.reasoning}</p>
+                  </blockquote>
+                ))}
+              </div>
+            )}
+            <p className="mt-3 text-[0.8125rem] text-muted-foreground">
+              Kutipan + alasan, bukan angka final — penilaian konteks dan keputusan tetap di tangan
+              staf.
+            </p>
+          </Section>
+        </div>
+      </div>
     </div>
   );
 }

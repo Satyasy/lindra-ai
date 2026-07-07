@@ -46,35 +46,70 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Ekspos token Lindra sebagai utility Tailwind (bg-ink, text-primary-ink, dst.) */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+  --color-warm: var(--warm);
+  --color-warm-deep: var(--warm-deep);
+  --color-warm-soft: var(--warm-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-warm: var(--surface-warm);
+  --color-text-soft: var(--text-soft);
 }
 
-/* Lindra palette — calm cyan/teal, trauma-informed: no alarm colors in normal UI,
-   destructive red reserved exclusively for genuine crisis signals */
+/* Lindra tokens — DESIGN.md §2: krem lembut + mint + anchor hijau tua.
+   Mint hanya untuk bidang/isian, teks di atasnya SELALU ink (bukan putih).
+   Merah lembut (--danger) HANYA untuk sinyal krisis sungguhan. Tanpa dark mode. */
 :root {
-  --background: #f7fcfd;
-  --foreground: #164e63;
-  --card: #ffffff;
-  --card-foreground: #164e63;
-  --popover: #ffffff;
-  --popover-foreground: #164e63;
-  --primary: #0891b2;
-  --primary-foreground: #ffffff;
-  --secondary: #e0f5f9;
-  --secondary-foreground: #155e75;
-  --muted: #e8f1f6;
-  --muted-foreground: #52768a;
-  --accent: #ccf1f6;
-  --accent-foreground: #155e75;
-  --destructive: #dc2626;
-  --border: #d3e9f0;
-  --input: #d3e9f0;
-  --ring: #0891b2;
+  --background: #fafafa;
+  --foreground: #1f3a34;
+  --card: #fafafa;
+  --card-foreground: #1f3a34;
+  --popover: #fafafa;
+  --popover-foreground: #1f3a34;
+  --primary: #6dcdb3;
+  --primary-foreground: #1f3a34;
+  --secondary: #eef3ec;
+  --secondary-foreground: #2c4a43;
+  --muted: #eef3ec;
+  --muted-foreground: #7a9089;
+  --accent: #ddf4ef;
+  --accent-foreground: #276b57;
+  --destructive: #c25b4e;
+  --border: #d9e7de;
+  --input: #d9e7de;
+  --ring: #3fa88b;
+
+  /* Token khusus Lindra (DESIGN.md §2.1) */
+  --ink: #1f3a34;
+  --ink-2: #2c4a43;
+  --primary-deep: #3fa88b;
+  --primary-soft: #ddf4ef;
+  --primary-ink: #276b57;
+  --warm: #d9773d;
+  --warm-deep: #b85c2a;
+  --warm-soft: #fbe3d2;
+  --danger: #c25b4e;
+  --danger-soft: #f3dad4;
+  --success: #3fa88b;
+  --surface-alt: #eef3ec;
+  --surface-warm: #f3edd7;
+  --text-soft: #4b665f;
+  --shadow-soft: 0 4px 20px rgba(31, 58, 52, 0.08);
+  --shadow-lift: 0 14px 40px rgba(31, 58, 52, 0.16);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 1.5rem; /* lg 24px (DESIGN.md); md~19, sm~14 */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -85,39 +120,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
 
 @layer base {
   * {
@@ -125,11 +127,28 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 1.0625rem; /* 17px — kenyamanan saat cemas (DESIGN.md §2.2) */
+    line-height: 1.65;
   }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
   }
   html {
     @apply font-sans;
+  }
+  h1 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.06; }
+  h2 { font-weight: 700; letter-spacing: -0.02em; }
+  h3 { font-weight: 600; letter-spacing: -0.01em; }
+  :focus-visible {
+    outline: 2.5px solid #3fa88b;
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

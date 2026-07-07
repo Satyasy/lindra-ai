@@ -2,55 +2,81 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowUp, BookOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, BookOpen, LogOut, X } from "lucide-react";
+import { EmergencyBar } from "@/components/EmergencyBar";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type Phase = "opening" | "gathering" | "ready" | "danger";
 
+// Transparansi AI (DESIGN.md §1.3): Lindra memperkenalkan diri sebagai AI,
+// bukan manusia, bukan layanan darurat, dan siswa pegang kendali
 const OPENING =
-  "hai! aku Lindra. apa pun yang lagi kamu pikirin atau alami, kamu bisa cerita di sini — pelan-pelan aja, aku dengerin.";
+  "hai, aku Lindra — aku AI, bukan manusia, dan bukan layanan darurat. " +
+  "apa pun yang lagi kamu pikirin atau alami, kamu bisa cerita di sini dengan caramu sendiri. " +
+  "kamu yang pegang kendali: bisa berhenti kapan aja, dan nggak ada yang dikirim sebelum kamu setuju.";
+
+const CHIPS = [
+  { label: "Aku ingin membuat laporan", danger: false },
+  { label: "Aku butuh informasi dulu", danger: false },
+  { label: "Aku cuma ingin didengar", danger: false },
+  { label: "Aku sedang dalam bahaya", danger: true },
+];
+
+function TypingIndicator() {
+  return (
+    <div
+      className="max-w-[80%] self-start rounded-[var(--radius-md)] rounded-bl-[var(--radius-sm)] border bg-background px-6 py-4"
+      aria-label="Lindra sedang menulis"
+    >
+      {/* fallback teks untuk reduced-motion (DESIGN.md §2.4) */}
+      <span className="hidden text-sm text-text-soft motion-reduce:inline">
+        Lindra sedang menulis…
+      </span>
+      <span className="flex gap-1.5 motion-reduce:hidden" aria-hidden>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="size-2 animate-bounce rounded-full bg-muted-foreground"
+            style={{ animationDelay: `${i * 150}ms` }}
+          />
+        ))}
+      </span>
+    </div>
+  );
+}
 
 export function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", content: OPENING }]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [showNudge, setShowNudge] = useState(false);
+  const [phase, setPhase] = useState<Phase>("opening");
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, phase]);
 
-  // Banner ajakan halus di titik jeda alami (bukan modal): muncul setelah
-  // beberapa giliran cerita + 6 detik tanpa aktivitas
-  function armNudge(turnCount: number) {
-    if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
-    if (turnCount >= 2 && !nudgeDismissed) {
-      nudgeTimer.current = setTimeout(() => setShowNudge(true), 6000);
-    }
-  }
-
-  async function send() {
-    const text = input.trim();
-    if (!text || sending) return;
+  async function send(text: string, panic = false) {
+    if (!text.trim() || sending) return;
     setInput("");
     setSending(true);
-    setShowNudge(false);
     if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
-    setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
+    if (phase === "ready") setPhase("gathering");
+    setMessages((m) => [...m, { role: "user", content: text }]);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, panic: panic || undefined }),
       });
       if (!res.body) throw new Error("no stream");
 
+      setMessages((m) => [...m, { role: "assistant", content: "" }]);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -63,7 +89,7 @@ export function ChatScreen() {
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const event = JSON.parse(line.slice(6));
-          if (event.type === "session") setSessionId(event.id);
+          if (event.type === "crisis") setPhase("danger");
           if (event.type === "text") {
             setMessages((m) => {
               const next = [...m];
@@ -77,72 +103,100 @@ export function ChatScreen() {
         }
       }
     } catch {
-      setMessages((m) => {
-        const next = [...m];
-        next[next.length - 1] = {
-          role: "assistant",
-          content: "maaf, sambungannya lagi bermasalah. coba kirim lagi ya.",
-        };
-        return next;
-      });
+      setMessages((m) => [
+        ...m.filter((x, i) => !(i === m.length - 1 && x.role === "assistant" && !x.content)),
+        { role: "assistant", content: "maaf, sambungannya lagi bermasalah. coba kirim lagi ya." },
+      ]);
     } finally {
       setSending(false);
+      // Titik jeda alami: beberapa giliran cerita + 6 detik tanpa aktivitas
       setMessages((m) => {
-        armNudge(m.filter((x) => x.role === "user").length);
+        const turns = m.filter((x) => x.role === "user").length;
+        setPhase((p) => {
+          if (p === "danger") return p;
+          if (turns >= 2 && !nudgeDismissed) {
+            nudgeTimer.current = setTimeout(() => setPhase("ready"), 6000);
+          }
+          return "gathering";
+        });
         return m;
       });
     }
   }
 
+  function chipClick(chip: (typeof CHIPS)[number]) {
+    if (chip.danger) setPhase("danger");
+    send(chip.label, chip.danger);
+  }
+
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* Header netral — judul tidak mengungkap fungsi aplikasi */}
-      <header className="flex items-center justify-between border-b bg-card px-4 py-3">
-        <h1 className="text-base font-semibold text-foreground">Catatan Harian</h1>
-        {/* Keluar cepat: instan, tanpa loading state, replace() agar tak tercatat di riwayat */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => window.location.replace("https://www.google.com")}
-          aria-label="Keluar cepat dari halaman ini"
-        >
-          <LogOut className="size-4" aria-hidden />
-          Keluar cepat
-        </Button>
+      {/* Judul netral, bukan "Lindra" (DESIGN.md §1.4) */}
+      <header className="flex items-center gap-2 border-b bg-background px-4 py-3">
+        <BookOpen className="size-5 text-primary-ink" strokeWidth={2} aria-hidden />
+        <h1 className="text-base font-semibold">Catatan Harian</h1>
       </header>
 
-      {/* Percakapan */}
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={
-              m.role === "assistant"
-                ? "max-w-[85%] self-start rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground whitespace-pre-wrap"
-                : "max-w-[85%] self-end rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground whitespace-pre-wrap"
-            }
-          >
-            {m.content || "…"}
-          </div>
-        ))}
-        <div ref={bottomRef} />
-      </main>
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 overflow-y-auto px-4 py-5 pb-8">
+        {messages.map((m, i) =>
+          m.role === "assistant" && !m.content && sending ? null : (
+            <div
+              key={i}
+              className={
+                m.role === "assistant"
+                  ? "max-w-[80%] self-start rounded-[var(--radius-md)] rounded-bl-[var(--radius-sm)] border bg-background px-6 py-4 leading-relaxed whitespace-pre-wrap shadow-[var(--shadow-soft)]"
+                  : "max-w-[80%] self-end rounded-[var(--radius-md)] rounded-br-[var(--radius-sm)] bg-primary px-6 py-4 leading-relaxed whitespace-pre-wrap text-ink"
+              }
+            >
+              {m.content}
+            </div>
+          )
+        )}
+        {sending && <TypingIndicator />}
 
-      {/* Banner ajakan halus — bisa ditutup, bukan pop-up */}
-      {showNudge && sessionId && (
-        <div className="mx-auto w-full max-w-2xl px-4 pb-2">
-          <div className="flex items-center gap-3 rounded-xl border bg-secondary px-4 py-3 text-sm text-secondary-foreground">
-            <BookOpen className="size-4 shrink-0" aria-hidden />
+        {/* Quick-reply chips di pembuka */}
+        {phase === "opening" && !sending && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {CHIPS.map((chip) => (
+              <button
+                key={chip.label}
+                onClick={() => chipClick(chip)}
+                className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors ${
+                  chip.danger
+                    ? "border-danger/40 bg-danger-soft text-danger hover:bg-danger hover:text-white"
+                    : "bg-background text-primary-ink hover:bg-primary-soft"
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Fase danger: EmergencyBar inline, tanpa jeda/loading */}
+        {phase === "danger" && (
+          <div className="pt-2">
+            <EmergencyBar />
+          </div>
+        )}
+
+        {/* Banner ajakan halus inline di titik jeda alami — bukan modal */}
+        {phase === "ready" && (
+          <div className="flex items-center gap-3 rounded-[var(--radius-md)] border bg-surface-alt px-5 py-4 text-sm">
             <p className="flex-1">
-              Ceritamu sudah mulai tersusun. Mau lihat drafnya? Tidak harus dikirim sekarang.
+              Kayaknya ceritamu udah cukup buat disusun jadi draf. Mau lihat? Kamu tetap bisa lanjut
+              cerita kapan aja.
             </p>
-            <Button size="sm" variant="outline" onClick={() => router.push(`/draft/${sessionId}`)}>
+            <Button
+              onClick={() => router.push("/draft")}
+              className="min-h-11 rounded-full px-5 font-semibold"
+            >
               Lihat draf
             </Button>
             <button
               onClick={() => {
-                setShowNudge(false);
                 setNudgeDismissed(true);
+                setPhase("gathering");
               }}
               aria-label="Tutup ajakan"
               className="text-muted-foreground hover:text-foreground"
@@ -150,16 +204,16 @@ export function ChatScreen() {
               <X className="size-4" aria-hidden />
             </button>
           </div>
-        </div>
-      )}
+        )}
+        <div ref={bottomRef} />
+      </main>
 
-      {/* Input */}
-      <footer className="border-t bg-card px-4 py-3">
+      <footer className="border-t bg-background px-4 py-3 max-sm:pb-16">
         <form
-          className="mx-auto flex w-full max-w-2xl items-end gap-2"
+          className="mx-auto flex w-full max-w-[680px] items-end gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            send();
+            send(input);
           }}
         >
           <textarea
@@ -168,18 +222,27 @@ export function ChatScreen() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                send();
+                send(input);
               }
             }}
-            placeholder="Tulis ceritamu di sini…"
+            placeholder="Tulis dengan caramu sendiri…"
             rows={1}
             aria-label="Tulis pesan"
-            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border bg-background px-4 py-2.5 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="max-h-32 min-h-12 flex-1 resize-none rounded-full border bg-background px-5 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <Button type="submit" size="icon" disabled={sending || !input.trim()} aria-label="Kirim pesan" className="size-11 rounded-xl">
-            <ArrowUp className="size-5" aria-hidden />
+          <Button
+            type="submit"
+            size="icon"
+            disabled={sending || !input.trim()}
+            aria-label="Kirim pesan"
+            className="size-12 rounded-full bg-primary text-ink hover:bg-primary-deep"
+          >
+            <ArrowUp className="size-5" strokeWidth={2} aria-hidden />
           </Button>
         </form>
+        <p className="mx-auto mt-2 w-full max-w-[680px] text-center text-xs text-muted-foreground">
+          Bisa berhenti sebentar kapan saja — ceritamu tersimpan di perangkat ini.
+        </p>
       </footer>
     </div>
   );

@@ -21,6 +21,18 @@ export interface RoutingResult {
   urgentVisum: boolean;
 }
 
+// Transparansi rute (DESIGN.md §1.11) — alasan singkat per tujuan,
+// ditampilkan ke siswa di konfirmasi dan ke staf di detail laporan
+export const ROUTE_REASON: Record<RouteDestination, string> = {
+  "dashboard-bk": "Laporanmu diteruskan ke guru BK sekolahmu untuk ditindaklanjuti.",
+  "satgas-eksternal":
+    "Karena melibatkan pihak sekolah atau lintas sekolah, laporanmu diteruskan ke Satgas eksternal — bukan BK sekolahmu.",
+  sapa129:
+    "Laporanmu diteruskan ke SAPA 129, layanan nasional perlindungan anak — jalur yang tidak bergantung pada sekolah.",
+  "eskalasi-darurat":
+    "Ceritamu menunjukkan keadaan darurat, jadi laporanmu masuk jalur eskalasi tercepat.",
+};
+
 export function determineRoute(report: RoutableReport): RoutingResult {
   // Aturan 5 — kekerasan seksual: flag visum urgent, berlaku di rute mana pun
   const urgentVisum = report.violenceType.includes("seksual");

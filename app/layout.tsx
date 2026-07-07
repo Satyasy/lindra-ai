@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
+// SELF-HOST (DESIGN.md §1.5) — tanpa CDN font pihak ketiga,
+// kunjungan siswa tidak boleh bocor ke luar
+const generalSans = localFont({
+  src: [
+    { path: "../public/fonts/GeneralSans-Regular.woff2", weight: "400" },
+    { path: "../public/fonts/GeneralSans-Medium.woff2", weight: "500" },
+    { path: "../public/fonts/GeneralSans-Semibold.woff2", weight: "600" },
+    { path: "../public/fonts/GeneralSans-Bold.woff2", weight: "700" },
+  ],
+  display: "swap",
   variable: "--font-sans",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Lindra",
-  description: "Satu pintu aman untuk bercerita dan mendapat bantuan yang tepat",
+  description: "Satu pintu masuk untuk cerita yang tidak tahu harus dibawa ke mana.",
 };
 
 export default function RootLayout({
@@ -18,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${jakarta.variable} h-full antialiased`}>
+    <html lang="id" className={`${generalSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

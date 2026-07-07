@@ -16,7 +16,7 @@ const encoder = new TextEncoder();
 const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
 
 export async function POST(request: Request) {
-  const { message } = await request.json();
+  const { message, panic } = await request.json();
   if (typeof message !== "string" || !message.trim()) {
     return Response.json({ error: "message wajib diisi" }, { status: 400 });
   }
@@ -37,8 +37,13 @@ export async function POST(request: Request) {
   const transcript = (report.rawTranscript as unknown as TranscriptTurn[]) ?? [];
   transcript.push({ role: "user", content: message, ts: new Date().toISOString() });
 
-  // Tier 1 SEBELUM model utama — krisis skip semua tahap normal
-  const crisis = detectCrisisSignal(message);
+  // Tier 1 SEBELUM model utama — krisis skip semua tahap normal.
+  // panic=true: siswa menekan chip "Aku sedang dalam bahaya" — deklarasi
+  // eksplisit, diperlakukan sama dengan deteksi otomatis
+  const crisis =
+    panic === true
+      ? { isCrisis: true, matchedCategory: "panic-button" }
+      : detectCrisisSignal(message);
 
   const stream = new ReadableStream({
     async start(controller) {

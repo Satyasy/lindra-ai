@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const staff = await prisma.staffAccount.findUnique({ where: { email } });
         if (!staff || !verifyPassword(password, staff.passwordHash)) return null;
 
-        return { id: staff.id, name: staff.name, email: staff.email };
+        return { id: staff.id, name: staff.name, email: staff.email, role: staff.role };
       },
     }),
   ],
@@ -32,5 +32,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (pathname.startsWith("/bk")) return !!auth;
       return true;
     },
+    jwt({ token, user }) {
+      if (user) token.role = (user as { role?: string }).role;
+      return token;
+    },
+    session({ session, token }) {
+      if (session.user) (session.user as { role?: string }).role = token.role as string;
+      return session;
+    },
   },
 });
+
+// Role staf dari session — satu tempat casting, dua peran saja (bk | satgas)
+export function staffRole(session: { user?: object } | null): "bk" | "satgas" {
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  return role === "satgas" ? "satgas" : "bk";
+}

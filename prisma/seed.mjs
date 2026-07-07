@@ -9,16 +9,16 @@ function hashPassword(password) {
   return `${salt.toString("hex")}:${scryptSync(password, salt, 64).toString("hex")}`;
 }
 
-const staff = await prisma.staffAccount.upsert({
-  where: { email: "bk@sekolah.sch.id" },
-  update: {},
-  create: {
-    name: "Bu Rina (BK)",
-    email: "bk@sekolah.sch.id",
-    passwordHash: hashPassword("lindra-demo"),
-    role: "bk",
-  },
-});
-console.log(`Seeded staff: ${staff.email} (password: lindra-demo)`);
+for (const acc of [
+  { name: "Bu Rina (BK)", email: "bk@sekolah.sch.id", role: "bk" },
+  { name: "Pak Dimas (Satgas)", email: "satgas@disdik.go.id", role: "satgas" },
+]) {
+  await prisma.staffAccount.upsert({
+    where: { email: acc.email },
+    update: {},
+    create: { ...acc, passwordHash: hashPassword("lindra-demo") },
+  });
+  console.log(`Seeded staff: ${acc.email} (password: lindra-demo)`);
+}
 
 await prisma.$disconnect();

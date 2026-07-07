@@ -55,6 +55,12 @@ export default function LandingPage() {
           <span className="font-medium text-foreground">SAPA 129</span> (telepon 129 / WhatsApp
           08111-129-129).
         </p>
+
+        <footer className="mt-10 border-t pt-6 text-sm">
+          <a href="/bk/login" className="font-medium text-primary-ink underline underline-offset-4">
+            Untuk BK/Satgas sekolah
+          </a>
+        </footer>
       </main>
     </div>
   );
