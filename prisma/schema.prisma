@@ -1,0 +1,120 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL") // role aplikasi (lindra_app) — tanpa hak UPDATE/DELETE audit_log
+  directUrl  = env("DIRECT_DATABASE_URL") // superuser — hanya untuk migrasi
+  extensions = [vector]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+// Jantung sistem — narasi terstruktur + klasifikasi + status.
+// Transkrip chat siswa disimpan sebagai rawTranscript Json (bukan tabel terpisah)
+// supaya jumlah tabel tetap 9 sesuai rancangan.
+model Report {
+  id               String   @id @default(cuid())
+  isAnonymous      Boolean  @default(true)
+  identityData     Bytes? // blob AES-256-GCM, null kecuali "kirim dengan nama"
+  rawTranscript    Json? // [{role, content, ts}]
+  narrative        String?
+  urgencyLevel     String? // rendah | sedang | tinggi | kritis
+  perpetratorRole  String? // siswa | guru-staf | orangtua-wali
+  locationCategory String? // dalam-sekolah | lintas-sekolah
+  violenceType     String[]
+  urgentVisum      Boolean  @default(false)
+  status           String   @default("draft") // draft -> terkirim -> ditinjau -> selesai
+  contentHash      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  referralCode ReferralCode?
+  routingLogs  RoutingLog[]
+  followups    Followup[]
+  auditLogs    AuditLog[]
+  chatThreads  ChatThread[]
+}
+
+model RoutingLog {
+  id          String    @id @default(cuid())
+  reportId    String
+  report      Report    @relation(fields: [reportId], references: [id])
+  destination String // dashboard-bk | satgas-eksternal | sapa129 | eskalasi-darurat
+  hashAtSend  String
+  openedAt    DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// Kode yang dipegang siswa untuk cek status tanpa membuka identitas
+model ReferralCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  reportId  String   @unique
+  report    Report   @relation(fields: [reportId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// Ada untuk desain SLA/follow-up ke depan — scheduler-nya di luar scope sprint 24 jam
+model Followup {
+  id          String    @id @default(cuid())
+  reportId    String
+  report      Report    @relation(fields: [reportId], references: [id])
+  scheduledAt DateTime
+  slaStatus   String    @default("pending") // pending | on-track | breached | done
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// Append-only, ditegakkan lewat REVOKE UPDATE/DELETE di level database (lihat migration)
+model AuditLog {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  actor     String // staff id atau 'system'
+  action    String // created | sent | opened | status-changed
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@map("audit_log")
+}
+
+model StaffAccount {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String // format scrypt "salt:hash"
+  role         String // bk | satgas — sengaja hanya 2, bukan RBAC penuh
+  createdAt    DateTime     @default(now())
+  chatThreads  ChatThread[]
+}
+
+// ChatThread/ChatMessage untuk pendampingan asinkron BK (UI di luar scope 24 jam)
+model ChatThread {
+  id        String        @id @default(cuid())
+  reportId  String?
+  report    Report?       @relation(fields: [reportId], references: [id])
+  staffId   String?
+  staff     StaffAccount? @relation(fields: [staffId], references: [id])
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id])
+  sender    String // student | staff
+  content   String
+  createdAt DateTime   @default(now())
+}
+
+// Potongan dokumen tata tertib + embedding untuk pipeline RAG.
+// Dimensi vector harus sinkron dengan EMBEDDING_DIMENSION di lib/config.ts.
+model SchoolPolicyChunk {
+  id            String                       @id @default(cuid())
+  documentTitle String
+  content       String
+  embedding     Unsupported("vector(1536)")?
+  createdAt     DateTime                     @default(now())
+}
