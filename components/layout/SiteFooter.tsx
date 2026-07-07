@@ -15,7 +15,7 @@ export function SiteFooter() {
     <footer className="bg-ink text-on-ink">
       <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         {/* Baris editorial atas — lapang, banyak whitespace */}
-        <div className="flex flex-col gap-4 border-b border-white/[0.12] pb-12">
+        <div className="flex flex-col gap-4 border-b border-[color-mix(in_srgb,var(--on-ink)_16%,transparent)] pb-12">
           <p className="text-[clamp(2rem,4vw,3rem)] font-extrabold leading-none tracking-[-0.02em] text-on-ink-strong">
             Lindra
           </p>
@@ -70,7 +70,7 @@ export function SiteFooter() {
         </div>
 
         {/* Baris bawah */}
-        <div className="border-t border-white/[0.12] pt-6 text-sm text-on-ink">
+        <div className="border-t border-[color-mix(in_srgb,var(--on-ink)_16%,transparent)] pt-6 text-sm text-on-ink">
           © Lindra — layanan independen. Bukan pengganti layanan darurat.
         </div>
       </div>
