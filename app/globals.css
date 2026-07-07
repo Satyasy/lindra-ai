@@ -1,154 +1,219 @@
+/* ============================================================
+   Lindra — globals.css (design tokens)
+   Sumber nilai: .claude/skills/lindra-design/design.md §2
+   Semua komponen shadcn membaca var shadcn di :root ini,
+   sehingga output otomatis ber-tone Lindra tanpa hardcode.
+   TIDAK ADA dark mode — satu tema terang saja.
+   ============================================================ */
+
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
+/* Ekspos token :root sebagai utility Tailwind v4 (bg-danger, text-ink,
+   text-primary-ink, border-border, dst.). `inline` menaruh referensi var()
+   langsung ke utility — nilainya tetap dibaca dari :root di bawah.
+   TANPA blok ini, SEMUA warna token mati (bg-primary/bg-danger/... jadi
+   no-op) dan seluruh app kehilangan warna. Jangan hapus. */
 @theme inline {
+  --font-sans: var(--font-sans);
+
+  /* shadcn → token Lindra */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Ekspos token Lindra sebagai utility Tailwind (bg-ink, text-primary-ink, dst.) */
+  /* Token merek Lindra (DESIGN.md §2.1) */
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-primary-deep: var(--primary-deep);
   --color-primary-soft: var(--primary-soft);
   --color-primary-ink: var(--primary-ink);
+  --color-primary-bright: var(--primary-bright);
   --color-warm: var(--warm);
   --color-warm-deep: var(--warm-deep);
   --color-warm-soft: var(--warm-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
+  --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
   --color-surface-warm: var(--surface-warm);
   --color-text-soft: var(--text-soft);
+
+  /* Teks terang di atas --ink (footer editorial) */
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-strong: var(--on-ink-strong);
 }
 
-/* Lindra tokens — DESIGN.md §2: krem lembut + mint + anchor hijau tua.
-   Mint hanya untuk bidang/isian, teks di atasnya SELALU ink (bukan putih).
-   Merah lembut (--danger) HANYA untuk sinyal krisis sungguhan. Tanpa dark mode. */
 :root {
-  --background: #fafafa;
-  --foreground: #1f3a34;
-  --card: #fafafa;
-  --card-foreground: #1f3a34;
-  --popover: #fafafa;
-  --popover-foreground: #1f3a34;
-  --primary: #6dcdb3;
-  --primary-foreground: #1f3a34;
-  --secondary: #eef3ec;
-  --secondary-foreground: #2c4a43;
-  --muted: #eef3ec;
-  --muted-foreground: #7a9089;
-  --accent: #ddf4ef;
-  --accent-foreground: #276b57;
-  --destructive: #c25b4e;
-  --border: #d9e7de;
-  --input: #d9e7de;
-  --ring: #3fa88b;
+  /* ---- Token merek Lindra (dipakai langsung di komponen custom) ---- */
+  --bg: #FAFAFA;
+  --surface: #FAFAFA;
+  --surface-alt: #EEF3EC;      /* kartu tint mint: chip kode, baris antrean */
+  --surface-warm: #F3EDD7;     /* momen hangat: kartu jadwal, kronologi */
+  --surface-peach: #FFC4AF;    /* DEKORATIF saja */
 
-  /* Token khusus Lindra (DESIGN.md §2.1) */
-  --ink: #1f3a34;
-  --ink-2: #2c4a43;
-  --primary-deep: #3fa88b;
-  --primary-soft: #ddf4ef;
-  --primary-ink: #276b57;
-  --warm: #d9773d;
-  --warm-deep: #b85c2a;
-  --warm-soft: #fbe3d2;
-  --danger: #c25b4e;
-  --danger-soft: #f3dad4;
-  --success: #3fa88b;
-  --surface-alt: #eef3ec;
-  --surface-warm: #f3edd7;
-  --text-soft: #4b665f;
+  --ink: #1F3A34;              /* anchor hijau tua */
+  --ink-2: #2C4A43;
+
+  --primary: #6DCDB3;          /* mint — bidang/isian */
+  --primary-deep: #3FA88B;     /* hover primer, focus ring */
+  --primary-soft: #DDF4EF;     /* latar lembut: badge, ring timeline */
+  --primary-ink: #276B57;      /* teks/link merek di latar terang (4.5:1) */
+  --primary-bright: #74DBBF;   /* mint terang — band emosional full-bleed */
+
+  --warm: #D9773D;             /* aksen kehati-hatian / urgensi sedang */
+  --warm-deep: #B85C2A;
+  --warm-soft: #FBE3D2;
+  --warm-butter: #FFED78;      /* DEKORATIF saja */
+
+  --text: #1F3A34;
+  --text-soft: #4B665F;
+  --text-muted: #7A9089;
+
+  --danger: #C25B4E;           /* HANYA sinyal krisis */
+  --danger-soft: #F3DAD4;
+  --success: #3FA88B;
+  --online: #3FA88B;
+  --offline: #B0BEB9;
+
+  --border: #D9E7DE;           /* garis hijau-lembut, bukan abu */
+
+  /* Aksen role Portal BK (hanya 2 role) */
+  --role-bk: #8FD3C9;          /* teal */
+  --role-satgas: #F0B892;      /* warm */
+
+  /* Teks terang di atas --ink — footer editorial (kontras ≥ 4.5:1 di atas #1F3A34) */
+  --on-ink: #C9D8D2;           /* body ~8.3:1 */
+  --on-ink-strong: #F4F8F5;    /* heading ~11:1 */
+
+  /* Bayangan — selalu ber-tint hijau tua, bukan hitam */
   --shadow-soft: 0 4px 20px rgba(31, 58, 52, 0.08);
   --shadow-lift: 0 14px 40px rgba(31, 58, 52, 0.16);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 1.5rem; /* lg 24px (DESIGN.md); md~19, sm~14 */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Radius */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  /* Skala tipe */
+  --t-hero: clamp(2.5rem, 5.5vw, 3.8rem);
+  --t-h1: clamp(1.75rem, 3vw, 2.3rem);
+  --t-h2: 1.3rem;
+  --t-body: 1.0625rem;         /* 17px */
+  --t-sm: 0.9375rem;           /* 15px */
+  --t-xs: 0.8125rem;           /* 13px */
+
+  /* ---- Variabel shadcn dipetakan ke palet Lindra ----
+     cssVariables:true di components.json membuat komponen shadcn
+     membaca var ini. Jangan biarkan shadcn menimpanya dengan
+     baseColor neutral default. */
+  --background: #FAFAFA;
+  --foreground: #1F3A34;
+  --card: #FAFAFA;
+  --card-foreground: #1F3A34;
+  --popover: #FAFAFA;
+  --popover-foreground: #1F3A34;
+  --primary-foreground: #1F3A34;        /* WAJIB ink, BUKAN putih */
+  --secondary: #EEF3EC;
+  --secondary-foreground: #1F3A34;
+  --muted: #EEF3EC;
+  --muted-foreground: #7A9089;
+  --accent: #DDF4EF;
+  --accent-foreground: #276B57;
+  --destructive: #C25B4E;
+  --destructive-foreground: #FFFFFF;
+  --input: #D9E7DE;
+  --ring: #3FA88B;
+  --radius: 18px;                        /* radius-md sbg default shadcn */
 }
 
-
+/* Base — WAJIB di @layer base. Kalau tak dilayer, aturan elemen `a`/`em`
+   (unlayered) menang atas utility Tailwind (@layer utilities), sehingga
+   text-ink / text-on-ink pada <a>/<em> gagal override → warna & kontras salah
+   (mis. "Buka chat" jadi primary-ink di atas mint = 3.2:1). Layer base < utilities,
+   jadi utility menang di atas default ini. */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
-    @apply bg-background text-foreground;
-    font-size: 1.0625rem; /* 17px — kenyamanan saat cemas (DESIGN.md §2.2) */
+    background: var(--bg);
+    color: var(--text);
+    font-size: var(--t-body);
     line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    /* --font-sans di-set oleh next/font/local (General Sans) di layout */
+    font-family: var(--font-sans), system-ui, sans-serif;
   }
-  button:not(:disabled), [role="button"]:not(:disabled) {
-    cursor: pointer;
+
+  /* Focus global — selalu terlihat */
+  :focus-visible {
+    outline: 2.5px solid var(--primary-deep);
+    outline-offset: 3px;
+    border-radius: 6px;
   }
-  html {
-    @apply font-sans;
-  }
+
+  /* Heading — hierarki lewat berat + tracking, satu font */
   h1 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.06; }
   h2 { font-weight: 700; letter-spacing: -0.02em; }
   h3 { font-weight: 600; letter-spacing: -0.01em; }
-  :focus-visible {
-    outline: 2.5px solid #3fa88b;
-    outline-offset: 3px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
+
+  /* Warna link default; di-override utility text-* (mis. footer text-on-ink) */
+  a { color: var(--primary-ink); }
+
+  /* em bukan italic — warna + berat */
+  em { font-style: normal; color: var(--primary-ink); font-weight: 500; }
+}
+
+/* Smooth-scroll anchor landing (jadi auto saat reduced-motion, aturan di bawah) */
+html { scroll-behavior: smooth; }
+
+/* Reveal fade-up saat masuk viewport (DESIGN.md §2.4). State tersembunyi HANYA
+   aktif setelah JS menandai <html>.reveal-ready — tanpa JS atau saat
+   reduced-motion, konten tetap tampil penuh (aksesibilitas). */
+.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 500ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform 500ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.reveal-ready .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Kartu preview mengambang di hero — 6px, 4s (dimatikan reduced-motion di bawah) */
+@keyframes lindra-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-card { animation: lindra-float 4s ease-in-out infinite; }
+
+/* FAQ accordion native <details>: putar chevron saat terbuka */
+.faq-chevron { transition: transform 200ms ease; }
+details[open] > summary .faq-chevron { transform: rotate(180deg); }
+
+/* Hormati reduced-motion: matikan semua animasi/transisi */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
