@@ -48,17 +48,12 @@ export function PublicNavbar() {
             <Link
               key={n.href}
               href={n.href}
-              className="rounded-full px-3 py-2 text-sm font-medium text-text-soft transition-colors hover:text-ink"
+              className="flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-text-soft transition-colors hover:text-ink"
             >
               {n.label}
             </Link>
           ))}
-          <Link
-            href="/bk/login"
-            className="ml-1 flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt"
-          >
-            Masuk
-          </Link>
+          {/* Login petugas dipindah ke footer ("Untuk petugas"). Navbar hanya info + chat demo-gated. */}
           {demo && (
             <Link
               href="/chat"
@@ -95,13 +90,6 @@ export function PublicNavbar() {
                 {n.label}
               </Link>
             ))}
-            <Link
-              href="/bk/login"
-              onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center rounded-[var(--radius-sm)] px-3 font-semibold text-ink transition-colors hover:bg-surface-alt"
-            >
-              Masuk
-            </Link>
             {demo && (
               <Link
                 href="/chat"
