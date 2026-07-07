@@ -5,12 +5,14 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 
-// Timeline mengikuti status Prisma yang benar-benar dipakai:
-// terkirim -> ditinjau -> selesai (DESIGN.md §5.5 menyebut 4 label sebagai
-// asumsi kerja; 3 status inilah yang ada di skema)
+// Timeline 4 langkah sesuai DESIGN.md §5.5. key = status Report di Prisma.
+// ponytail: "ditindaklanjuti" tahap penanganan lanjut — kalau backend belum
+// mengeluarkan status ini, langkah tampil sebagai tahap berikutnya (muted).
+// Konfirmasi enum status final ke tim skema; label mengikuti §5.5.
 const STEPS = [
   { key: "terkirim", label: "Diterima", desc: "Laporanmu sudah masuk dan tercatat aman." },
   { key: "ditinjau", label: "Sedang ditinjau", desc: "Pihak yang menangani sedang membaca ceritamu." },
+  { key: "ditindaklanjuti", label: "Sedang ditindaklanjuti", desc: "Laporanmu sedang ditangani lebih lanjut." },
   { key: "selesai", label: "Selesai", desc: "Penanganan laporan ini sudah dinyatakan selesai." },
 ];
 
@@ -71,7 +73,7 @@ export default function LacakPage() {
                 <span
                   className={`z-10 flex size-7 shrink-0 items-center justify-center rounded-full ${
                     done
-                      ? "bg-success text-white"
+                      ? "bg-success text-ink"
                       : current
                         ? "bg-primary ring-4 ring-primary-soft"
                         : "bg-muted"
