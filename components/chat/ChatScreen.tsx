@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, BookOpen, X } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 
@@ -130,14 +130,10 @@ export function ChatScreen() {
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
-      {/* Judul netral, bukan "Lindra" (DESIGN.md §1.4) */}
-      <header className="flex items-center gap-2 border-b bg-background px-4 py-3">
-        <BookOpen className="size-5 text-primary-ink" strokeWidth={2} aria-hidden />
-        <h1 className="text-base font-semibold">Catatan Harian</h1>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 overflow-y-auto px-4 py-5 pb-8">
+    // Chrome (judul "Catatan Harian" + hamburger) disediakan StudentNav — ChatScreen
+    // hanya isi percakapan yang mengisi tinggi shell (flex-1, min-h-0 agar bisa scroll).
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 overflow-y-auto px-4 py-5 pb-8">
         {messages.map((m, i) =>
           m.role === "assistant" && !m.content && sending ? null : (
             <div
@@ -163,7 +159,8 @@ export function ChatScreen() {
                 onClick={() => chipClick(chip)}
                 className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors ${
                   chip.danger
-                    ? "border-danger/40 bg-danger-soft text-danger hover:bg-danger hover:text-white"
+                    ? // teks ink, bukan --danger: 14px medium butuh kontras 4.5:1 (danger/danger-soft cuma 3.2:1)
+                      "border-danger/40 bg-danger-soft text-ink hover:border-danger"
                     : "bg-background text-primary-ink hover:bg-primary-soft"
                 }`}
               >
@@ -206,7 +203,7 @@ export function ChatScreen() {
           </div>
         )}
         <div ref={bottomRef} />
-      </main>
+      </div>
 
       <footer className="border-t bg-background px-4 py-3 max-sm:pb-16">
         <form
