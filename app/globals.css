@@ -88,7 +88,9 @@
   --text-soft: #4B665F;
   --text-muted: #7A9089;
 
-  --danger: #C25B4E;           /* HANYA sinyal krisis */
+  --danger: #B84D41;           /* HANYA sinyal krisis. Digelapkan dari #C25B4E agar teks
+                                  PUTIH lulus ≥4.5:1 (dulu 4.28 — gagal): benahi EmergencyBar,
+                                  QuickExit, chip visum sekaligus (root-cause, bukan per-komponen). */
   --danger-deep: #A23E32;      /* teks danger di atas --danger-soft (≥4.5:1) — mirror --warm-deep */
   --danger-soft: #F3DAD4;
   --success: #3FA88B;
