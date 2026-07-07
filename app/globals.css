@@ -48,6 +48,7 @@
   --color-warm-deep: var(--warm-deep);
   --color-warm-soft: var(--warm-soft);
   --color-danger: var(--danger);
+  --color-danger-deep: var(--danger-deep);
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
   --color-surface: var(--surface);
@@ -63,8 +64,9 @@
 :root {
   /* ---- Token merek Lindra (dipakai langsung di komponen custom) ---- */
   --bg: #FAFAFA;
-  --surface: #FAFAFA;
-  --surface-alt: #EEF3EC;      /* kartu tint mint: chip kode, baris antrean */
+  --surface: #FFFFFF;          /* kartu/bubble putih — TERANGKAT dari --bg #FAFAFA.
+                                  (dulu #FAFAFA = sama dgn bg → semua tampak flat) */
+  --surface-alt: #EAF4EF;      /* kartu tint mint: chip kode, baris antrean, nudge */
   --surface-warm: #F3EDD7;     /* momen hangat: kartu jadwal, kronologi */
   --surface-peach: #FFC4AF;    /* DEKORATIF saja */
 
@@ -75,7 +77,7 @@
   --primary-deep: #3FA88B;     /* hover primer, focus ring */
   --primary-soft: #DDF4EF;     /* latar lembut: badge, ring timeline */
   --primary-ink: #276B57;      /* teks/link merek di latar terang (4.5:1) */
-  --primary-bright: #74DBBF;   /* mint terang — band emosional full-bleed */
+  --primary-bright: #74DBBF;   /* mint terang — band emosional, gradient bubble */
 
   --warm: #D9773D;             /* aksen kehati-hatian / urgensi sedang */
   --warm-deep: #B85C2A;
@@ -87,12 +89,13 @@
   --text-muted: #7A9089;
 
   --danger: #C25B4E;           /* HANYA sinyal krisis */
+  --danger-deep: #A23E32;      /* teks danger di atas --danger-soft (≥4.5:1) — mirror --warm-deep */
   --danger-soft: #F3DAD4;
   --success: #3FA88B;
   --online: #3FA88B;
   --offline: #B0BEB9;
 
-  --border: #D9E7DE;           /* garis hijau-lembut, bukan abu */
+  --border: #DCEAE2;           /* garis hijau-lembut, halus */
 
   /* Aksen role Portal BK (hanya 2 role) */
   --role-bk: #8FD3C9;          /* teal */
@@ -105,6 +108,7 @@
   /* Bayangan — selalu ber-tint hijau tua, bukan hitam */
   --shadow-soft: 0 4px 20px rgba(31, 58, 52, 0.08);
   --shadow-lift: 0 14px 40px rgba(31, 58, 52, 0.16);
+  --shadow-bubble: 0 2px 14px rgba(31, 58, 52, 0.06);   /* bubble AI mengambang halus */
 
   /* Radius */
   --radius-sm: 12px;
@@ -126,20 +130,20 @@
      baseColor neutral default. */
   --background: #FAFAFA;
   --foreground: #1F3A34;
-  --card: #FAFAFA;
+  --card: #FFFFFF;                       /* kartu putih terangkat (dulu #FAFAFA) */
   --card-foreground: #1F3A34;
-  --popover: #FAFAFA;
+  --popover: #FFFFFF;
   --popover-foreground: #1F3A34;
   --primary-foreground: #1F3A34;        /* WAJIB ink, BUKAN putih */
-  --secondary: #EEF3EC;
+  --secondary: #EAF4EF;
   --secondary-foreground: #1F3A34;
-  --muted: #EEF3EC;
-  --muted-foreground: #7A9089;
+  --muted: #EAF4EF;
+  --muted-foreground: #5E746C; /* digelapkan dari #6C8279 agar teks meta lulus ≥4.5:1 */
   --accent: #DDF4EF;
   --accent-foreground: #276B57;
   --destructive: #C25B4E;
   --destructive-foreground: #FFFFFF;
-  --input: #D9E7DE;
+  --input: #DCEAE2;
   --ring: #3FA88B;
   --radius: 18px;                        /* radius-md sbg default shadcn */
 }
@@ -158,6 +162,12 @@
     -webkit-font-smoothing: antialiased;
     /* --font-sans di-set oleh next/font/local (General Sans) di layout */
     font-family: var(--font-sans), system-ui, sans-serif;
+  }
+
+  /* Border default halus (bukan currentColor) supaya `border` tanpa warna
+     tidak jadi garis gelap ink. */
+  *, *::before, *::after {
+    border-color: var(--border);
   }
 
   /* Focus global — selalu terlihat */
@@ -181,6 +191,30 @@
 
 /* Smooth-scroll anchor landing (jadi auto saat reduced-motion, aturan di bawah) */
 html { scroll-behavior: smooth; }
+
+/* ============================================================
+   Chat — depth & surface hierarchy (perbaikan tampilan "pucat/jadul")
+   ============================================================ */
+
+/* Kanvas percakapan ber-tint lembut supaya bubble putih terangkat.
+   Tetap kalem (trauma-informed): mint sangat tipis, memudar ke cream kehijauan. */
+.chat-canvas {
+  background:
+    radial-gradient(130% 90% at 50% -10%, rgba(109, 205, 179, 0.14), transparent 55%),
+    linear-gradient(180deg, #FAFAFA 0%, #ECF6F0 100%);
+}
+
+/* Bubble masuk: fade + naik 6px, 200ms (DESIGN.md §2.4 — sebelumnya tak ada) */
+@keyframes lindra-bubble-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.bubble-in { animation: lindra-bubble-in 200ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+/* Bubble siswa: gradient mint (lebih kaya dari flat). Teks --ink (kontras ≥6:1). */
+.bubble-user {
+  background: linear-gradient(135deg, #74DBBF 0%, #55C4A6 100%);
+}
 
 /* Reveal fade-up saat masuk viewport (DESIGN.md §2.4). State tersembunyi HANYA
    aktif setelah JS menandai <html>.reveal-ready — tanpa JS atau saat

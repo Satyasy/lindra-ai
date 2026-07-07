@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, BookOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 
@@ -23,25 +23,38 @@ const CHIPS = [
   { label: "Aku sedang dalam bahaya", danger: true },
 ];
 
-function TypingIndicator() {
+// Avatar Lindra — lingkaran hijau tua (anchor --ink) + ikon "Catatan Harian".
+// Deep green vs bubble putih = hierarki jelas & modern; ikon putih 11:1 (aman).
+function LindraAvatar() {
   return (
     <div
-      className="max-w-[80%] self-start rounded-[var(--radius-md)] rounded-bl-[var(--radius-sm)] border bg-background px-6 py-4"
-      aria-label="Lindra sedang menulis"
+      className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-ink text-white shadow-[0_2px_8px_rgba(31,58,52,0.25)]"
+      aria-hidden
     >
-      {/* fallback teks untuk reduced-motion (DESIGN.md §2.4) */}
-      <span className="hidden text-sm text-text-soft motion-reduce:inline">
-        Lindra sedang menulis…
-      </span>
-      <span className="flex gap-1.5 motion-reduce:hidden" aria-hidden>
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="size-2 animate-bounce rounded-full bg-muted-foreground"
-            style={{ animationDelay: `${i * 150}ms` }}
-          />
-        ))}
-      </span>
+      <BookOpen className="size-4" strokeWidth={2} />
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-start gap-2.5 self-start bubble-in" aria-label="Lindra sedang menulis">
+      <LindraAvatar />
+      <div className="rounded-[1.25rem] rounded-tl-[0.4rem] border border-border/70 bg-surface px-5 py-4 shadow-[var(--shadow-bubble)]">
+        {/* fallback teks untuk reduced-motion (DESIGN.md §2.4) */}
+        <span className="hidden text-sm text-text-soft motion-reduce:inline">
+          Lindra sedang menulis…
+        </span>
+        <span className="flex gap-1.5 motion-reduce:hidden" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="size-2 animate-bounce rounded-full bg-primary-deep/70"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </span>
+      </div>
     </div>
   );
 }
@@ -132,17 +145,21 @@ export function ChatScreen() {
   return (
     // Chrome (judul "Catatan Harian" + hamburger) disediakan StudentNav — ChatScreen
     // hanya isi percakapan yang mengisi tinggi shell (flex-1, min-h-0 agar bisa scroll).
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 overflow-y-auto px-4 py-5 pb-8">
+    // chat-canvas: kanvas ber-tint lembut supaya bubble putih terangkat.
+    <div className="chat-canvas flex min-h-0 flex-1 flex-col">
+      <div className="mx-auto flex w-full max-w-[720px] flex-1 flex-col gap-4 overflow-y-auto px-4 py-6 pb-8">
         {messages.map((m, i) =>
-          m.role === "assistant" && !m.content && sending ? null : (
+          m.role === "assistant" && !m.content && sending ? null : m.role === "assistant" ? (
+            <div key={i} className="flex max-w-[88%] items-start gap-2.5 self-start bubble-in">
+              <LindraAvatar />
+              <div className="rounded-[1.25rem] rounded-tl-[0.4rem] border border-border/70 bg-surface px-5 py-3.5 leading-relaxed whitespace-pre-wrap text-text shadow-[var(--shadow-bubble)]">
+                {m.content}
+              </div>
+            </div>
+          ) : (
             <div
               key={i}
-              className={
-                m.role === "assistant"
-                  ? "max-w-[80%] self-start rounded-[var(--radius-md)] rounded-bl-[var(--radius-sm)] border bg-background px-6 py-4 leading-relaxed whitespace-pre-wrap shadow-[var(--shadow-soft)]"
-                  : "max-w-[80%] self-end rounded-[var(--radius-md)] rounded-br-[var(--radius-sm)] bg-primary px-6 py-4 leading-relaxed whitespace-pre-wrap text-ink"
-              }
+              className="bubble-user bubble-in max-w-[82%] self-end rounded-[1.25rem] rounded-br-[0.4rem] px-5 py-3.5 leading-relaxed whitespace-pre-wrap text-ink shadow-[0_3px_16px_rgba(63,168,139,0.28)]"
             >
               {m.content}
             </div>
@@ -152,16 +169,16 @@ export function ChatScreen() {
 
         {/* Quick-reply chips di pembuka */}
         {phase === "opening" && !sending && (
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1 pl-[2.625rem]">
             {CHIPS.map((chip) => (
               <button
                 key={chip.label}
                 onClick={() => chipClick(chip)}
-                className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors ${
+                className={`min-h-11 rounded-full border px-4 text-sm font-medium shadow-[0_1px_6px_rgba(31,58,52,0.05)] transition-all hover:-translate-y-0.5 ${
                   chip.danger
                     ? // teks ink, bukan --danger: 14px medium butuh kontras 4.5:1 (danger/danger-soft cuma 3.2:1)
                       "border-danger/40 bg-danger-soft text-ink hover:border-danger"
-                    : "bg-background text-primary-ink hover:bg-primary-soft"
+                    : "border-border bg-surface text-primary-ink hover:border-primary/50 hover:bg-primary-soft"
                 }`}
               >
                 {chip.label}
@@ -179,7 +196,7 @@ export function ChatScreen() {
 
         {/* Banner ajakan halus inline di titik jeda alami — bukan modal */}
         {phase === "ready" && (
-          <div className="flex items-center gap-3 rounded-[var(--radius-md)] border bg-surface-alt px-5 py-4 text-sm">
+          <div className="bubble-in flex items-center gap-3 rounded-[var(--radius-md)] border border-primary/25 bg-surface px-5 py-4 text-sm shadow-[var(--shadow-soft)]">
             <p className="flex-1">
               Kayaknya ceritamu udah cukup buat disusun jadi draf. Mau lihat? Kamu tetap bisa lanjut
               cerita kapan aja.
@@ -205,9 +222,9 @@ export function ChatScreen() {
         <div ref={bottomRef} />
       </div>
 
-      <footer className="border-t bg-background px-4 py-3 max-sm:pb-16">
+      <footer className="border-t border-border/70 bg-surface/85 px-4 py-3 backdrop-blur-sm max-sm:pb-16">
         <form
-          className="mx-auto flex w-full max-w-[680px] items-end gap-2"
+          className="mx-auto flex w-full max-w-[720px] items-end gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             send(input);
@@ -225,19 +242,19 @@ export function ChatScreen() {
             placeholder="Tulis dengan caramu sendiri…"
             rows={1}
             aria-label="Tulis pesan"
-            className="max-h-32 min-h-12 flex-1 resize-none rounded-full border bg-background px-5 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="max-h-32 min-h-12 flex-1 resize-none rounded-[1.6rem] border border-border bg-surface px-5 py-3 shadow-[0_2px_10px_rgba(31,58,52,0.05)] outline-none transition-shadow placeholder:text-text-muted focus-visible:border-primary/50 focus-visible:shadow-[0_2px_14px_rgba(63,168,139,0.18)] focus-visible:ring-2 focus-visible:ring-ring/40"
           />
           <Button
             type="submit"
             size="icon"
             disabled={sending || !input.trim()}
             aria-label="Kirim pesan"
-            className="size-12 rounded-full bg-primary text-ink hover:bg-primary-deep"
+            className="size-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-deep)] text-ink shadow-[0_4px_14px_rgba(63,168,139,0.35)] transition-all hover:brightness-105 disabled:from-[var(--primary)] disabled:to-[var(--primary)] disabled:shadow-none"
           >
-            <ArrowUp className="size-5" strokeWidth={2} aria-hidden />
+            <ArrowUp className="size-5" strokeWidth={2.25} aria-hidden />
           </Button>
         </form>
-        <p className="mx-auto mt-2 w-full max-w-[680px] text-center text-xs text-muted-foreground">
+        <p className="mx-auto mt-2 w-full max-w-[720px] text-center text-xs text-text-muted">
           Bisa berhenti sebentar kapan saja — ceritamu tersimpan di perangkat ini.
         </p>
       </footer>
