@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   FileText,
   Heart,
   Home,
   KeyRound,
+  LogOut,
   Menu,
   MessageCircle,
   Phone,
@@ -18,6 +20,7 @@ import {
 } from "lucide-react";
 import { LeafSpray } from "@/components/illustrations";
 import { sendStudentConsult } from "@/app/(student)/chat/actions";
+import { GURU_BK_TEL, SAPA_TEL } from "@/lib/emergency-contacts";
 
 // Data sesi siswa yang aktif (dibaca dari cookie di app/(student)/chat/page.tsx).
 export type StudentSession = {
@@ -28,31 +31,27 @@ export type StudentSession = {
   consult: { id: string; sender: string; content: string; timeLabel: string }[];
 } | null;
 
-// Mark merek Lindra — hati dari daun (heart-leaf). Dekoratif → aria-hidden.
-function BrandMark({ className = "size-8" }: { className?: string }) {
+// Sisi siswa: HANYA 2 jalur darurat — Guru BK (dummy) + SAPA 129. Polisi/Ambulans dihapus.
+const DARURAT = [
+  { label: "Guru BK", tel: GURU_BK_TEL },
+  { label: "SAPA", tel: SAPA_TEL },
+];
+
+// Logo Lindra dapat diklik → "/". object-contain + max-w-full agar tak melebihi sidebar.
+function BrandLogo({ className = "h-9" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" width="32" height="32" className={className} aria-hidden focusable={false}>
-      <path
-        d="M16 27C7 21 4 16 4 11.5A4.5 4.5 0 0 1 16 8.5 4.5 4.5 0 0 1 28 11.5C28 16 25 21 16 27Z"
-        fill="var(--primary)"
+    <Link href="/" aria-label="Lindra — ke beranda" className="inline-flex shrink-0">
+      <Image
+        src="/lindra-logo.png"
+        alt="Lindra"
+        width={2000}
+        height={2000}
+        priority
+        className={`${className} w-auto max-w-full object-contain`}
       />
-      <path d="M16 25V11" stroke="var(--primary-deep)" strokeWidth="1.6" strokeLinecap="round" />
-      <path
-        d="M16 18c-3.5-.6-5.5-2.6-5.8-5.6M16 16c3.5-.6 5.5-2.6 5.8-5.6"
-        stroke="var(--primary-deep)"
-        strokeWidth="1.6"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
+    </Link>
   );
 }
-
-const DARURAT = [
-  { label: "Polisi", tel: "110" },
-  { label: "SAPA", tel: "129" },
-  { label: "Ambulans", tel: "119" },
-];
 
 const primaryItem =
   "flex min-h-12 items-center gap-2 rounded-full bg-primary px-4 font-semibold text-ink transition-colors hover:bg-primary-deep";
@@ -71,12 +70,22 @@ export function StudentNav({
   const close = () => setOpen(false);
   const hasSession = !!session;
 
+  // Keluar = hapus sesi lokal siswa (cookie + state) lalu ke "/". Privasi perangkat
+  // bersama, bukan akun. Full-nav sengaja: mereset state klien & baca cookie terhapus.
+  async function logout() {
+    try {
+      await fetch("/api/session", { method: "DELETE" });
+    } catch {
+      /* tetap keluar walau gagal */
+    }
+    window.location.assign("/");
+  }
+
   const nav = (
     <nav className="flex h-full flex-col gap-1 p-4">
       <div className="mb-5 flex items-center gap-2.5 px-2 py-1">
-        <BrandMark className="size-8 shrink-0" />
-        <span>
-          <span className="block text-lg font-extrabold leading-none text-ink">Lindra</span>
+        <BrandLogo className="h-9" />
+        <span className="min-w-0">
           <span className="mt-0.5 block text-xs text-text-soft">Teman bicara yang aman</span>
         </span>
       </div>
@@ -152,6 +161,19 @@ export function StudentNav({
         Kembali ke beranda
       </Link>
 
+      {/* Keluar — area terpisah: hapus sesi lokal (perangkat bersama) lalu ke "/" */}
+      <button
+        type="button"
+        onClick={() => {
+          close();
+          logout();
+        }}
+        className={`${normalItem} border-t border-border/60 mt-1 pt-3`}
+      >
+        <LogOut className="size-4" strokeWidth={2} aria-hidden />
+        Keluar
+      </button>
+
       <div className="mt-auto space-y-4 border-t border-border pt-4">
         <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface-warm p-3.5">
           <div className="flex items-center gap-1.5">
@@ -226,8 +248,7 @@ export function StudentNav({
           >
             <Menu className="size-6" aria-hidden />
           </button>
-          <BrandMark className="size-7 shrink-0" />
-          <span className="text-lg font-extrabold text-ink">Lindra</span>
+          <BrandLogo className="h-8" />
         </header>
 
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>

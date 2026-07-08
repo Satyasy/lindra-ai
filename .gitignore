@@ -51,5 +51,6 @@ next-env.d.ts
 
 # scratch / temp sesi debugging (mis. _dev3000.txt) — jangan commit
 /_*.txt
+_dev3000.txt
 /_*.mjs
 *.log
