@@ -114,7 +114,7 @@ export default async function ReportDetailPage({
 
   const report = await prisma.report.findUnique({
     where: { id: reportId },
-    include: { routingLogs: true, referralCode: true },
+    include: { routingLogs: true, referralCode: true, followups: true },
   });
   // Staf hanya boleh membuka laporan yang memang dirutekan ke antreannya
   const myLog = report?.routingLogs.find((l) => l.destination === myDestination);
@@ -134,6 +134,8 @@ export default async function ReportDetailPage({
   ]);
 
   const urg = URGENCY[report.urgencyLevel ?? "rendah"] ?? URGENCY.rendah;
+  // Sinyal follow-up (informatif) — bukan Lindra mengambil alih peran BK
+  const noProgress = report.followups.reduce((n, f) => Math.max(n, f.noProgressCount), 0);
 
   // Timeline penanganan — semua dari data NYATA (createdAt, openedAt, status)
   const steps = [
@@ -304,6 +306,12 @@ export default async function ReportDetailPage({
               <div className={cn("mt-3 flex items-start gap-2 rounded-[var(--radius-md)] p-3 text-sm", TONE_CLS[urg.tone])}>
                 <Bell className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <span>{urg.note}</span>
+              </div>
+            )}
+            {noProgress > 0 && (
+              <div className="mt-3 flex items-start gap-2 rounded-[var(--radius-md)] bg-warm-soft p-3 text-sm text-warm-deep">
+                <Bell className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>Siswa mulai resah — belum ada progres ×{noProgress}.</span>
               </div>
             )}
           </Section>

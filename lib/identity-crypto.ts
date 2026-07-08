@@ -28,3 +28,13 @@ export function decryptIdentity(blob: Uint8Array): string {
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(buf.subarray(28)), decipher.final()]).toString("utf8");
 }
+
+// Untuk kolom String (mis. Followup.contactEmail) — blob terenkripsi disimpan base64,
+// bukan plaintext. Reuse AES-256-GCM di atas.
+export function encryptToBase64(plaintext: string): string {
+  return Buffer.from(encryptIdentity(plaintext)).toString("base64");
+}
+
+export function decryptFromBase64(b64: string): string {
+  return decryptIdentity(new Uint8Array(Buffer.from(b64, "base64")));
+}
