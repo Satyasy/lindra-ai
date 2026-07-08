@@ -142,36 +142,137 @@ export async function composeReport(transcript: TranscriptTurn[]): Promise<Repor
   }
 }
 
-// Deteksi field ReportDraft yang masih kosong, untuk digunakan endpoint chat
-// saat menyusun pertanyaan lanjutan secara natural (lihat system-prompt.ts instruksi #19).
-// Pure function, sync, TANPA panggilan LLM — supaya tidak menambah latency.
-export function identifyMissingBlocks(draft: ReportDraft): string[] {
-  const gaps: string[] = [];
+// ============================================================
+// Slot tracking terkunci (sticky) — state per sesi chat, disimpan di
+// Report.slots (Json). Urutan field TETAP; sekali "filled"/"skipped" TERKUNCI.
+// Semua pure & sync (tanpa LLM). Orkestrasi turn ada di app/api/chat/route.ts.
+// ============================================================
 
-  if (!draft.kejadian?.deskripsi && !draft.kejadian?.waktu) {
-    gaps.push("kapan atau detail kejadiannya");
-  }
-  if (!draft.klasifikasi?.violenceType || draft.klasifikasi.violenceType.length === 0) {
-    gaps.push("jenis kekerasan yang dialami");
-  }
-  if (!draft.dampak?.deskripsi) {
-    gaps.push("dampaknya ke kamu");
-  }
-  if (draft.bukti?.adaBukti === null || draft.bukti?.adaBukti === undefined) {
-    gaps.push("ada bukti atau tidak");
-  }
+export type SlotStatus = "empty" | "filled" | "skipped";
+export type SlotField = "gambaran_kejadian" | "pelaku" | "waktu" | "dampak" | "lokasi";
+export type SessionPhase = "gathering" | "ready" | "done";
 
-  return gaps.slice(0, 2);
+export interface Slots {
+  gambaran_kejadian: SlotStatus;
+  pelaku: SlotStatus;
+  waktu: SlotStatus;
+  dampak: SlotStatus;
+  lokasi: SlotStatus;
+  phase: SessionPhase;
+  target: SlotField | null; // field yang ditanyakan giliran lalu (untuk anti-stall)
+  targetCount: number; // berapa kali target ini sudah ditanyakan berturut-turut
+  [key: string]: string | number | null; // agar bisa disimpan langsung ke kolom Json Prisma
 }
 
-// Menentukan apakah info inti sudah cukup untuk mulai menawarkan
-// penyusunan/tinjauan draf laporan. Pure function, sync, TANPA panggilan LLM.
-// Dipakai SEBELUM identifyMissingBlocks — ini gate yang lebih awal & lebih kasar,
-// identifyMissingBlocks dipakai SETELAH siswa setuju untuk menggali detail lanjutan.
-export function isReadyForDraftOffer(draft: ReportDraft): boolean {
-  const adaKejadian = !!draft.kejadian?.deskripsi;
-  const adaTerlapor = !!(draft.terlapor?.perpetratorRole || draft.terlapor?.deskripsi);
-  const adaKlasifikasi = draft.klasifikasi?.violenceType?.length > 0;
+export const SLOT_ORDER: SlotField[] = ["gambaran_kejadian", "pelaku", "waktu", "dampak", "lokasi"];
 
-  return adaKejadian && adaTerlapor && adaKlasifikasi;
+// Frasa terbuka untuk di-inject ke prompt chat — BUKAN istilah teknis field.
+export const SLOT_DIRECTIVE: Record<SlotField, string> = {
+  gambaran_kejadian: "apa yang sebenarnya terjadi / kronologinya",
+  pelaku: "siapa yang melakukannya (jangan paksa sebut nama kalau dia ragu)",
+  waktu: "kapan kejadian itu terjadi",
+  dampak: "gimana dampaknya ke dia selama ini",
+  lokasi: "di mana kejadian itu terjadi",
+};
+
+export function emptySlots(): Slots {
+  return {
+    gambaran_kejadian: "empty",
+    pelaku: "empty",
+    waktu: "empty",
+    dampak: "empty",
+    lokasi: "empty",
+    phase: "gathering",
+    target: null,
+    targetCount: 0,
+  };
+}
+
+function fieldPresent(draft: ReportDraft, f: SlotField): boolean {
+  switch (f) {
+    case "gambaran_kejadian":
+      return !!draft.kejadian?.deskripsi;
+    case "pelaku":
+      return !!(draft.terlapor?.perpetratorRole || draft.terlapor?.deskripsi);
+    case "waktu":
+      return !!draft.kejadian?.waktu;
+    case "dampak":
+      return !!draft.dampak?.deskripsi;
+    case "lokasi":
+      return !!draft.kejadian?.locationCategory;
+  }
+}
+
+// Kunci sticky: empty -> filled bila ekstraksi sekarang mengisinya.
+// filled/skipped TIDAK PERNAH berubah walau ekstraksi giliran ini beda.
+export function updateSlots(prev: Slots, draft: ReportDraft): Slots {
+  const next = { ...prev };
+  for (const f of SLOT_ORDER) {
+    if (next[f] === "empty" && fieldPresent(draft, f)) next[f] = "filled";
+  }
+  return next;
+}
+
+export function nextEmptyField(slots: Slots): SlotField | null {
+  return SLOT_ORDER.find((f) => slots[f] === "empty") ?? null;
+}
+
+// Pilih target giliran ini + anti-stall + transisi fase. Pure (tak memutasi input).
+// - target = field kosong pertama sesuai urutan.
+// - Anti-stall: target sama sudah ditanya >=2x & masih kosong → tandai "skipped", lanjut.
+// - Tak ada field kosong tersisa → phase "ready" (giliran validasi, tanpa target).
+export function advanceSlots(prev: Slots): { slots: Slots; target: SlotField | null; ready: boolean } {
+  const slots = { ...prev };
+  let target = nextEmptyField(slots);
+
+  if (target && target === slots.target && slots.targetCount >= 2) {
+    slots[target] = "skipped";
+    target = nextEmptyField(slots);
+  }
+
+  if (!target) {
+    slots.phase = "ready";
+    slots.target = null;
+    slots.targetCount = 0;
+    return { slots, target: null, ready: true };
+  }
+
+  slots.targetCount = target === slots.target ? slots.targetCount + 1 : 1;
+  slots.target = target;
+  return { slots, target, ready: false };
+}
+
+// Draf terstruktur yang ditampilkan & diedit siswa di panel (E).
+export interface StructuredDraft {
+  gambaran_kejadian: string;
+  pelaku: string;
+  waktu: string;
+  dampak: string;
+  lokasi: string;
+  narasi: string;
+  [key: string]: string; // agar bisa disimpan langsung ke kolom Json Prisma
+}
+
+const LOKASI_LABEL: Record<string, string> = {
+  "dalam-sekolah": "Di dalam sekolah",
+  "lintas-sekolah": "Lintas sekolah",
+};
+const PELAKU_LABEL: Record<string, string> = {
+  siswa: "Siswa",
+  "guru-staf": "Guru / staf",
+  "orangtua-wali": "Orang tua / wali",
+};
+
+export function toStructuredDraft(draft: ReportDraft): StructuredDraft {
+  return {
+    gambaran_kejadian: draft.kejadian?.deskripsi ?? "",
+    pelaku:
+      draft.terlapor?.deskripsi ??
+      (draft.terlapor?.perpetratorRole ? PELAKU_LABEL[draft.terlapor.perpetratorRole] : "") ??
+      "",
+    waktu: draft.kejadian?.waktu ?? "",
+    dampak: draft.dampak?.deskripsi ?? "",
+    lokasi: draft.kejadian?.locationCategory ? LOKASI_LABEL[draft.kejadian.locationCategory] : "",
+    narasi: draft.narrativeSummary,
+  };
 }

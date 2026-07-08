@@ -5,6 +5,7 @@ import { readTranscript } from "@/lib/transcript";
 import { FOLLOWUP_OPENER } from "@/lib/followup-copy";
 import { StudentNav, type StudentSession } from "@/components/nav/StudentNav";
 import { ChatScreen, type Msg } from "@/components/chat/ChatScreen";
+import type { StructuredDraft } from "@/components/draft/DraftCanvas";
 
 // /chat — aplikasi siswa. Shell StudentNav (judul netral "Catatan Harian" + nav),
 // QuickExit disediakan (student)/layout. DESIGN.md §5.2.
@@ -18,6 +19,7 @@ export default async function ChatPage() {
   const sessionId = store.get(SESSION_COOKIE)?.value;
 
   let initialMessages: Msg[] = [];
+  let initialDraft: StructuredDraft | null = null;
   let session: StudentSession = null;
 
   if (sessionId) {
@@ -50,6 +52,11 @@ export default async function ChatPage() {
           ) => a.createdAt.getTime() - b.createdAt.getTime(),
         )
         .map((m) => ({ id: m.id, sender: m.sender, content: m.content, timeLabel: wibTime(m.createdAt) }));
+      // Draf editable hanya selama belum terkirim (biar tombol "Buka draf" tetap ada
+      // walau siswa refresh atau tak sengaja tutup panel).
+      if (report.status === "draft" && report.draft) {
+        initialDraft = report.draft as unknown as StructuredDraft;
+      }
       session = {
         code: report.referralCode?.code ?? null,
         status: report.status,
@@ -63,7 +70,11 @@ export default async function ChatPage() {
   return (
     <StudentNav session={session}>
       <h1 className="sr-only">Catatan Harian</h1>
-      <ChatScreen initialMessages={initialMessages} />
+      <ChatScreen
+        initialMessages={initialMessages}
+        initialDraft={initialDraft}
+        initialSessionId={sessionId ?? null}
+      />
     </StudentNav>
   );
 }

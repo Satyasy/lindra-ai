@@ -18,6 +18,8 @@ model Report {
   isAnonymous      Boolean  @default(true)
   identityData     Bytes? // blob AES-256-GCM, null kecuali "kirim dengan nama"
   rawTranscript    Json? // [{role, content, ts}]
+  slots            Json? // status per-field terkunci + fase sesi (lib/ai/classify-narrative Slots)
+  draft            Json? // draf terstruktur editable siswa (5 field + narasi), diisi saat compose
   narrative        String?
   urgencyLevel     String? // rendah | sedang | tinggi | kritis
   perpetratorRole  String? // siswa | guru-staf | orangtua-wali
