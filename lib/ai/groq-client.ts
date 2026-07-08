@@ -19,11 +19,25 @@ export type GroqKeyType = keyof typeof KEYS;
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
-async function request(key: string, keyType: GroqKeyType, messages: ChatMessage[], stream: boolean) {
+// Opsional, non-breaking: mode JSON Groq (format OpenAI). Default undefined = perilaku lama.
+export type ResponseFormat = { type: "json_object" };
+
+async function request(
+  key: string,
+  keyType: GroqKeyType,
+  messages: ChatMessage[],
+  stream: boolean,
+  responseFormat?: ResponseFormat
+) {
   return fetch(GROQ_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODELS[keyType], messages, stream }),
+    body: JSON.stringify({
+      model: MODELS[keyType],
+      messages,
+      stream,
+      ...(responseFormat ? { response_format: responseFormat } : {}),
+    }),
   });
 }
 
@@ -31,14 +45,15 @@ async function request(key: string, keyType: GroqKeyType, messages: ChatMessage[
 export async function groqChat(
   messages: ChatMessage[],
   keyType: GroqKeyType,
-  stream = true
+  stream = true,
+  responseFormat?: ResponseFormat
 ): Promise<Response | null> {
   const primary = KEYS[keyType]();
   if (!primary) return null;
 
-  let res = await request(primary, keyType, messages, stream);
+  let res = await request(primary, keyType, messages, stream, responseFormat);
   if (res.status === 429 && process.env.GROQ_API_KEY_BACKUP) {
-    res = await request(process.env.GROQ_API_KEY_BACKUP, keyType, messages, stream);
+    res = await request(process.env.GROQ_API_KEY_BACKUP, keyType, messages, stream, responseFormat);
   }
   return res;
 }
