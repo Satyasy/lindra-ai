@@ -42,8 +42,13 @@ export default async function ChatPage() {
         initialMessages = [...initialMessages, { role: "assistant", content: FOLLOWUP_OPENER }];
       }
       const consult = report.chatThreads
-        .flatMap((t) => t.messages)
-        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .flatMap((t: (typeof report.chatThreads)[number]) => t.messages)
+        .sort(
+          (
+            a: (typeof report.chatThreads)[number]["messages"][number],
+            b: (typeof report.chatThreads)[number]["messages"][number],
+          ) => a.createdAt.getTime() - b.createdAt.getTime(),
+        )
         .map((m) => ({ id: m.id, sender: m.sender, content: m.content, timeLabel: wibTime(m.createdAt) }));
       session = {
         code: report.referralCode?.code ?? null,
