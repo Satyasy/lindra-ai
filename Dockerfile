@@ -9,6 +9,12 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm install --no-audit --no-fund
 
+# NEXT_PUBLIC_* di-INLINE saat `next build` → HARUS ada sebelum build. .env
+# di-.dockerignore (& git-ignore), jadi flag demo dilewatkan sebagai build ARG
+# (di-set oleh docker-compose). Tanpa ini, entri /chat & /masuk (§1.9) hilang di image.
+ARG NEXT_PUBLIC_DEMO_MODE
+ENV NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
+
 COPY . .
 RUN npm run build
 
