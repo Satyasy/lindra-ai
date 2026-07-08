@@ -6,7 +6,15 @@ import { prisma } from "@/lib/prisma";
 export function logAction(
   reportId: string,
   actor: string,
-  action: "created" | "sent" | "opened" | "status-changed" | "identity-opened",
+  action:
+    | "created"
+    | "sent"
+    | "opened"
+    | "status-changed"
+    | "identity-opened"
+    | "followup-enabled"
+    | "followup-checkin"
+    | "auto-escalated",
   metadata?: Prisma.InputJsonValue
 ) {
   return prisma.auditLog.create({
