@@ -11,6 +11,7 @@ export function logAction(
     | "sent"
     | "opened"
     | "status-changed"
+    | "assigned"
     | "identity-opened"
     | "followup-enabled"
     | "followup-checkin"

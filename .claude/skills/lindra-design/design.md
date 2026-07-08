@@ -240,7 +240,7 @@ Satu shell dipakai untuk kedua role StaffAccount (**BK** & **Satgas**) — dibed
 
 ### 6.1 `/bk` — Antrean Laporan
 
-Header "Antrean Laporan" + tombol Refresh (ikon spin). Tabs **"Kasus Aktif" / "Riwayat Selesai"** (badge count, aktif = border-bottom `--primary-ink`). **Antrean berbentuk kartu — BUKAN tabel** (prinsip kunci panduan §3.3, untuk mencegah automation bias & kesan spreadsheet dingin): tiap kartu = badge urgensi + potongan narasi (2–3 baris) + badge tujuan rute + status pill + tanggal masuk. Urut: urgensi tertinggi dulu. Klik kartu → `/bk/[reportId]`. Empty state: "Belum ada laporan pada tab ini."
+Header "Antrean Laporan" + tombol Refresh (ikon spin) + **Export** (CSV antrean terfilter). Tabs **"Kasus Aktif (n)" / "Riwayat Selesai (n)"** (badge count, aktif = border-bottom `--primary-ink`). Toolbar: search "Cari ID pelapor atau kata kunci…" + filter **Semua Risiko / Semua Penanganan / Semua Petugas** (Lindra TIDAK punya role psikolog — jangan pakai "Psikolog"). **Antrean berbentuk TABEL** (`<table>` semantik, `<th scope="col">`) — keputusan produk yang **menggantikan** aturan kartu lama. Mitigasi automation-bias tetap dijaga DI DALAM tabel: kolom **Ringkasan Laporan DIPOTONG** (line-clamp 2–3 baris) sehingga petugas wajib membuka detail untuk membaca narasi penuh, dan **tak ada aksi otomatis** atas skor urgensi AI (assign & status penanganan selalu manual). Kolom: `[checkbox]` · **ID Pelapor** (kode DUMMY-xx / referensi — BUKAN nama; PII tetap gated) · **Risiko** (badge titik + label `urgencyLevel`: Kritis=danger, Tinggi=warm, Sedang=warm-soft/kuning, Rendah=primary-ink) · **Tingkat Kekhawatiran** (METER bar horizontal + label, display-only, dipetakan dari `urgencyLevel`: kritis→"Sangat Khawatir" penuh danger, tinggi→"Khawatir" warm, sedang→"Cukup Khawatir" kuning, rendah→primary) · **Ringkasan Laporan** (line-clamp 2–3 baris) · **Tanggal** (WIB "7 Jul 2026 11.25") · **Penanganan** (dropdown assign petugas + pill `handlingStatus`; warna cerah HANYA di sini/risiko/kekhawatiran) · **Chat** (ikon + badge jumlah pesan belum dibaca dari `ChatThread`, 0 = tanpa badge → klik buka **ConsultPanel**). Baris klik → `/bk/[reportId]`. Urut urgensi tertinggi dulu; paginasi ("Menampilkan 1–5 dari N kasus"). Filter keamanan tetap: kasus `guru-staf`/`orangtua-wali` tak pernah muncul di antrean BK (bypass `destination`). Empty state: "Belum ada laporan pada tab ini."
 
 ### 6.2 `/bk/[reportId]` — Detail Laporan
 
@@ -272,7 +272,7 @@ Breadcrumb "Antrean › #id". Action bar sticky (Kembali / dropdown "Ubah Status
 | Toast | `sonner` | bottom-center, `aria-live="polite"` |
 | Konfirmasi hapus/kirim | `alert-dialog` | Aksi destruktif terpisah |
 
-**Custom (tidak dipetakan ke shadcn):** QuickExit, EmergencyBar, ChatBubble, kartu antrean BK, timeline Lacak, kartu transparansi rute, brand stack, typing indicator.
+**Custom (tidak dipetakan ke shadcn):** QuickExit, EmergencyBar, ChatBubble, tabel antrean BK, timeline Lacak, kartu transparansi rute, brand stack, typing indicator.
 
 ---
 
@@ -301,6 +301,6 @@ Sesuai Bagian VI.3 panduan, fitur berikut sengaja **ditunda**, bukan dibuang —
 3. `/chat` — Tier 1 crisis hook (dari Nabil) + SSE + judul netral "Catatan Harian" + fase opening/gathering/ready/danger.
 4. `/draft` — tinjau draf + 3 tombol kirim + kartu konfirmasi + transparansi rute.
 5. `/lacak` — timeline status via kode referensi.
-6. Shell Portal BK: `/bk/login` → `/bk` (antrean kartu) → `/bk/[reportId]` (detail + rekomendasi rute & pasal).
+6. Shell Portal BK: `/bk/login` → `/bk` (antrean tabel) → `/bk/[reportId]` (detail + rekomendasi rute & pasal).
 7. `/` — landing minimal, **verifikasi tidak ada link ke `/chat` di mana pun**.
 8. Validasi akhir: kontras 4.5:1, target sentuh ≥44px, keyboard nav, reduced-motion, uji 375px + mobile QuickExit, uji draf tidak hilang saat browser ditutup-buka (cookie sama).
