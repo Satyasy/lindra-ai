@@ -119,3 +119,374 @@
  GET / 200 in 223ms (next.js: 5ms, proxy.ts: 12ms, application-code: 206ms)
  GET / 200 in 166ms (next.js: 7ms, proxy.ts: 12ms, application-code: 147ms)
  GET / 200 in 180ms (next.js: 4ms, proxy.ts: 15ms, application-code: 161ms)
+ GET /chat 200 in 2.3s (next.js: 101ms, proxy.ts: 213ms, application-code: 1948ms)
+ GET / 200 in 4.1s (next.js: 50ms, proxy.ts: 181ms, application-code: 3.9s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="id"
+                          className="generalsans_78a93d5b-module__gPK5jG__variable h-full antialiased"
+-                         data-google-analytics-opt-out=""
+                        >
+                  ...
+ 
+    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
+    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at emitPendingHydrationWarnings (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3438:13)
+    at completeWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6885:102)
+    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:131)
+    at completeUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
+    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
+    at workLoopConcurrentByScheduler (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
+ GET /bk/login 200 in 165ms (next.js: 111ms, proxy.ts: 13ms, application-code: 41ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477:13)
+ GET /api/auth/providers 200 in 176ms (next.js: 128ms, proxy.ts: 8ms, application-code: 39ms)
+⨯ Failed to generate static paths for /api/auth/[...nextauth]:
+Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError'
+}
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/api/auth/csrf'
+}
+ GET /api/auth/csrf 500 in 641ms (next.js: 280ms, proxy.ts: 18ms, application-code: 343ms)
+[browser] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_0tle9tf._.js:518:22)
+    at async getCsrfToken (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_0tle9tf._.js:698:22)
+    at async signIn (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_0tle9tf._.js:730:23)
+    at async submit (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/_1etoado._.js:186:21) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_0tle9tf._.js:518:16)
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/api/auth/callback/credentials'
+}
+ POST /api/auth/callback/credentials? 500 in 326ms (next.js: 142ms, proxy.ts: 144ms, application-code: 40ms)
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+ GET /chat 200 in 227ms (next.js: 14ms, proxy.ts: 104ms, application-code: 109ms)
+ GET /bk 200 in 1689ms (next.js: 839ms, proxy.ts: 41ms, application-code: 810ms)
+ GET / 200 in 833ms (next.js: 21ms, proxy.ts: 47ms, application-code: 765ms)
+ GET /chat 200 in 744ms (next.js: 23ms, proxy.ts: 97ms, application-code: 624ms)
+✓ Compiled in 702ms
+ GET /bk/login 200 in 3.2s (next.js: 1243ms, proxy.ts: 1643ms, application-code: 361ms)
+✓ Compiled in 315ms
+ GET /chat 200 in 2.7s (next.js: 655ms, proxy.ts: 1378ms, application-code: 695ms)
+ GET /bk 200 in 6.0s (next.js: 134ms, proxy.ts: 3.0s, application-code: 2.9s)
+ GET /bk/login 200 in 2.4s (next.js: 381ms, proxy.ts: 598ms, application-code: 1413ms)
+ GET /chat 200 in 3.2s (next.js: 929ms, proxy.ts: 1103ms, application-code: 1160ms)
+ GET /chat 200 in 2.9s (next.js: 640ms, proxy.ts: 1706ms, application-code: 508ms)
+ GET /bk 200 in 3.2s (next.js: 398ms, proxy.ts: 1861ms, application-code: 955ms)
+ GET /chat 200 in 433ms (next.js: 28ms, proxy.ts: 262ms, application-code: 143ms)
+✓ Compiled in 324ms
+ GET /bk/login 200 in 1260ms (next.js: 298ms, proxy.ts: 466ms, application-code: 496ms)
+ GET /chat 200 in 1498ms (next.js: 277ms, proxy.ts: 791ms, application-code: 430ms)
+ GET /chat 200 in 1469ms (next.js: 366ms, proxy.ts: 773ms, application-code: 330ms)
+ GET /bk 200 in 1954ms (next.js: 185ms, proxy.ts: 906ms, application-code: 863ms)
+✓ Compiled in 352ms
+ GET /bk/login 200 in 1374ms (next.js: 372ms, proxy.ts: 353ms, application-code: 649ms)
+ GET /chat 200 in 1521ms (next.js: 448ms, proxy.ts: 831ms, application-code: 242ms)
+ GET /chat 200 in 1174ms (next.js: 40ms, proxy.ts: 989ms, application-code: 145ms)
+ GET /bk 200 in 1627ms (next.js: 149ms, proxy.ts: 836ms, application-code: 642ms)
+ GET /chat 200 in 1826ms (next.js: 23ms, proxy.ts: 73ms, application-code: 1730ms)
+✓ Compiled in 647ms
+ GET /bk/login 200 in 2.6s (next.js: 856ms, proxy.ts: 453ms, application-code: 1266ms)
+ GET /chat 200 in 2.8s (next.js: 860ms, proxy.ts: 1562ms, application-code: 406ms)
+ GET /bk 200 in 3.0s (next.js: 359ms, proxy.ts: 1565ms, application-code: 1055ms)
+ GET /chat 200 in 277ms (next.js: 29ms, proxy.ts: 164ms, application-code: 84ms)
+ GET /chat 200 in 479ms (next.js: 10ms, proxy.ts: 76ms, application-code: 393ms)
+✓ Compiled in 389ms
+ GET /bk/login 200 in 1734ms (next.js: 426ms, proxy.ts: 455ms, application-code: 853ms)
+ GET /chat 200 in 2.1s (next.js: 514ms, proxy.ts: 1035ms, application-code: 545ms)
+ GET /bk 200 in 2.3s (next.js: 176ms, proxy.ts: 1039ms, application-code: 1100ms)
+ GET /chat 200 in 367ms (next.js: 28ms, proxy.ts: 217ms, application-code: 121ms)
+✓ Compiled in 678ms
+ GET /bk/login 200 in 2.2s (next.js: 658ms, proxy.ts: 641ms, application-code: 910ms)
+ GET /chat 200 in 2.2s (next.js: 458ms, proxy.ts: 1508ms, application-code: 269ms)
+ GET /bk 200 in 2.9s (next.js: 362ms, proxy.ts: 1529ms, application-code: 1039ms)
+ GET /chat 200 in 280ms (next.js: 26ms, proxy.ts: 158ms, application-code: 95ms)
+✓ Compiled in 412ms
+ GET /bk/login 200 in 1602ms (next.js: 235ms, proxy.ts: 404ms, application-code: 963ms)
+ GET /chat 200 in 1745ms (next.js: 625ms, proxy.ts: 858ms, application-code: 261ms)
+ GET /bk 200 in 1903ms (next.js: 205ms, proxy.ts: 871ms, application-code: 827ms)
+ GET /chat 200 in 340ms (next.js: 24ms, proxy.ts: 212ms, application-code: 105ms)
+ GET /chat 200 in 372ms (next.js: 13ms, proxy.ts: 36ms, application-code: 323ms)
+ GET /chat 200 in 425ms (next.js: 18ms, proxy.ts: 52ms, application-code: 356ms)
+ POST /api/chat 200 in 288ms (next.js: 81ms, proxy.ts: 46ms, application-code: 162ms)
+ POST /api/chat 200 in 93ms (next.js: 12ms, proxy.ts: 42ms, application-code: 38ms)
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+✓ Compiled in 1067ms
+ GET /bk/login 200 in 1584ms (next.js: 214ms, proxy.ts: 278ms, application-code: 1093ms)
+ GET /chat 200 in 1796ms (next.js: 800ms, proxy.ts: 680ms, application-code: 317ms)
+ GET /chat 200 in 394ms (next.js: 26ms, proxy.ts: 173ms, application-code: 195ms)
+ GET /bk 200 in 2.3s (next.js: 358ms, proxy.ts: 689ms, application-code: 1204ms)
+ GET /chat 200 in 533ms (next.js: 12ms, proxy.ts: 42ms, application-code: 479ms)
+ POST /api/chat 200 in 138ms (next.js: 52ms, proxy.ts: 48ms, application-code: 39ms)
+ POST /api/chat 200 in 83ms (next.js: 13ms, proxy.ts: 39ms, application-code: 30ms)
+ GET /chat 200 in 293ms (next.js: 21ms, proxy.ts: 36ms, application-code: 236ms)
+ POST /api/chat 200 in 160ms (next.js: 13ms, proxy.ts: 63ms, application-code: 83ms)
+ POST /api/chat 200 in 96ms (next.js: 15ms, proxy.ts: 51ms, application-code: 30ms)
+ POST /api/chat 200 in 164ms (next.js: 22ms, proxy.ts: 65ms, application-code: 76ms)
+ POST /api/chat 200 in 132ms (next.js: 27ms, proxy.ts: 64ms, application-code: 41ms)
+ POST /api/chat 200 in 94ms (next.js: 15ms, proxy.ts: 49ms, application-code: 31ms)
+ POST /api/chat 200 in 142ms (next.js: 25ms, proxy.ts: 49ms, application-code: 68ms)
+✓ Compiled in 2.6s
+✓ Compiled in 421ms
+ GET /bk/login 200 in 1469ms (next.js: 595ms, proxy.ts: 48ms, application-code: 826ms)
+ GET /chat 200 in 2.0s (next.js: 390ms, proxy.ts: 1356ms, application-code: 277ms)
+ GET /chat 200 in 1025ms (next.js: 27ms, proxy.ts: 662ms, application-code: 336ms)
+ GET /chat 200 in 429ms (next.js: 24ms, proxy.ts: 224ms, application-code: 181ms)
+ GET /chat 200 in 1222ms (next.js: 21ms, proxy.ts: 68ms, application-code: 1134ms)
+ GET /draft 200 in 255ms (next.js: 131ms, proxy.ts: 47ms, application-code: 78ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477:13)
+⨯ Failed to generate static paths for /api/draft/[sessionId]:
+Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError'
+}
+ GET /api/draft/cmrau0qoe0006z9yow6rgid9b 200 in 391ms (next.js: 156ms, proxy.ts: 156ms, application-code: 79ms)
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/api/draft/cmrau0qoe0006z9yow6rgid9b'
+}
+ GET /api/draft/cmrau0qoe0006z9yow6rgid9b 500 in 593ms (next.js: 307ms, proxy.ts: 200ms, application-code: 86ms)
+ GET /lacak 200 in 586ms (next.js: 111ms, proxy.ts: 172ms, application-code: 303ms)
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+✓ Compiled in 242ms
+ GET /bk/login 200 in 1725ms (next.js: 394ms, proxy.ts: 485ms, application-code: 846ms)
+ GET /chat 200 in 1958ms (next.js: 473ms, proxy.ts: 1130ms, application-code: 355ms)
+ GET /chat 200 in 1516ms (next.js: 51ms, proxy.ts: 1210ms, application-code: 256ms)
+ GET /chat 200 in 678ms (next.js: 85ms, proxy.ts: 302ms, application-code: 291ms)
+✓ Compiled in 374ms
+ GET /bk/login 200 in 1749ms (next.js: 420ms, proxy.ts: 589ms, application-code: 739ms)
+ GET /chat 200 in 2.0s (next.js: 325ms, proxy.ts: 1257ms, application-code: 452ms)
+ GET /chat 200 in 1523ms (next.js: 84ms, proxy.ts: 1123ms, application-code: 315ms)
+ GET /chat 200 in 691ms (next.js: 61ms, proxy.ts: 398ms, application-code: 232ms)
+ GET /chat 200 in 834ms (next.js: 34ms, proxy.ts: 191ms, application-code: 610ms)
+✓ Compiled in 388ms
+ GET /bk/login 200 in 1431ms (next.js: 408ms, proxy.ts: 420ms, application-code: 603ms)
+ GET /chat 200 in 1627ms (next.js: 288ms, proxy.ts: 1039ms, application-code: 301ms)
+ GET /chat 200 in 1274ms (next.js: 52ms, proxy.ts: 990ms, application-code: 232ms)
+ GET /chat 200 in 476ms (next.js: 49ms, proxy.ts: 270ms, application-code: 157ms)
+✓ Compiled in 391ms
+ GET /bk/login 200 in 2.6s (next.js: 455ms, proxy.ts: 665ms, application-code: 1475ms)
+ GET /chat 200 in 2.9s (next.js: 953ms, proxy.ts: 1464ms, application-code: 528ms)
+ GET /chat 200 in 2.4s (next.js: 884ms, proxy.ts: 1113ms, application-code: 358ms)
+ GET /chat 200 in 639ms (next.js: 47ms, proxy.ts: 396ms, application-code: 196ms)
+ GET /chat 200 in 857ms (next.js: 31ms, proxy.ts: 181ms, application-code: 645ms)
+ POST /api/chat 200 in 378ms (next.js: 97ms, proxy.ts: 173ms, application-code: 108ms)
+ DELETE /api/session 204 in 2.3s (next.js: 2.1s, proxy.ts: 212ms, application-code: 38ms)
+[browser] Uncaught TypeError: Performance.measure: Given attribute end cannot be negative
+    at flushComponentPerformance (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2184:45)
+    at flushComponentPerformance (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2156:56)
+    at flushInitialRenderPerformance (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2346:74)
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+✓ Compiled in 289ms
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}

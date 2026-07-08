@@ -27,7 +27,7 @@ Spesifikasi desain lengkap ada di **`.claude/skills/lindra-design/design.md`**. 
 
 ## Komponen yang JANGAN diambil dari registry mana pun
 
-Bangun **manual** sesuai `design.md` §3 — jangan tarik dari shadcn MCP / registry publik karena butuh perilaku spesifik trauma-informed: **QuickExit, EmergencyBar, ChatBubble**, kartu antrean BK, timeline Lacak, kartu transparansi rute, brand stack, typing indicator.
+Bangun **manual** sesuai `design.md` §3 — jangan tarik dari shadcn MCP / registry publik karena butuh perilaku spesifik trauma-informed: **QuickExit, EmergencyBar, ChatBubble**, tabel antrean BK, timeline Lacak, kartu transparansi rute, brand stack, typing indicator.
 
 Boleh pakai template/block dari shadcn MCP HANYA sebagai **kerangka struktur** (mis. `dashboard-01` untuk Portal BK, `login-01`) — lalu **restyle penuh** ke token Lindra. Ambil struktur, buang warnanya.
 
@@ -42,4 +42,5 @@ Boleh pakai template/block dari shadcn MCP HANYA sebagai **kerangka struktur** (
 
 - StaffAccount cuma 2 role: **BK** & **Satgas**. Bukan RBAC 5-role (tidak ada psikolog/legal/admin/superadmin).
 - AI tidak pernah memutuskan rute atau menyimpulkan kesalahan — routing engine adalah if-else murni yang bisa diaudit.
-- Fitur ditunda (di luar scope saat ini, lihat `design.md` §8): chat asinkron pendampingan BK, follow-up/SLA scheduler, RAG vector penuh. Jangan bangun kecuali diminta eksplisit.
+- **Antrean BK = TABEL** (bukan kartu — keputusan produk). Mitigasi automation-bias: kolom **Ringkasan Laporan DIPOTONG** (line-clamp 2–3 baris) sehingga petugas WAJIB membuka laporan untuk membaca narasi penuh, dan **tak ada aksi otomatis** atas skor urgensi AI — assign petugas & status penanganan selalu manual. Skor urgensi = alat pindai prioritas, bukan penilaian salah/benar.
+- Fitur ditunda (di luar scope saat ini, lihat `design.md` §8): chat asinkron pendampingan BK penuh (ConsultPanel antrean = versi minimal read/reply), follow-up/SLA scheduler, RAG vector penuh. Jangan bangun kecuali diminta eksplisit.

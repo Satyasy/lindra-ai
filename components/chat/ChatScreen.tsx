@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
 
-type Msg = { role: "user" | "assistant"; content: string; ts?: number };
+export type Msg = { role: "user" | "assistant"; content: string; ts?: number };
 type Phase = "opening" | "gathering" | "ready" | "danger";
 
 // Transparansi AI (DESIGN.md §1.3) — tampil sebagai HERO INTRO CARD. Nama "Lindra"
@@ -63,12 +63,15 @@ function TypingIndicator() {
   );
 }
 
-export function ChatScreen() {
+export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] } = {}) {
   const router = useRouter();
-  const [messages, setMessages] = useState<Msg[]>([]);
+  // Sesi dilanjutkan (pengguna lama masukkan kode): mulai dari transkrip tersimpan,
+  // fase langsung "gathering" (sembunyikan chip pembuka), dan hero intro tak diulang.
+  const resumed = initialMessages.length > 0;
+  const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [phase, setPhase] = useState<Phase>("opening");
+  const [phase, setPhase] = useState<Phase>(resumed ? "gathering" : "opening");
   const [infoMode, setInfoMode] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [attachment, setAttachment] = useState<
@@ -176,8 +179,13 @@ export function ChatScreen() {
     // Chrome (judul netral "Catatan Harian" + hamburger) disediakan StudentNav.
     <div className="chat-canvas flex min-h-0 flex-1 flex-col">
       {/* pt besar di desktop supaya hero tidak tertabrak QuickExit fixed kanan-atas */}
-      <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8 pt-6 min-[900px]:pt-20">
-        {/* HERO INTRO CARD — AI memperkenalkan diri (transparansi §1.3) */}
+      {/* [&>*]:shrink-0 — anak area scroll TIDAK boleh menyusut; kalau menyusut,
+          section overflow-hidden (hero) ter-kompres & teksnya terklip. Biar kolom
+          yang scroll, bukan kontennya yang dipangkas. */}
+      <div className="no-scrollbar mx-auto flex w-full max-w-4xl 2xl:max-w-6xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8 pt-6 sm:px-6 min-[900px]:pt-20 [&>*]:shrink-0">
+        {/* HERO INTRO CARD — AI memperkenalkan diri (transparansi §1.3).
+            Tak diulang saat sesi dilanjutkan: transkrip lama sudah memuat intro aslinya. */}
+        {!resumed && (
         <section className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface p-6 shadow-[var(--shadow-soft)] sm:rounded-[28px] sm:p-7">
           {/* art graphic pojok kanan — dekoratif, bleed ke tepi (disembunyikan di mobile) */}
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-64 sm:block" aria-hidden>
@@ -195,13 +203,14 @@ export function ChatScreen() {
             </div>
           </div>
         </section>
+        )}
 
         {messages.map((m, i) =>
           m.role === "assistant" && !m.content && sending ? null : m.role === "assistant" ? (
-            <div key={i} className="flex max-w-[88%] items-start gap-2.5 self-start bubble-in">
+            <div key={i} className="flex max-w-[min(88%,44rem)] items-start gap-2.5 self-start bubble-in">
               <LindraCharacter size="sm" />
               <div className="min-w-0">
-                <div className="rounded-[1.25rem] rounded-tl-[0.4rem] border border-border/70 bg-surface px-5 py-3.5 leading-relaxed whitespace-pre-wrap text-text shadow-[var(--shadow-bubble)]">
+                <div className="rounded-[1.25rem] rounded-tl-[0.4rem] border border-border/70 bg-surface px-5 py-3.5 leading-relaxed whitespace-pre-wrap break-words text-text shadow-[var(--shadow-bubble)]">
                   {m.content}
                 </div>
                 {m.ts && (
@@ -210,9 +219,9 @@ export function ChatScreen() {
               </div>
             </div>
           ) : (
-            <div key={i} className="flex max-w-[82%] flex-col items-end gap-1 self-end bubble-in">
+            <div key={i} className="flex max-w-[min(82%,40rem)] flex-col items-end gap-1 self-end bubble-in">
               {/* Bubble siswa: mint-gradient, teks --ink (≥4.5:1) */}
-              <div className="bubble-user rounded-[1.25rem] rounded-br-[0.4rem] px-5 py-3.5 leading-relaxed whitespace-pre-wrap text-ink shadow-[0_3px_16px_rgba(63,168,139,0.28)]">
+              <div className="bubble-user rounded-[1.25rem] rounded-br-[0.4rem] px-5 py-3.5 leading-relaxed whitespace-pre-wrap break-words text-ink shadow-[0_3px_16px_rgba(63,168,139,0.28)]">
                 {m.content}
               </div>
               <span className="flex items-center gap-1 pr-1 text-[0.6875rem] text-text-muted">
@@ -331,7 +340,7 @@ export function ChatScreen() {
         )}
 
         <form
-          className="mx-auto flex w-full max-w-[760px] items-end gap-2"
+          className="mx-auto flex w-full max-w-4xl 2xl:max-w-6xl items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             send(input);
@@ -349,7 +358,7 @@ export function ChatScreen() {
             type="button"
             onClick={() => fileRef.current?.click()}
             aria-label="Lampirkan bukti"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full text-primary-ink transition-colors hover:bg-primary-soft"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full text-primary-ink transition-colors hover:bg-primary-soft"
           >
             <Paperclip className="size-5" strokeWidth={2} aria-hidden />
           </button>
@@ -367,14 +376,14 @@ export function ChatScreen() {
               placeholder="Tulis dengan caramu sendiri…"
               rows={1}
               aria-label="Tulis pesan"
-              className="max-h-32 min-h-12 w-full resize-none rounded-[1.6rem] border border-border bg-surface py-3 pl-5 pr-12 shadow-[0_2px_10px_rgba(31,58,52,0.05)] outline-none transition-shadow placeholder:text-text-muted focus-visible:border-primary/50 focus-visible:shadow-[0_2px_14px_rgba(63,168,139,0.18)] focus-visible:ring-2 focus-visible:ring-ring/40"
+              className="block max-h-32 min-h-12 w-full resize-none rounded-[1.6rem] border border-border bg-surface py-3 pl-5 pr-12 shadow-[0_2px_10px_rgba(31,58,52,0.05)] outline-none transition-shadow placeholder:text-text-muted focus-visible:border-primary/50 focus-visible:shadow-[0_2px_14px_rgba(63,168,139,0.18)] focus-visible:ring-2 focus-visible:ring-ring/40"
             />
             {/* Emoji picker (opsional) — untuk input pengguna, bukan emoji dekoratif UI */}
             <button
               type="button"
               onClick={() => setInput((v) => v + "🙂")}
               aria-label="Tambahkan emoji"
-              className="absolute bottom-1 right-1.5 flex size-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-alt hover:text-primary-ink"
+              className="absolute right-1.5 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-alt hover:text-primary-ink"
             >
               <Smile className="size-5" strokeWidth={2} aria-hidden />
             </button>
@@ -390,7 +399,7 @@ export function ChatScreen() {
             <Send className="size-5" strokeWidth={2.25} aria-hidden />
           </Button>
         </form>
-        <p className="mx-auto mt-2 w-full max-w-[760px] text-center text-xs text-text-muted">
+        <p className="mx-auto mt-2 w-full max-w-4xl 2xl:max-w-6xl text-center text-xs text-text-muted">
           Bisa berhenti sebentar kapan saja — ceritamu tersimpan di perangkat ini.
         </p>
       </footer>

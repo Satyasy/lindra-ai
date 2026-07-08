@@ -29,6 +29,11 @@ model Report {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  // Penanganan BK (antrean tabel) — assign & status SELALU manual, tak ada aksi
+  // otomatis atas skor urgensi AI (mitigasi automation-bias).
+  assignedToId   String?
+  handlingStatus String  @default("belum-diassign") // belum-diassign | dijadwalkan | investigasi | eskalasi-hukum | selesai
+
   referralCode ReferralCode?
   routingLogs  RoutingLog[]
   followups    Followup[]
@@ -110,6 +115,7 @@ model StaffAccount {
   role         String // bk | satgas — sengaja hanya 2, bukan RBAC penuh
   createdAt    DateTime     @default(now())
   chatThreads  ChatThread[]
+  assignedReports Report[]
 }
 
 // ChatThread/ChatMessage untuk pendampingan asinkron BK (UI di luar scope 24 jam)
