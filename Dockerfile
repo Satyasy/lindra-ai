@@ -5,11 +5,16 @@ FROM node:24-alpine
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Deps dulu untuk layer cache. prisma/ disalin SEBELUM `npm ci` agar postinstall
+# Deps dulu untuk layer cache. prisma/ disalin SEBELUM install agar postinstall
 # @prisma/client menemukan schema.prisma dan meng-generate client untuk build.
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci --no-audit --no-fund
+# ponytail: `npm install`, bukan `npm ci`. sharp (dep opsional Next) menaruh binari
+# per-platform di lock, dan lock yang di-generate di Windows tak memuat varian Linux
+# (@img/sharp-linux-* + @emnapi@1.11.2) → `npm ci` gagal di container. `npm install`
+# tetap pakai lock untuk deps yang cocok, hanya resolve binari platform yang kurang.
+# Upgrade path: generate lock di Linux/CI lalu balik ke `npm ci`.
+RUN npm install --no-audit --no-fund
 
 # Sumber + build (context sudah dipangkas .dockerignore: tanpa test, docs, .claude, dsb.)
 COPY . .
