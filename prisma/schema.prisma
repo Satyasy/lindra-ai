@@ -32,6 +32,7 @@ model Report {
   // Penanganan BK (antrean tabel) — assign & status SELALU manual, tak ada aksi
   // otomatis atas skor urgensi AI (mitigasi automation-bias).
   assignedToId   String?
+  assignedTo     StaffAccount? @relation(fields: [assignedToId], references: [id])
   handlingStatus String  @default("belum-diassign") // belum-diassign | dijadwalkan | investigasi | eskalasi-hukum | selesai
 
   referralCode ReferralCode?
