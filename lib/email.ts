@@ -8,14 +8,23 @@ import { Resend } from "resend";
 
 export const FOLLOWUP_FROM = process.env.FOLLOWUP_FROM ?? "Catatan Harian <halo@catatan-harian.app>";
 
+// Domain netral untuk tautan menu — TANPA kode/token di URL (link ke menu input kode saja).
+const APP_URL = process.env.APP_URL ?? "https://catatan-harian.app";
+export const FOLLOWUP_MENU_URL = `${APP_URL}/masuk`;
+
 export const FOLLOWUP_SUBJECT = "Apa kabar kamu?";
 
+// Sapaan netral + LINK HANYA ke menu input kode (bukan kode/token/auto-login).
+// Korban mengetik kodenya sendiri di menu. Tak ada kata "kekerasan"/"laporan".
 export const FOLLOWUP_BODY = [
-  "Halo,",
+  "Halo, apa kabar?",
   "",
-  "Ini sapaan dari Catatan Harian — sekadar menanyakan kabarmu.",
+  "Ini sapaan dari Catatan Harian — sekadar menanyakan kabarmu. Bagaimana kondisimu sekarang?",
   "",
-  "Kalau kamu mau melanjutkan, buka Catatan Harian seperti biasa lalu masukkan kodemu sendiri di halaman follow-up. Demi keamananmu, kami sengaja tidak menaruh tautan atau kode apa pun di email ini.",
+  `Kalau kamu mau cerita lagi, buka menu ini lalu masukkan kodemu sendiri di sana:`,
+  FOLLOWUP_MENU_URL,
+  "",
+  "Demi keamananmu, kami tidak menaruh kode apa pun di email ini — hanya kamu yang tahu kodemu.",
   "",
   "Kamu yang pegang kendali — tidak ada yang terjadi tanpa kamu memilih.",
   "",

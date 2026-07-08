@@ -195,12 +195,17 @@ function ConsultPanel({ row, onClose }: { row: QueueRowData; onClose: () => void
           </button>
         </header>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
           {row.messages.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada pesan pada konsultasi ini.</p>
           ) : (
             row.messages.map((m) => (
-              <div key={m.id} className={m.sender === "staff" ? "ml-auto max-w-[80%]" : "mr-auto max-w-[80%]"}>
+              <div
+                key={m.id}
+                className={`flex max-w-[80%] flex-col ${
+                  m.sender === "staff" ? "items-end self-end" : "items-start self-start"
+                }`}
+              >
                 <div
                   className={`rounded-[var(--radius-md)] px-4 py-2.5 text-sm leading-relaxed ${
                     m.sender === "staff"

@@ -9,10 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
-
-// Teks consent follow-up — VERBATIM Panduan §4.3, tampil SEBELUM form email. Jangan diubah.
-const FOLLOWUP_CONSENT =
-  "Follow-up ini akan dikirim ke email yang kamu masukkan. Pastikan ini email yang CUMA kamu yang bisa buka — bukan email keluarga, email sekolah, atau email yang passwordnya diketahui orang lain. Isi emailnya akan netral (tidak menyebut kata 'kekerasan' atau 'laporan'), tapi tetap pastikan aman ya.";
+import { FOLLOWUP_CONSENT } from "@/lib/followup-copy";
 
 export function DraftReview({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -77,7 +74,8 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
         {/* Kartu kode referensi */}
         <div className="mb-4 rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
           <p className="mb-3 text-sm text-text-soft">
-            Simpan kode ini untuk memantau status laporanmu — tanpa perlu membuka identitas.
+            Simpan kode ini — dengan kode ini kamu bisa membuka lagi percakapan, dokumen laporan,
+            dan memantau status penanganannya. Tanpa perlu membuka identitas.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <code className="rounded-[var(--radius-md)] bg-surface-alt px-5 py-2 font-mono text-[clamp(1.8rem,4vw,2.6rem)] font-semibold tracking-[0.08em] text-primary-ink">

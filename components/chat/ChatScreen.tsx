@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
 
-type Msg = { role: "user" | "assistant"; content: string; ts?: number };
+export type Msg = { role: "user" | "assistant"; content: string; ts?: number };
 type Phase = "opening" | "gathering" | "ready" | "danger";
 
 // Transparansi AI (DESIGN.md §1.3) — tampil sebagai HERO INTRO CARD. Nama "Lindra"
@@ -63,12 +63,15 @@ function TypingIndicator() {
   );
 }
 
-export function ChatScreen() {
+export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] } = {}) {
   const router = useRouter();
-  const [messages, setMessages] = useState<Msg[]>([]);
+  // Sesi dilanjutkan (pengguna lama masukkan kode): mulai dari transkrip tersimpan,
+  // fase langsung "gathering" (sembunyikan chip pembuka), dan hero intro tak diulang.
+  const resumed = initialMessages.length > 0;
+  const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [phase, setPhase] = useState<Phase>("opening");
+  const [phase, setPhase] = useState<Phase>(resumed ? "gathering" : "opening");
   const [infoMode, setInfoMode] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [attachment, setAttachment] = useState<string | null>(null);
@@ -163,7 +166,9 @@ export function ChatScreen() {
           section overflow-hidden (hero) ter-kompres & teksnya terklip. Biar kolom
           yang scroll, bukan kontennya yang dipangkas. */}
       <div className="no-scrollbar mx-auto flex w-full max-w-4xl 2xl:max-w-6xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8 pt-6 sm:px-6 min-[900px]:pt-20 [&>*]:shrink-0">
-        {/* HERO INTRO CARD — AI memperkenalkan diri (transparansi §1.3) */}
+        {/* HERO INTRO CARD — AI memperkenalkan diri (transparansi §1.3).
+            Tak diulang saat sesi dilanjutkan: transkrip lama sudah memuat intro aslinya. */}
+        {!resumed && (
         <section className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface p-6 shadow-[var(--shadow-soft)] sm:rounded-[28px] sm:p-7">
           {/* art graphic pojok kanan — dekoratif, bleed ke tepi (disembunyikan di mobile) */}
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-64 sm:block" aria-hidden>
@@ -181,6 +186,7 @@ export function ChatScreen() {
             </div>
           </div>
         </section>
+        )}
 
         {messages.map((m, i) =>
           m.role === "assistant" && !m.content && sending ? null : m.role === "assistant" ? (

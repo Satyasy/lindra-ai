@@ -2,9 +2,10 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { detectCrisisSignal, CRISIS_RESPONSE } from "@/lib/ai/crisis-check";
 import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
+import { followupSystemPrompt } from "@/lib/ai/prompts/followup-context-injection";
 import { groqChat, type ChatMessage } from "@/lib/ai/groq-client";
 import { logAction } from "@/lib/audit/log-action";
-import type { TranscriptTurn } from "@/lib/ai/classify-narrative";
+import { readTranscript, sealTranscript } from "@/lib/transcript";
 
 const SESSION_COOKIE = "lindra_session";
 
@@ -34,7 +35,13 @@ export async function POST(request: Request) {
     await logAction(reportId, "system", "created");
   }
 
-  const transcript = (report.rawTranscript as unknown as TranscriptTurn[]) ?? [];
+  // Sesi follow-up? (laporan lama dengan follow-up aktif) → prime system prompt dengan
+  // konteks narasi (non-leading). Tier 1 di bawah TETAP aktif penuh, tanpa pengecualian.
+  const followupMode =
+    !isNew &&
+    (await prisma.followup.count({ where: { reportId: reportId!, proactiveEnabled: true } })) > 0;
+
+  const transcript = readTranscript(report.rawTranscript);
   transcript.push({ role: "user", content: message, ts: new Date().toISOString() });
 
   // Tier 1 SEBELUM model utama — krisis skip semua tahap normal.
@@ -61,7 +68,7 @@ export async function POST(request: Request) {
         });
       } else {
         const messages: ChatMessage[] = [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: followupMode ? followupSystemPrompt(report.narrative) : SYSTEM_PROMPT },
           ...transcript.map(({ role, content }) => ({ role, content })),
         ];
         const groqRes = await groqChat(messages, "student");
@@ -99,7 +106,7 @@ export async function POST(request: Request) {
       transcript.push({ role: "assistant", content: assistantText, ts: new Date().toISOString() });
       await prisma.report.update({
         where: { id: reportId! },
-        data: { rawTranscript: transcript as unknown as object[] },
+        data: { rawTranscript: sealTranscript(transcript) },
       });
 
       controller.enqueue(sse({ type: "done" }));

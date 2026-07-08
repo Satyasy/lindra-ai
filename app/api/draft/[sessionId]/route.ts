@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guardSession } from "@/lib/session";
-import { composeReport, type TranscriptTurn } from "@/lib/ai/classify-narrative";
+import { composeReport } from "@/lib/ai/classify-narrative";
+import { readTranscript } from "@/lib/transcript";
 
 export async function GET(
   _request: Request,
@@ -18,7 +19,7 @@ export async function GET(
 
   // Susun narasi bila belum ada (panggilan Tier 2 — modul Nabil)
   if (!narrative) {
-    const draft = await composeReport((report.rawTranscript as unknown as TranscriptTurn[]) ?? []);
+    const draft = await composeReport(readTranscript(report.rawTranscript));
     narrative = draft.narrative;
     urgencyLevel = urgencyLevel ?? draft.urgencyLevel; // krisis Tier 1 tidak boleh tertimpa
     await prisma.report.update({
