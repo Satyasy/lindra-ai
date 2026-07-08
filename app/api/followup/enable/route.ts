@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { encryptToBase64 } from "@/lib/identity-crypto";
 import { logAction } from "@/lib/audit/log-action";
-import { SLA_THRESHOLD_HOURS } from "@/lib/config";
+
+// Email check-in pertama dikirim ~1 menit setelah disimpan (timing demo), bukan menunggu SLA.
+const FIRST_CHECKIN_MS = 60_000;
 
 // Opt-in follow-up di layar konfirmasi (sesi sudah selesai → cookie hilang, jadi
 // diautentikasi lewat kode referensi yang baru diterima siswa). Email disimpan
@@ -31,10 +33,11 @@ export async function POST(request: Request) {
   if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
     return Response.json({ error: "input tidak valid" }, { status: 400 });
   }
+  // AUTO-ON begitu email tersimpan (consent sudah tampil di UI sebelum form).
   const data = {
     contactEmail: encryptToBase64(email.trim()),
     proactiveEnabled: true,
-    scheduledAt: new Date(Date.now() + SLA_THRESHOLD_HOURS * 3600_000),
+    scheduledAt: new Date(Date.now() + FIRST_CHECKIN_MS),
   };
   const existing = await prisma.followup.findFirst({ where: { reportId: ref.reportId } });
   if (existing) {
