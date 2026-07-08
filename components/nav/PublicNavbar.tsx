@@ -53,14 +53,23 @@ export function PublicNavbar() {
               {n.label}
             </Link>
           ))}
-          {/* Login petugas dipindah ke footer ("Untuk petugas"). Navbar hanya info + chat demo-gated. */}
+          {/* Login petugas dipindah ke footer ("Untuk petugas"). Navbar hanya info +
+              entri chat/kode demo-gated (§1.9). */}
           {demo && (
-            <Link
-              href="/chat"
-              className="ml-1 flex h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-ink transition-colors hover:bg-primary-deep"
-            >
-              Buka chat
-            </Link>
+            <>
+              <Link
+                href="/masuk"
+                className="flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-primary-ink transition-colors hover:bg-primary-soft"
+              >
+                Masukkan kode
+              </Link>
+              <Link
+                href="/chat"
+                className="ml-1 flex h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-ink transition-colors hover:bg-primary-deep"
+              >
+                Buka chat
+              </Link>
+            </>
           )}
         </div>
 
@@ -91,13 +100,22 @@ export function PublicNavbar() {
               </Link>
             ))}
             {demo && (
-              <Link
-                href="/chat"
-                onClick={() => setOpen(false)}
-                className="mt-1 flex min-h-11 items-center justify-center rounded-full bg-primary px-5 font-semibold text-ink transition-colors hover:bg-primary-deep"
-              >
-                Buka chat
-              </Link>
+              <>
+                <Link
+                  href="/masuk"
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-11 items-center rounded-[var(--radius-sm)] px-3 text-text-soft transition-colors hover:bg-surface-alt hover:text-ink"
+                >
+                  Masukkan kode
+                </Link>
+                <Link
+                  href="/chat"
+                  onClick={() => setOpen(false)}
+                  className="mt-1 flex min-h-11 items-center justify-center rounded-full bg-primary px-5 font-semibold text-ink transition-colors hover:bg-primary-deep"
+                >
+                  Buka chat
+                </Link>
+              </>
             )}
           </div>
         </div>

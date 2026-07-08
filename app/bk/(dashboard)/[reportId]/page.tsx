@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { StatusSelect } from "@/components/bk/StatusSelect";
 import { IdentityReveal } from "@/components/bk/IdentityReveal";
 import { TindakLanjutButton } from "@/components/bk/TindakLanjutButton";
-import { DEST_BADGE } from "@/components/bk/ReportCard";
+import { DEST_BADGE, HANDLING_LABEL } from "@/components/bk/handling";
 import { SchoolScene } from "@/components/illustrations";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -66,12 +66,16 @@ const TONE_CLS: Record<Tone, string> = {
 
 // Riwayat aktivitas — label dari AuditLog action NYATA (tak mengarang entri)
 function auditLabel(action: string, metadata: unknown): string {
-  const status = (metadata as { status?: string } | null)?.status;
+  const m = (metadata ?? {}) as { status?: string; handlingStatus?: string; assignedToId?: string | null };
   switch (action) {
     case "created": return "Laporan dibuat";
     case "sent": return "Laporan dikirim";
     case "opened": return "Laporan dibuka";
-    case "status-changed": return `Status diubah → ${STATUS_LABEL[status ?? ""] ?? status ?? "?"}`;
+    case "status-changed":
+      if (m.handlingStatus) return `Penanganan diubah → ${HANDLING_LABEL[m.handlingStatus] ?? m.handlingStatus}`;
+      return `Status diubah → ${STATUS_LABEL[m.status ?? ""] ?? m.status ?? "?"}`;
+    case "assigned":
+      return m.assignedToId ? "Petugas ditugaskan" : "Penugasan petugas dilepas";
     case "identity-opened": return "Identitas pelapor dibuka";
     default: return action;
   }

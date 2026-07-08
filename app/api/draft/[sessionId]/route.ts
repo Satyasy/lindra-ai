@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guardSession } from "@/lib/session";
-import { composeReport, type TranscriptTurn } from "@/lib/ai/classify-narrative";
+import { composeReport } from "@/lib/ai/classify-narrative";
+import { readTranscript } from "@/lib/transcript";
 
 export async function GET(
   _request: Request,
