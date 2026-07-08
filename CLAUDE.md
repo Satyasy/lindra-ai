@@ -20,7 +20,7 @@ Spesifikasi desain lengkap ada di **`.claude/skills/lindra-design/design.md`**. 
 ## Aturan trauma-informed (bukan sekadar gaya — ini keselamatan)
 
 7. **QuickExit di SETIAP halaman siswa** — fixed, buka `https://www.bbc.com/weather` + hapus session. Shortcut Shift 3× dalam 5 detik (BUKAN Escape). Portal BK (`/bk/*`) TIDAK pakai QuickExit/EmergencyBar (bukan halaman siswa).
-8. **Judul aplikasi siswa netral** — chrome/tab title aplikasi siswa pakai "Catatan Harian", BUKAN "Lindra" (perangkat siswa bisa diawasi pelaku). Branding "Lindra" hanya di landing publik & Portal BK.
+8. **Judul TAB siswa netral; logo Lindra di chrome siswa = DIIZINKAN** (keputusan pemilik produk). Tab/title dokumen boleh tetap "Catatan Harian" (perangkat siswa bisa diawasi pelaku), tapi **logo Lindra (`/lindra-logo.png`) BOLEH tampil** di nav/header aplikasi siswa dan mengarah ke "/". Branding wordmark "Lindra" penuh tetap utama di landing publik & Portal BK.
 9. **Landing (`/`) tidak nge-link ke `/chat` DI PRODUKSI** — di nav, footer, CTA, mana pun. Pengecualian tunggal: pintasan "Buka chat" di navbar publik yang di-gate `NEXT_PUBLIC_DEMO_MODE==='true'` (untuk demo juri). Saat flag false/unset, link itu tidak boleh ada di DOM. Footer tetap tanpa link chat di kondisi apa pun. Jangan tambah jalur `/chat` publik lain.
 10. **Animasi minim, tanpa pop-up mendadak** — dapat diprediksi, tidak mengagetkan. Banner ajakan muncul inline di titik jeda, bukan modal. Hormati `prefers-reduced-motion`.
 11. **Tanpa** emoji sebagai ikon (pakai lucide-react), tanpa foto korban, tanpa statistik palsu, tanpa countdown menekan.

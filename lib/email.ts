@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 // Follow-up email — NETRAL & aman untuk perangkat yang mungkin diawasi pelaku.
 // ATURAN KERAS (Panduan §3): subject/body TIDAK boleh memuat kode referensi,
@@ -6,7 +6,8 @@ import { Resend } from "resend";
 // Hanya ajakan membuka aplikasi dan memasukkan kode SECARA MANUAL — tanpa tautan
 // apa pun. Nama & domain pengirim netral ("Catatan Harian", bukan "Lindra"; §1.4).
 
-export const FOLLOWUP_FROM = process.env.FOLLOWUP_FROM ?? "Catatan Harian <halo@catatan-harian.app>";
+export const FOLLOWUP_FROM =
+  process.env.FOLLOWUP_EMAIL_FROM ?? "Catatan Harian <halo@catatan-harian.app>";
 
 // Domain netral untuk tautan menu — TANPA kode/token di URL (link ke menu input kode saja).
 const APP_URL = process.env.APP_URL ?? "https://catatan-harian.app";
@@ -31,21 +32,37 @@ export const FOLLOWUP_BODY = [
   "— Catatan Harian",
 ].join("\n");
 
-// Kirim via Resend. Tanpa RESEND_API_KEY (dev/demo) → di-skip, bukan error,
-// supaya cron tetap jalan & bercabang benar tanpa kredensial email.
+// Transport SMTP (nodemailer). Env: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS.
+// Tanpa SMTP_HOST (dev/demo) → jsonTransport: tak menyentuh jaringan, hanya kembalikan
+// payload untuk di-log — cron tetap jalan & terverifikasi tanpa kredensial email.
+function transport() {
+  const host = process.env.SMTP_HOST;
+  if (!host) return nodemailer.createTransport({ jsonTransport: true });
+  const port = Number(process.env.SMTP_PORT ?? 587);
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465, // 465 = TLS langsung; 587 = STARTTLS
+    auth: process.env.SMTP_USER
+      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+      : undefined,
+  });
+}
+
+// Kirim email check-in netral KE alamat siswa via SMTP. Tanpa SMTP_HOST → di-log
+// (jsonTransport), bukan error, supaya cron tetap jalan & bercabang benar.
 export async function sendFollowupEmail(to: string): Promise<{ sent: boolean; skipped?: boolean }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("[followup-email] RESEND_API_KEY tak diset — email di-skip (dev/demo).");
-    return { sent: false, skipped: true };
-  }
-  const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
+  const info = await transport().sendMail({
     from: FOLLOWUP_FROM,
     to,
     subject: FOLLOWUP_SUBJECT,
     text: FOLLOWUP_BODY,
   });
-  if (error) throw new Error(error.message);
+  if (!process.env.SMTP_HOST) {
+    // jsonTransport menaruh payload email di info.message (string) — tak ada di tipe SMTP.
+    const payload = (info as { message?: unknown }).message ?? JSON.stringify(info);
+    console.warn(`[followup-email] SMTP_HOST tak diset — email TIDAK dikirim (jsonTransport dev). Payload:\n${payload}`);
+    return { sent: false, skipped: true };
+  }
   return { sent: true };
 }
