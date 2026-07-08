@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCheck, Paperclip, Send, Smile, X } from "lucide-react";
+import { Check, CheckCheck, Loader2, Paperclip, Send, Smile, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
@@ -71,7 +71,9 @@ export function ChatScreen() {
   const [phase, setPhase] = useState<Phase>("opening");
   const [infoMode, setInfoMode] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
-  const [attachment, setAttachment] = useState<string | null>(null);
+  const [attachment, setAttachment] = useState<
+    { name: string; status: "uploading" | "done" | "error" } | null
+  >(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,7 +85,6 @@ export function ChatScreen() {
   async function send(text: string, panic = false) {
     if (!text.trim() || sending) return;
     setInput("");
-    setAttachment(null); // ponytail: transmisi file lampiran di luar scope UI ini
     setSending(true);
     if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
     if (phase === "ready") setPhase("gathering");
@@ -150,6 +151,22 @@ export function ChatScreen() {
     if (chip.danger) setPhase("danger");
     if (chip.info) setInfoMode(true);
     send(chip.label, chip.danger);
+  }
+
+  async function uploadEvidence(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset agar file yang sama bisa dipilih lagi setelah dihapus
+    if (!file) return;
+    setAttachment({ name: file.name, status: "uploading" });
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/evidence", { method: "POST", body });
+      if (!res.ok) throw new Error(String(res.status));
+      setAttachment({ name: file.name, status: "done" });
+    } catch {
+      setAttachment({ name: file.name, status: "error" });
+    }
   }
 
   const lastIsAssistant =
@@ -276,12 +293,31 @@ export function ChatScreen() {
       </div>
 
       <footer className="border-t border-border/70 bg-surface/85 px-4 py-3 backdrop-blur-sm max-sm:pb-16">
-        {/* Chip lampiran terpilih */}
+        {/* Chip lampiran terpilih — status unggah nyata */}
         {attachment && (
           <div className="mx-auto mb-2 flex w-full max-w-[760px]">
-            <span className="flex items-center gap-1.5 rounded-full bg-surface-alt px-3 py-1.5 text-sm text-ink">
-              <Paperclip className="size-3.5 text-primary-ink" aria-hidden />
-              {attachment}
+            <span
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
+                attachment.status === "error"
+                  ? "bg-danger-soft text-danger-deep"
+                  : "bg-surface-alt text-ink"
+              }`}
+            >
+              {attachment.status === "uploading" ? (
+                <Loader2 className="size-3.5 animate-spin text-primary-ink" aria-hidden />
+              ) : attachment.status === "done" ? (
+                <Check className="size-3.5 text-primary-deep" aria-hidden />
+              ) : (
+                <TriangleAlert className="size-3.5 text-danger-deep" aria-hidden />
+              )}
+              {attachment.name}
+              <span className="text-xs text-text-muted">
+                {attachment.status === "uploading"
+                  ? "mengunggah…"
+                  : attachment.status === "error"
+                    ? "gagal, coba lagi"
+                    : "terlampir"}
+              </span>
               <button
                 type="button"
                 onClick={() => setAttachment(null)}
@@ -305,8 +341,9 @@ export function ChatScreen() {
           <input
             ref={fileRef}
             type="file"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
             hidden
-            onChange={(e) => setAttachment(e.target.files?.[0]?.name ?? null)}
+            onChange={uploadEvidence}
           />
           <button
             type="button"

@@ -34,6 +34,21 @@ model Report {
   followups    Followup[]
   auditLogs    AuditLog[]
   chatThreads  ChatThread[]
+  evidences    Evidence[]
+}
+
+// Bukti terlampir siswa (foto/PDF). Byte disimpan di tabel terpisah — bukan di
+// Report.rawTranscript — supaya read panas Report (tiap giliran chat) tetap ringan.
+// ponytail: blob di kolom Bytes Postgres, pindah ke object storage kalau volume besar.
+model Evidence {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
 }
 
 model RoutingLog {
