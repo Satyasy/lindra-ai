@@ -64,6 +64,14 @@ model Followup {
   slaStatus   String    @default("pending") // pending | on-track | breached | done
   completedAt DateTime?
   createdAt   DateTime  @default(now())
+
+  // Follow-up proaktif (opt-in siswa). contactEmail = ciphertext base64 (identity-crypto),
+  // BUKAN plaintext. escalated = penanda auto-escalate SAPA 129 sekali-jalan.
+  contactEmail     String?
+  proactiveEnabled Boolean   @default(false)
+  noProgressCount  Int       @default(0)
+  lastCheckinAt    DateTime?
+  escalated        Boolean   @default(false)
 }
 
 // Append-only, ditegakkan lewat REVOKE UPDATE/DELETE di level database (lihat migration)

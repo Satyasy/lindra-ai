@@ -10,6 +10,10 @@ import { Label } from "@/components/ui/label";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
 
+// Teks consent follow-up — VERBATIM Panduan §4.3, tampil SEBELUM form email. Jangan diubah.
+const FOLLOWUP_CONSENT =
+  "Follow-up ini akan dikirim ke email yang kamu masukkan. Pastikan ini email yang CUMA kamu yang bisa buka — bukan email keluarga, email sekolah, atau email yang passwordnya diketahui orang lain. Isi emailnya akan netral (tidak menyebut kata 'kekerasan' atau 'laporan'), tapi tetap pastikan aman ya.";
+
 export function DraftReview({ sessionId }: { sessionId: string }) {
   const router = useRouter();
   const [narrative, setNarrative] = useState<string | null>(null);
@@ -19,6 +23,10 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ referralCode: string; destinations: RouteDestination[] } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [followupOn, setFollowupOn] = useState(false); // opt-in, DEFAULT OFF
+  const [followupEmail, setFollowupEmail] = useState("");
+  const [followupSaved, setFollowupSaved] = useState(false);
+  const [followupError, setFollowupError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/draft/${sessionId}`)
@@ -43,6 +51,17 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
     } finally {
       setSending(false);
     }
+  }
+
+  async function saveFollowup(code: string) {
+    setFollowupError(null);
+    const res = await fetch("/api/followup/enable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, email: followupEmail.trim() }),
+    });
+    if (res.ok) setFollowupSaved(true);
+    else setFollowupError("Gagal mengaktifkan follow-up. Coba lagi sebentar ya.");
   }
 
   // ===== Layar konfirmasi (DESIGN.md §5.4) =====
@@ -86,6 +105,55 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
               <li key={d}>{ROUTE_REASON[d]}</li>
             ))}
           </ul>
+        </div>
+
+        {/* Follow-up proaktif — opt-in, DEFAULT OFF (Panduan §4). Consent verbatim SEBELUM form email. */}
+        <div className="mb-8 rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={followupOn}
+              onChange={(e) => setFollowupOn(e.target.checked)}
+              className="mt-1 size-5 shrink-0 accent-[var(--primary-deep)]"
+            />
+            <span>
+              <span className="font-semibold text-ink">Mau Lindra tanya kabar kamu nanti?</span>
+              <span className="mt-0.5 block text-sm text-text-soft">Opsional — kamu bisa lewati ini.</span>
+            </span>
+          </label>
+
+          {followupOn && !followupSaved && (
+            <div className="mt-4 space-y-3">
+              <p className="rounded-[var(--radius-md)] bg-warm-soft px-4 py-3 text-sm leading-relaxed text-ink">
+                {FOLLOWUP_CONSENT}
+              </p>
+              <Input
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                value={followupEmail}
+                onChange={(e) => setFollowupEmail(e.target.value)}
+                placeholder="email yang cuma kamu yang bisa buka"
+                aria-label="Email follow-up"
+                className="min-h-12 rounded-[var(--radius-md)]"
+              />
+              <Button
+                onClick={() => saveFollowup(result.referralCode)}
+                disabled={!followupEmail.trim()}
+                className="min-h-11 rounded-full font-semibold"
+              >
+                Aktifkan follow-up
+              </Button>
+              {followupError && <p className="text-sm text-danger">{followupError}</p>}
+            </div>
+          )}
+
+          {followupSaved && (
+            <p className="mt-3 flex items-center gap-2 text-sm font-medium text-primary-ink">
+              <Check className="size-4" aria-hidden />
+              Follow-up diaktifkan — kami akan menyapa lewat email netral.
+            </p>
+          )}
         </div>
 
         <div className="mb-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
