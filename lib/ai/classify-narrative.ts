@@ -141,3 +141,37 @@ export async function composeReport(transcript: TranscriptTurn[]): Promise<Repor
     return safeDefault(transcript);
   }
 }
+
+// Deteksi field ReportDraft yang masih kosong, untuk digunakan endpoint chat
+// saat menyusun pertanyaan lanjutan secara natural (lihat system-prompt.ts instruksi #19).
+// Pure function, sync, TANPA panggilan LLM — supaya tidak menambah latency.
+export function identifyMissingBlocks(draft: ReportDraft): string[] {
+  const gaps: string[] = [];
+
+  if (!draft.kejadian?.deskripsi && !draft.kejadian?.waktu) {
+    gaps.push("kapan atau detail kejadiannya");
+  }
+  if (!draft.klasifikasi?.violenceType || draft.klasifikasi.violenceType.length === 0) {
+    gaps.push("jenis kekerasan yang dialami");
+  }
+  if (!draft.dampak?.deskripsi) {
+    gaps.push("dampaknya ke kamu");
+  }
+  if (draft.bukti?.adaBukti === null || draft.bukti?.adaBukti === undefined) {
+    gaps.push("ada bukti atau tidak");
+  }
+
+  return gaps.slice(0, 2);
+}
+
+// Menentukan apakah info inti sudah cukup untuk mulai menawarkan
+// penyusunan/tinjauan draf laporan. Pure function, sync, TANPA panggilan LLM.
+// Dipakai SEBELUM identifyMissingBlocks — ini gate yang lebih awal & lebih kasar,
+// identifyMissingBlocks dipakai SETELAH siswa setuju untuk menggali detail lanjutan.
+export function isReadyForDraftOffer(draft: ReportDraft): boolean {
+  const adaKejadian = !!draft.kejadian?.deskripsi;
+  const adaTerlapor = !!(draft.terlapor?.perpetratorRole || draft.terlapor?.deskripsi);
+  const adaKlasifikasi = draft.klasifikasi?.violenceType?.length > 0;
+
+  return adaKejadian && adaTerlapor && adaKlasifikasi;
+}
