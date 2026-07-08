@@ -1,6 +1,11 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # Di-inline saat build. Default true untuk compose demo/dev ini (entri /chat &
+        # /masuk tampil). Produksi nyata: set NEXT_PUBLIC_DEMO_MODE=false sebelum build.
+        NEXT_PUBLIC_DEMO_MODE: "${NEXT_PUBLIC_DEMO_MODE:-true}"
     ports:
       - "3000:3000"
     environment:
