@@ -66,14 +66,23 @@ export default function LandingPage() {
               Lindra bantu kamu menceritakannya — lalu sampai ke bantuan yang tepat.
             </p>
             <div className="flex flex-wrap gap-3">
-              {/* CTA di-gate: chat hanya saat demo, produksi anchor non-chat (§1.9) */}
+              {/* CTA di-gate: entri /chat & /masuk HANYA saat demo, produksi anchor non-chat
+                  (§1.9 — landing publik tak boleh nge-link ke /chat di produksi). */}
               {demo ? (
-                <Link
-                  href="/chat"
-                  className="flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-ink transition-colors hover:bg-primary-deep"
-                >
-                  Mulai cerita
-                </Link>
+                <>
+                  <Link
+                    href="/chat"
+                    className="flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-ink transition-colors hover:bg-primary-deep"
+                  >
+                    Mulai cerita
+                  </Link>
+                  <Link
+                    href="/masuk"
+                    className="flex min-h-12 items-center rounded-full border-2 border-border px-6 font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
+                  >
+                    Masukkan kode
+                  </Link>
+                </>
               ) : (
                 <a
                   href="#cara-kerja"

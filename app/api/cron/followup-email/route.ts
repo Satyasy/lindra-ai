@@ -33,8 +33,15 @@ export async function GET(req: Request) {
     const slaBreached =
       f.report.createdAt.getTime() + SLA_THRESHOLD_HOURS * 3600_000 < now.getTime();
     const done = f.report.status === "selesai";
+    if (done) {
+      skipped++;
+      continue;
+    }
 
-    // Cabang 1 — auto-escalate SEKALI ke SAPA 129 (bukan email)
+    // SAFETY NET — laporan diabaikan (belum dibuka BK/Satgas) & SLA breached →
+    // auto-escalate SEKALI ke SAPA 129, DI SAMPING email (email saja tak cukup untuk
+    // anak yang diabaikan). Cakupan luas (semua urgensi) sengaja dipertahankan dari
+    // dokumen — tidak dipersempit ke kritis saja agar tak mengurangi jaring pengaman.
     if (!opened && slaBreached && !f.escalated) {
       const alreadyRouted = f.report.routingLogs.some((l) => l.destination === "sapa129");
       await prisma.$transaction([
@@ -51,16 +58,17 @@ export async function GET(req: Request) {
             ]),
         prisma.followup.update({
           where: { id: f.id },
-          data: { escalated: true, slaStatus: "breached", lastCheckinAt: now },
+          data: { escalated: true, slaStatus: "breached" },
         }),
       ]);
       await logAction(f.reportId, "system", "auto-escalated", { to: "sapa129" });
       escalated++;
-      continue;
     }
 
-    // Cabang 2 — email follow-up netral untuk report yang sudah dibuka & belum selesai
-    if (opened && !done && f.contactEmail) {
+    // EMAIL NETRAL — sapa kabar siswa. Dikirim saat laporan BELUM diproses ("belum
+    // diterima" = tak ada AuditLog 'opened') maupun sudah diproses tapi belum selesai.
+    // Template TANPA kode/link auto-login (lib/email). Reschedule check-in berikutnya.
+    if (f.contactEmail) {
       await sendFollowupEmail(decryptFromBase64(f.contactEmail)); // dekripsi hanya in-memory
       await prisma.followup.update({
         where: { id: f.id },
@@ -70,10 +78,7 @@ export async function GET(req: Request) {
         },
       });
       emailed++;
-      continue;
     }
-
-    skipped++;
   }
 
   return Response.json({ processed: due.length, escalated, emailed, skipped });

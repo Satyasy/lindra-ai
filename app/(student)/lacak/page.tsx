@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
+import { FollowupToggle } from "@/components/followup/FollowupToggle";
 
 // Timeline 4 langkah sesuai DESIGN.md §5.5. key = status Report di Prisma.
 // ponytail: "ditindaklanjuti" tahap penanganan lanjut — kalau backend belum
@@ -21,19 +22,25 @@ export default function LacakPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [followupEnabled, setFollowupEnabled] = useState(false);
+  const [checkedCode, setCheckedCode] = useState<string | null>(null);
 
   async function check(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setStatus(null);
+    setCheckedCode(null);
     const res = await fetch(`/api/lacak/${encodeURIComponent(code.trim())}`);
     setLoading(false);
     if (!res.ok) {
       setError("Kode itu tidak kami temukan. Coba periksa lagi ya — huruf kecil semua.");
       return;
     }
-    setStatus((await res.json()).status);
+    const data = await res.json();
+    setStatus(data.status);
+    setFollowupEnabled(!!data.followupEnabled);
+    setCheckedCode(code.trim().toLowerCase()); // ikat toggle ke kode yang divalidasi
   }
 
   const currentIdx = STEPS.findIndex((s) => s.key === status);
@@ -91,6 +98,13 @@ export default function LacakPage() {
             );
           })}
         </ol>
+      )}
+
+      {/* Toggle follow-up — muncul HANYA setelah cek status valid, terikat kode itu */}
+      {status && checkedCode && (
+        <div className="mb-12">
+          <FollowupToggle code={checkedCode} initialEnabled={followupEnabled} />
+        </div>
       )}
 
       <EmergencyBar title="Kalau keadaan mendesak, jangan tunggu status —" />
