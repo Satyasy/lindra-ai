@@ -2,589 +2,120 @@
 - Local:         http://localhost:3000
 - Network:       http://172.23.16.1:3000
 - Environments: .env
-✓ Ready in 1204ms
+✓ Ready in 1145ms
 
- GET / 200 in 1244ms (next.js: 168ms, proxy.ts: 515ms, application-code: 561ms)
- GET /bk/seed-r2 200 in 2.1s (next.js: 1210ms, proxy.ts: 31ms, application-code: 896ms)
-✓ Compiled in 1093ms
- GET / 200 in 1000ms (next.js: 131ms, proxy.ts: 207ms, application-code: 662ms)
- GET /bk/seed-r2 200 in 999ms (next.js: 286ms, proxy.ts: 432ms, application-code: 280ms)
- GET /bk/seed-r2 200 in 725ms (next.js: 27ms, proxy.ts: 34ms, application-code: 664ms)
- POST /bk/seed-r2 200 in 99ms (next.js: 19ms, proxy.ts: 14ms, application-code: 66ms)
-  └─ ƒ revealIdentity("seed-r2") in 24ms app/bk/(dashboard)/[reportId]/actions.ts
- GET /bk/seed-r3 404 in 316ms (next.js: 44ms, proxy.ts: 15ms, application-code: 257ms)
- GET /bk 200 in 493ms (next.js: 75ms, proxy.ts: 21ms, application-code: 396ms)
- GET /bk 200 in 348ms (next.js: 12ms, proxy.ts: 19ms, application-code: 317ms)
- GET /bk?tab=selesai 200 in 362ms (next.js: 19ms, proxy.ts: 44ms, application-code: 299ms)
+ POST /api/followup/enable 200 in 745ms (next.js: 302ms, proxy.ts: 363ms, application-code: 79ms)
+[followup-email] RESEND_API_KEY tak diset — email di-skip (dev/demo).
+ GET /api/cron/followup-email 200 in 340ms (next.js: 292ms, proxy.ts: 7ms, application-code: 41ms)
+ GET /api/cron/followup-email 401 in 22ms (next.js: 4ms, proxy.ts: 10ms, application-code: 8ms)
+ GET /bk/test-sapa 200 in 2.5s (next.js: 1209ms, proxy.ts: 52ms, application-code: 1203ms)
+ GET /followup/masuk 200 in 1444ms (next.js: 1315ms, proxy.ts: 21ms, application-code: 108ms)
+ POST /api/followup/verify 200 in 343ms (next.js: 280ms, proxy.ts: 13ms, application-code: 50ms)
+ GET /followup 200 in 886ms (next.js: 827ms, proxy.ts: 20ms, application-code: 39ms)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477:13)
- GET /bk 200 in 47ms (next.js: 11ms, proxy.ts: 19ms, application-code: 17ms)
- GET /bk 200 in 205ms (next.js: 12ms, proxy.ts: 17ms, application-code: 176ms)
- GET /bk?tab=selesai 200 in 207ms (next.js: 11ms, proxy.ts: 21ms, application-code: 175ms)
- GET /bk 200 in 62ms (next.js: 13ms, proxy.ts: 28ms, application-code: 21ms)
- GET /bk 200 in 299ms (next.js: 14ms, proxy.ts: 27ms, application-code: 258ms)
- GET /bk 200 in 115ms (next.js: 26ms, proxy.ts: 44ms, application-code: 45ms)
- GET /bk 200 in 465ms (next.js: 23ms, proxy.ts: 48ms, application-code: 393ms)
- GET /bk/seed-r2 200 in 331ms (next.js: 52ms, proxy.ts: 30ms, application-code: 250ms)
- POST /bk/seed-r2 200 in 372ms (next.js: 22ms, proxy.ts: 18ms, application-code: 332ms)
-  └─ ƒ updateReportStatus("seed-r2", "ditinjau") in 73ms app/bk/(dashboard)/[reportId]/actions.ts
- GET /bk 200 in 127ms (next.js: 10ms, proxy.ts: 14ms, application-code: 102ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="id"
-                          className="generalsans_78a93d5b-module__gPK5jG__variable h-full antialiased"
--                         data-google-analytics-opt-out=""
-                        >
-                  ...
- 
-    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at emitPendingHydrationWarnings (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3438:13)
-    at completeWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6885:102)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:131)
-    at completeUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
-    at workLoopConcurrentByScheduler (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
-    at renderRootConcurrent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
- GET /bk/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Fbk 200 in 315ms (next.js: 88ms, proxy.ts: 9ms, application-code: 218ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/bk/login" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="id"
-                          className="generalsans_78a93d5b-module__gPK5jG__variable h-full antialiased"
--                         data-google-analytics-opt-out=""
-                        >
-                  ...
- 
-    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at emitPendingHydrationWarnings (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3438:13)
-    at completeWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6885:102)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:131)
-    at completeUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
-    at workLoopConcurrentByScheduler (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
-    at renderRootConcurrent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
- GET /bk/login 200 in 2.2s (next.js: 899ms, proxy.ts: 952ms, application-code: 351ms)
- GET /chat 200 in 313ms (next.js: 97ms, proxy.ts: 48ms, application-code: 168ms)
- POST /api/chat 200 in 270ms (next.js: 106ms, proxy.ts: 12ms, application-code: 152ms)
-✓ Compiled in 834ms
- GET /chat 200 in 86ms (next.js: 8ms, proxy.ts: 11ms, application-code: 66ms)
- POST /api/chat 200 in 51ms (next.js: 5ms, proxy.ts: 16ms, application-code: 30ms)
- GET /bk 200 in 430ms (next.js: 108ms, proxy.ts: 16ms, application-code: 306ms)
-✓ Compiled in 196ms
-✓ Compiled in 201ms
-✓ Compiled in 472ms
-✓ Compiled in 696ms
- GET /bk 200 in 1208ms (next.js: 313ms, proxy.ts: 404ms, application-code: 492ms)
- GET /bk 200 in 814ms (next.js: 10ms, proxy.ts: 79ms, application-code: 724ms)
- GET /bk 200 in 1021ms (next.js: 22ms, proxy.ts: 175ms, application-code: 824ms)
- GET /bk 200 in 1020ms (next.js: 83ms, proxy.ts: 174ms, application-code: 763ms)
- GET /bk 200 in 1017ms (next.js: 280ms, proxy.ts: 174ms, application-code: 564ms)
- GET /bk 200 in 1021ms (next.js: 175ms, proxy.ts: 174ms, application-code: 672ms)
- GET /bk 200 in 1114ms (next.js: 108ms, proxy.ts: 515ms, application-code: 491ms)
- GET /bk 200 in 1354ms (next.js: 42ms, proxy.ts: 343ms, application-code: 969ms)
- GET /bk 200 in 1530ms (next.js: 48ms, proxy.ts: 250ms, application-code: 1232ms)
- GET /bk 200 in 1530ms (next.js: 150ms, proxy.ts: 251ms, application-code: 1129ms)
- GET /bk 200 in 1531ms (next.js: 253ms, proxy.ts: 253ms, application-code: 1026ms)
- GET /bk 200 in 1587ms (next.js: 385ms, proxy.ts: 229ms, application-code: 973ms)
- GET /bk 200 in 1490ms (next.js: 300ms, proxy.ts: 763ms, application-code: 427ms)
- GET /bk 200 in 1162ms (next.js: 39ms, proxy.ts: 577ms, application-code: 546ms)
- GET /bk 200 in 746ms (next.js: 45ms, proxy.ts: 126ms, application-code: 575ms)
- GET /bk 200 in 746ms (next.js: 85ms, proxy.ts: 125ms, application-code: 536ms)
- GET /bk 200 in 738ms (next.js: 131ms, proxy.ts: 132ms, application-code: 475ms)
- GET /bk 200 in 720ms (next.js: 204ms, proxy.ts: 111ms, application-code: 406ms)
- GET /bk 200 in 793ms (next.js: 96ms, proxy.ts: 421ms, application-code: 277ms)
- GET /bk 200 in 715ms (next.js: 36ms, proxy.ts: 232ms, application-code: 447ms)
- GET /bk 200 in 767ms (next.js: 35ms, proxy.ts: 164ms, application-code: 568ms)
- GET /bk 200 in 771ms (next.js: 76ms, proxy.ts: 163ms, application-code: 532ms)
- GET /bk 200 in 770ms (next.js: 131ms, proxy.ts: 162ms, application-code: 476ms)
- GET /bk 200 in 830ms (next.js: 95ms, proxy.ts: 203ms, application-code: 533ms)
- GET /bk 200 in 835ms (next.js: 118ms, proxy.ts: 351ms, application-code: 367ms)
- GET /bk 200 in 1043ms (next.js: 83ms, proxy.ts: 278ms, application-code: 681ms)
- GET /bk 200 in 960ms (next.js: 73ms, proxy.ts: 196ms, application-code: 690ms)
- GET /bk 200 in 957ms (next.js: 185ms, proxy.ts: 194ms, application-code: 578ms)
- GET /bk 200 in 947ms (next.js: 304ms, proxy.ts: 186ms, application-code: 457ms)
- GET /bk 200 in 861ms (next.js: 159ms, proxy.ts: 333ms, application-code: 369ms)
- GET /bk 200 in 902ms (next.js: 93ms, proxy.ts: 560ms, application-code: 248ms)
- GET /bk 200 in 734ms (next.js: 41ms, proxy.ts: 207ms, application-code: 486ms)
- GET /bk 200 in 696ms (next.js: 22ms, proxy.ts: 156ms, application-code: 518ms)
- GET /bk 200 in 699ms (next.js: 142ms, proxy.ts: 155ms, application-code: 401ms)
-○ Compiling /illus-preview ...
- GET /illus-preview 200 in 5.1s (next.js: 4.7s, proxy.ts: 32ms, application-code: 400ms)
-✓ Compiled in 861ms
- GET /illus-preview 200 in 1064ms (next.js: 288ms, proxy.ts: 300ms, application-code: 477ms)
- GET /illus-preview 200 in 217ms (next.js: 20ms, proxy.ts: 57ms, application-code: 141ms)
-✓ Compiled in 221ms
- GET /illus-preview 200 in 642ms (next.js: 167ms, proxy.ts: 173ms, application-code: 302ms)
- GET /illus-preview 200 in 226ms (next.js: 21ms, proxy.ts: 110ms, application-code: 95ms)
-✓ Compiled in 114ms
- GET /illus-preview 200 in 422ms (next.js: 125ms, proxy.ts: 132ms, application-code: 165ms)
- GET /illus-preview 200 in 438ms (next.js: 55ms, proxy.ts: 86ms, application-code: 297ms)
-✓ Compiled in 233ms
- GET /illus-preview 200 in 378ms (next.js: 119ms, proxy.ts: 121ms, application-code: 138ms)
- GET /illus-preview 200 in 77ms (next.js: 10ms, proxy.ts: 23ms, application-code: 44ms)
-✓ Compiled in 347ms
- GET /illus-preview 200 in 1272ms (next.js: 276ms, proxy.ts: 397ms, application-code: 599ms)
- GET /illus-preview 200 in 718ms (next.js: 148ms, proxy.ts: 378ms, application-code: 192ms)
-✓ Compiled in 361ms
- GET /illus-preview 200 in 693ms (next.js: 118ms, proxy.ts: 467ms, application-code: 109ms)
- GET /illus-preview 200 in 197ms (next.js: 43ms, proxy.ts: 36ms, application-code: 118ms)
-✓ Compiled in 552ms
- GET /illus-preview 200 in 432ms (next.js: 127ms, proxy.ts: 225ms, application-code: 80ms)
- GET /illus-preview 200 in 73ms (next.js: 8ms, proxy.ts: 16ms, application-code: 49ms)
-✓ Compiled in 176ms
- GET /illus-preview 200 in 598ms (next.js: 174ms, proxy.ts: 347ms, application-code: 76ms)
- GET /illus-preview 200 in 62ms (next.js: 8ms, proxy.ts: 18ms, application-code: 36ms)
- GET /illus-preview 200 in 356ms (next.js: 9ms, proxy.ts: 16ms, application-code: 331ms)
- GET /illus-preview 404 in 1645ms (next.js: 1117ms, proxy.ts: 417ms, application-code: 111ms)
- GET /illus-preview 404 in 335ms (next.js: 28ms, proxy.ts: 39ms, application-code: 268ms)
- GET /illus-preview 404 in 419ms (next.js: 66ms, proxy.ts: 37ms, application-code: 315ms)
- GET /illus-preview 404 in 613ms (next.js: 182ms, proxy.ts: 303ms, application-code: 128ms)
- GET /illus-preview 404 in 127ms (next.js: 14ms, proxy.ts: 17ms, application-code: 95ms)
-✓ Compiled in 921ms
- GET /illus-preview 404 in 450ms (next.js: 170ms, proxy.ts: 137ms, application-code: 143ms)
- GET /illus-preview 404 in 195ms (next.js: 19ms, proxy.ts: 41ms, application-code: 136ms)
- GET /illus-preview 404 in 221ms (next.js: 48ms, proxy.ts: 37ms, application-code: 136ms)
-✓ Compiled in 285ms
- GET /illus-preview 404 in 480ms (next.js: 145ms, proxy.ts: 222ms, application-code: 113ms)
- GET /illus-preview 404 in 339ms (next.js: 52ms, proxy.ts: 35ms, application-code: 252ms)
- GET /illus-preview 404 in 556ms (next.js: 113ms, proxy.ts: 34ms, application-code: 408ms)
- GET /chat 200 in 431ms (next.js: 175ms, proxy.ts: 17ms, application-code: 239ms)
- POST /api/chat 200 in 119ms (next.js: 51ms, proxy.ts: 10ms, application-code: 58ms)
-✓ Compiled in 264ms
- GET /chat 200 in 818ms (next.js: 353ms, proxy.ts: 296ms, application-code: 169ms)
- GET /chat 200 in 168ms (next.js: 18ms, proxy.ts: 63ms, application-code: 87ms)
-✓ Compiled in 450ms
- GET /chat 200 in 749ms (next.js: 205ms, proxy.ts: 440ms, application-code: 105ms)
- GET /chat 200 in 181ms (next.js: 12ms, proxy.ts: 39ms, application-code: 129ms)
- GET /chat 200 in 72ms (next.js: 6ms, proxy.ts: 28ms, application-code: 37ms)
-✓ Compiled in 159ms
-⨯ ReferenceError: ArrowLeft is not defined
-    at module evaluation (components\nav\StudentNav.tsx:36:51)
-  34 |   { label: "Lanjutkan nanti", href: "/draft", icon: Bookmark },
-  35 |   { label: "Lacak status", href: "/lacak", icon: Route },
-> 36 |   { label: "Kembali ke beranda", href: "/", icon: ArrowLeft },
-     |                                                   ^
-  37 | ];
-  38 |
-  39 | // Darurat inline (§1 poin 2) — 110 · 129 · 119, --danger karena sinyal krisis nyata. {
-  digest: '1265671151'
-}
- GET /chat 200 in 1285ms (next.js: 248ms, proxy.ts: 178ms, application-code: 859ms)
- GET /chat 500 in 1203ms (next.js: 25ms, proxy.ts: 336ms, application-code: 842ms)
-[browser] Uncaught ReferenceError: ArrowLeft is not defined
-    at module evaluation (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/_194xv_d._.js:95:15)
-    at requireModule (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:95:84)
-    at initializeModuleChunk (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1110:25)
-    at resolveModuleChunk (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1030:43)
-    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1758:24)
-    at ChatPage (app\(student)\chat\page.tsx:8:5)
-   6 | export default function ChatPage() {
-   7 |   return (
->  8 |     <StudentNav>
-     |     ^
-   9 |       <h1 className="sr-only">Catatan Harian</h1>
-  10 |       <ChatScreen />
-  11 |     </StudentNav>
-✓ Compiled in 247ms
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-⚠ Fast Refresh had to perform a full reload when ./components/nav/StudentNav.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-⨯ ReferenceError: BookOpen is not defined
-    at StudentNav (components\nav\StudentNav.tsx:52:10)
-  50 |     <nav className="flex h-full flex-col gap-1 p-4">
-  51 |       <div className="mb-4 flex items-center gap-2 px-2 py-1">
-> 52 |         <BookOpen className="size-5 text-primary-ink" strokeWidth={2} aria-hidden />
-     |          ^
-  53 |         <span className="text-base font-semibold text-ink">Catatan Harian</span>
-  54 |       </div>
-  55 | {
-  digest: '3948998506'
-}
- GET /chat 500 in 509ms (next.js: 257ms, proxy.ts: 23ms, application-code: 230ms)
-[browser] Uncaught ReferenceError: BookOpen is not defined
-    at StudentNav (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/_194xv_d._.js:123:224)
-    at Object.react_stack_bottom_frame (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:15037:24)
-    at renderWithHooks (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:4620:24)
-    at updateFunctionComponent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6081:21)
-    at beginWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6665:639)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
-    at workLoopSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9449:40)
-    at renderRootSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9433:13)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9098:47)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
-    at ChatPage (app\(student)\chat\page.tsx:8:5)
-   6 | export default function ChatPage() {
-   7 |   return (
->  8 |     <StudentNav>
-     |     ^
-   9 |       <h1 className="sr-only">Catatan Harian</h1>
-  10 |       <ChatScreen />
-  11 |     </StudentNav>
-✓ Compiled in 225ms
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-⨯ ReferenceError: TipDoodle is not defined
-    at StudentNav (components\nav\StudentNav.tsx:80:12)
-  78 |         {/* Tip Hari Ini — TipDoodle (ilustrasi kustom, bukan emoji) */}
-  79 |         <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] bg-surface-war...
-> 80 |           <TipDoodle className="w-10 shrink-0" />
-     |            ^
-  81 |           <p className="text-sm leading-snug text-ink">
-  82 |             <span className="font-semibold">Tip Hari Ini:</span> Ceritakan sebanyak atau s...
-  83 |             yang kamu mau. {
-  digest: '2328724979'
-}
- GET /chat 500 in 913ms (next.js: 151ms, proxy.ts: 454ms, application-code: 308ms)
-[browser] Uncaught ReferenceError: TipDoodle is not defined
-    at StudentNav (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/_194xv_d._.js:187:232)
-    at Object.react_stack_bottom_frame (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:15037:24)
-    at renderWithHooks (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:4620:24)
-    at updateFunctionComponent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6081:21)
-    at beginWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6665:639)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
-    at workLoopSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9449:40)
-    at renderRootSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9433:13)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9098:47)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
-    at ChatPage (app\(student)\chat\page.tsx:8:5)
-   6 | export default function ChatPage() {
-   7 |   return (
->  8 |     <StudentNav>
-     |     ^
-   9 |       <h1 className="sr-only">Catatan Harian</h1>
-  10 |       <ChatScreen />
-  11 |     </StudentNav>
-✓ Compiled in 100ms
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-⨯ ReferenceError: TipDoodle is not defined
-    at StudentNav (components\nav\StudentNav.tsx:80:12)
-  78 |         {/* Tip Hari Ini — TipDoodle (ilustrasi kustom, bukan emoji) */}
-  79 |         <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] bg-surface-war...
-> 80 |           <TipDoodle className="w-10 shrink-0" />
-     |            ^
-  81 |           <p className="text-sm leading-snug text-ink">
-  82 |             <span className="font-semibold">Tip Hari Ini:</span> Ceritakan sebanyak atau s...
-  83 |             yang kamu mau. {
-  digest: '2328724979'
-}
- GET /chat 500 in 678ms (next.js: 208ms, proxy.ts: 183ms, application-code: 287ms)
-[browser] Uncaught ReferenceError: TipDoodle is not defined
-    at StudentNav (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/_194xv_d._.js:187:232)
-    at Object.react_stack_bottom_frame (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:15037:24)
-    at renderWithHooks (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:4620:24)
-    at updateFunctionComponent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6081:21)
-    at beginWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6665:639)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
-    at workLoopSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9449:40)
-    at renderRootSync (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9433:13)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9098:47)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
-    at ChatPage (app\(student)\chat\page.tsx:8:5)
-   6 | export default function ChatPage() {
-   7 |   return (
->  8 |     <StudentNav>
-     |     ^
-   9 |       <h1 className="sr-only">Catatan Harian</h1>
-  10 |       <ChatScreen />
-  11 |     </StudentNav>
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-✓ Compiled in 731ms
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /chat 200 in 3.0s (next.js: 491ms, proxy.ts: 1141ms, application-code: 1413ms)
-✓ Compiled in 309ms
- GET /chat 200 in 1176ms (next.js: 352ms, proxy.ts: 722ms, application-code: 102ms)
- GET /chat 200 in 199ms (next.js: 7ms, proxy.ts: 14ms, application-code: 179ms)
- POST /api/chat 200 in 123ms (next.js: 55ms, proxy.ts: 12ms, application-code: 56ms)
- GET /chat 200 in 344ms (next.js: 20ms, proxy.ts: 60ms, application-code: 264ms)
- POST /api/chat 200 in 65ms (next.js: 4ms, proxy.ts: 11ms, application-code: 50ms)
- POST /api/chat 200 in 44ms (next.js: 5ms, proxy.ts: 11ms, application-code: 28ms)
- POST /api/chat 200 in 41ms (next.js: 6ms, proxy.ts: 10ms, application-code: 25ms)
- GET /draft 200 in 150ms (next.js: 95ms, proxy.ts: 19ms, application-code: 36ms)
-[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477:13)
- GET /api/draft/cmrau0qoe0006z9yow6rgid9b 200 in 1994ms (next.js: 1919ms, proxy.ts: 48ms, application-code: 28ms)
- GET /api/draft/cmrau0qoe0006z9yow6rgid9b 200 in 48ms (next.js: 16ms, proxy.ts: 12ms, application-code: 21ms)
- GET /chat 200 in 130ms (next.js: 12ms, proxy.ts: 24ms, application-code: 94ms)
- GET / 200 in 814ms (next.js: 496ms, proxy.ts: 16ms, application-code: 302ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="id"
-                          className="generalsans_78a93d5b-module__gPK5jG__variable h-full antialiased"
--                         data-google-analytics-opt-out=""
-                        >
-                  ...
- 
-    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at emitPendingHydrationWarnings (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3438:13)
-    at completeWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6885:102)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:131)
-    at completeUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
-    at workLoopConcurrentByScheduler (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
-    at renderRootConcurrent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
- GET /chat 200 in 110ms (next.js: 8ms, proxy.ts: 10ms, application-code: 92ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/chat" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="id"
-                          className="generalsans_78a93d5b-module__gPK5jG__variable h-full antialiased"
--                         data-google-analytics-opt-out=""
-                        >
-                  ...
- 
-    at <unknown> (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at emitPendingHydrationWarnings (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3438:13)
-    at completeWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6885:102)
-    at runWithFiberInDEV (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:131)
-    at completeUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
-    at performUnitOfWork (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
-    at workLoopConcurrentByScheduler (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
-    at renderRootConcurrent (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
-    at performWorkOnRoot (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
-    at performWorkOnRootViaSchedulerTask (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64) (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3439:25)
-✓ Compiled in 355ms
- GET /chat 200 in 166ms (next.js: 12ms, proxy.ts: 24ms, application-code: 130ms)
-✓ Compiled in 952ms
- GET /chat 200 in 1286ms (next.js: 137ms, proxy.ts: 38ms, application-code: 1111ms)
- GET /chat 200 in 623ms (next.js: 291ms, proxy.ts: 261ms, application-code: 72ms)
- GET /chat 200 in 75ms (next.js: 8ms, proxy.ts: 17ms, application-code: 50ms)
- GET /chat 200 in 84ms (next.js: 7ms, proxy.ts: 17ms, application-code: 60ms)
- GET /chat 200 in 79ms (next.js: 7ms, proxy.ts: 22ms, application-code: 50ms)
- GET /chat 200 in 79ms (next.js: 7ms, proxy.ts: 17ms, application-code: 55ms)
- GET /chat 200 in 139ms (next.js: 7ms, proxy.ts: 19ms, application-code: 113ms)
- GET /chat 200 in 113ms (next.js: 12ms, proxy.ts: 31ms, application-code: 70ms)
- GET /chat 200 in 75ms (next.js: 7ms, proxy.ts: 15ms, application-code: 53ms)
- GET /chat 200 in 84ms (next.js: 8ms, proxy.ts: 14ms, application-code: 62ms)
- GET /chat 200 in 88ms (next.js: 7ms, proxy.ts: 28ms, application-code: 52ms)
- GET /chat 200 in 73ms (next.js: 8ms, proxy.ts: 16ms, application-code: 49ms)
- GET /chat 200 in 92ms (next.js: 10ms, proxy.ts: 17ms, application-code: 65ms)
- GET /bk/seed-r2 200 in 2.2s (next.js: 295ms, proxy.ts: 33ms, application-code: 1910ms)
- POST /bk/seed-r2 200 in 73ms (next.js: 19ms, proxy.ts: 11ms, application-code: 43ms)
-  └─ ƒ revealIdentity("seed-r2") in 21ms app/bk/(dashboard)/[reportId]/actions.ts
- GET /bk/seed-r2 200 in 478ms (next.js: 20ms, proxy.ts: 11ms, application-code: 446ms)
- GET /chat 200 in 422ms (next.js: 18ms, proxy.ts: 27ms, application-code: 377ms)
-✓ Compiled in 214ms
- GET /chat 200 in 1065ms (next.js: 207ms, proxy.ts: 306ms, application-code: 552ms)
- GET /chat 200 in 1068ms (next.js: 253ms, proxy.ts: 310ms, application-code: 504ms)
- GET /chat 200 in 825ms (next.js: 29ms, proxy.ts: 530ms, application-code: 266ms)
- GET /bk/seed-r2 200 in 1814ms (next.js: 599ms, proxy.ts: 308ms, application-code: 908ms)
- GET /chat 200 in 729ms (next.js: 68ms, proxy.ts: 282ms, application-code: 379ms)
- GET /chat 200 in 721ms (next.js: 162ms, proxy.ts: 275ms, application-code: 284ms)
- GET /chat 200 in 725ms (next.js: 54ms, proxy.ts: 444ms, application-code: 228ms)
- GET /bk/seed-r2 200 in 1301ms (next.js: 111ms, proxy.ts: 181ms, application-code: 1009ms)
- GET /chat 200 in 903ms (next.js: 68ms, proxy.ts: 266ms, application-code: 568ms)
- GET /chat 200 in 902ms (next.js: 120ms, proxy.ts: 265ms, application-code: 517ms)
- GET /chat 200 in 923ms (next.js: 47ms, proxy.ts: 360ms, application-code: 515ms)
- GET /bk/seed-r2 200 in 1492ms (next.js: 39ms, proxy.ts: 442ms, application-code: 1011ms)
- GET /bk/seed-r2 200 in 1492ms (next.js: 77ms, proxy.ts: 441ms, application-code: 974ms)
- GET /bk/seed-r2 200 in 1260ms (next.js: 271ms, proxy.ts: 215ms, application-code: 773ms)
- GET /chat 200 in 467ms (next.js: 18ms, proxy.ts: 336ms, application-code: 114ms)
- GET /chat 200 in 563ms (next.js: 186ms, proxy.ts: 107ms, application-code: 271ms)
- GET /chat 200 in 444ms (next.js: 65ms, proxy.ts: 282ms, application-code: 98ms)
- GET /bk/seed-r2 200 in 789ms (next.js: 337ms, proxy.ts: 103ms, application-code: 350ms)
- GET /chat 200 in 665ms (next.js: 118ms, proxy.ts: 128ms, application-code: 419ms)
- GET /chat 200 in 586ms (next.js: 265ms, proxy.ts: 189ms, application-code: 133ms)
- GET /bk/seed-r2 200 in 775ms (next.js: 270ms, proxy.ts: 130ms, application-code: 375ms)
-✓ Compiled in 557ms
- GET /chat 200 in 1210ms (next.js: 468ms, proxy.ts: 28ms, application-code: 714ms)
- GET /chat 200 in 1606ms (next.js: 387ms, proxy.ts: 436ms, application-code: 783ms)
- GET /chat 200 in 1601ms (next.js: 529ms, proxy.ts: 430ms, application-code: 643ms)
- GET /chat 200 in 1458ms (next.js: 193ms, proxy.ts: 683ms, application-code: 582ms)
- GET /chat 200 in 1062ms (next.js: 91ms, proxy.ts: 625ms, application-code: 345ms)
- GET /bk/seed-r2 200 in 2.7s (next.js: 859ms, proxy.ts: 433ms, application-code: 1406ms)
- GET /chat 200 in 963ms (next.js: 140ms, proxy.ts: 453ms, application-code: 369ms)
- GET /bk/seed-r2 200 in 1612ms (next.js: 358ms, proxy.ts: 248ms, application-code: 1005ms)
- GET /chat 200 in 557ms (next.js: 61ms, proxy.ts: 338ms, application-code: 158ms)
- GET /bk/seed-r2 200 in 1093ms (next.js: 153ms, proxy.ts: 408ms, application-code: 533ms)
- GET /bk/seed-r2 200 in 1090ms (next.js: 221ms, proxy.ts: 407ms, application-code: 462ms)
- GET /chat 200 in 149ms (next.js: 33ms, proxy.ts: 26ms, application-code: 90ms)
- GET / 200 in 1337ms (next.js: 149ms, proxy.ts: 14ms, application-code: 1174ms)
-✓ Compiled in 88ms
- GET /chat 200 in 853ms (next.js: 125ms, proxy.ts: 150ms, application-code: 579ms)
- GET /chat 200 in 728ms (next.js: 25ms, proxy.ts: 621ms, application-code: 81ms)
- GET / 200 in 863ms (next.js: 446ms, proxy.ts: 144ms, application-code: 273ms)
- GET / 200 in 348ms (next.js: 6ms, proxy.ts: 17ms, application-code: 324ms)
-  Reload env: .env
- GET /chat 200 in 666ms (next.js: 121ms, proxy.ts: 138ms, application-code: 407ms)
- GET /chat 200 in 562ms (next.js: 19ms, proxy.ts: 489ms, application-code: 55ms)
- GET /chat 200 in 270ms (next.js: 14ms, proxy.ts: 72ms, application-code: 184ms)
- GET / 200 in 885ms (next.js: 381ms, proxy.ts: 136ms, application-code: 367ms)
- GET /chat 200 in 484ms (next.js: 14ms, proxy.ts: 129ms, application-code: 341ms)
- GET /chat 200 in 481ms (next.js: 104ms, proxy.ts: 118ms, application-code: 259ms)
- GET / 200 in 662ms (next.js: 97ms, proxy.ts: 69ms, application-code: 496ms)
- GET /chat 200 in 156ms (next.js: 10ms, proxy.ts: 48ms, application-code: 97ms)
- GET / 200 in 529ms (next.js: 156ms, proxy.ts: 123ms, application-code: 249ms)
- GET / 200 in 533ms (next.js: 88ms, proxy.ts: 124ms, application-code: 321ms)
- GET /chat 200 in 132ms (next.js: 11ms, proxy.ts: 77ms, application-code: 44ms)
- GET /chat 200 in 72ms (next.js: 12ms, proxy.ts: 20ms, application-code: 41ms)
- GET /?t=1 200 in 684ms (next.js: 7ms, proxy.ts: 14ms, application-code: 664ms)
-  Reload env: .env
-  Reload env: .env
-✓ Compiled in 0ms
- GET /chat 200 in 1033ms (next.js: 131ms, proxy.ts: 512ms, application-code: 390ms)
- GET /chat 200 in 648ms (next.js: 18ms, proxy.ts: 539ms, application-code: 91ms)
- GET /chat 200 in 476ms (next.js: 264ms, proxy.ts: 119ms, application-code: 92ms)
- GET /?t=1 200 in 1403ms (next.js: 317ms, proxy.ts: 513ms, application-code: 573ms)
- GET /chat 200 in 719ms (next.js: 18ms, proxy.ts: 344ms, application-code: 356ms)
- GET /?t=1 200 in 889ms (next.js: 52ms, proxy.ts: 108ms, application-code: 729ms)
- GET /chat 200 in 443ms (next.js: 14ms, proxy.ts: 371ms, application-code: 58ms)
- GET /?t=1 200 in 578ms (next.js: 87ms, proxy.ts: 53ms, application-code: 438ms)
- GET /?t=1 200 in 579ms (next.js: 221ms, proxy.ts: 52ms, application-code: 306ms)
- GET /?t=1 200 in 580ms (next.js: 243ms, proxy.ts: 99ms, application-code: 238ms)
- GET /chat 200 in 167ms (next.js: 9ms, proxy.ts: 70ms, application-code: 88ms)
- GET /chat 200 in 132ms (next.js: 11ms, proxy.ts: 65ms, application-code: 56ms)
- GET /chat 200 in 119ms (next.js: 10ms, proxy.ts: 32ms, application-code: 77ms)
- GET /chat 200 in 106ms (next.js: 9ms, proxy.ts: 59ms, application-code: 37ms)
- GET /chat 200 in 59ms (next.js: 7ms, proxy.ts: 12ms, application-code: 41ms)
- GET /?t=2 200 in 221ms (next.js: 7ms, proxy.ts: 16ms, application-code: 198ms)
-✓ Compiled in 77ms
- GET /chat 200 in 690ms (next.js: 125ms, proxy.ts: 162ms, application-code: 403ms)
- GET /chat 200 in 558ms (next.js: 13ms, proxy.ts: 495ms, application-code: 50ms)
- GET /chat 200 in 228ms (next.js: 14ms, proxy.ts: 61ms, application-code: 154ms)
- GET /?t=2 200 in 871ms (next.js: 333ms, proxy.ts: 161ms, application-code: 377ms)
- GET /chat 200 in 176ms (next.js: 19ms, proxy.ts: 105ms, application-code: 52ms)
- GET /?t=2 200 in 306ms (next.js: 72ms, proxy.ts: 61ms, application-code: 173ms)
-✓ Compiled in 103ms
- GET /chat 200 in 635ms (next.js: 128ms, proxy.ts: 115ms, application-code: 392ms)
- GET /chat 200 in 629ms (next.js: 461ms, proxy.ts: 109ms, application-code: 59ms)
- GET /chat 200 in 203ms (next.js: 10ms, proxy.ts: 70ms, application-code: 124ms)
- GET /?t=2 200 in 838ms (next.js: 379ms, proxy.ts: 114ms, application-code: 344ms)
- GET /chat 200 in 402ms (next.js: 12ms, proxy.ts: 136ms, application-code: 255ms)
- GET /chat 200 in 376ms (next.js: 26ms, proxy.ts: 129ms, application-code: 221ms)
- GET /?t=2 200 in 589ms (next.js: 48ms, proxy.ts: 31ms, application-code: 511ms)
- GET /chat 200 in 415ms (next.js: 9ms, proxy.ts: 324ms, application-code: 82ms)
- GET /?t=2 200 in 571ms (next.js: 41ms, proxy.ts: 91ms, application-code: 439ms)
- GET /?t=2 200 in 570ms (next.js: 87ms, proxy.ts: 91ms, application-code: 393ms)
- GET /chat 200 in 264ms (next.js: 7ms, proxy.ts: 191ms, application-code: 66ms)
- GET /?t=2 200 in 579ms (next.js: 18ms, proxy.ts: 273ms, application-code: 288ms)
- GET /chat 200 in 125ms (next.js: 29ms, proxy.ts: 57ms, application-code: 39ms)
- GET /chat 200 in 56ms (next.js: 5ms, proxy.ts: 14ms, application-code: 38ms)
- GET /chat 200 in 62ms (next.js: 4ms, proxy.ts: 12ms, application-code: 46ms)
+ POST /api/followup/checkin 200 in 212ms (next.js: 171ms, proxy.ts: 12ms, application-code: 29ms)
+ GET /followup 200 in 369ms (next.js: 131ms, proxy.ts: 181ms, application-code: 58ms)
+ GET / 200 in 858ms (next.js: 84ms, proxy.ts: 17ms, application-code: 757ms)
+ GET / 200 in 46ms (next.js: 7ms, proxy.ts: 22ms, application-code: 17ms)
+ GET / 200 in 24ms (next.js: 4ms, proxy.ts: 10ms, application-code: 10ms)
+ GET / 200 in 26ms (next.js: 5ms, proxy.ts: 10ms, application-code: 11ms)
+ GET /bk/login 200 in 108ms (next.js: 62ms, proxy.ts: 18ms, application-code: 28ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:1340:21)
+ GET / 200 in 177ms (next.js: 9ms, proxy.ts: 12ms, application-code: 156ms)
+ GET / 200 in 447ms (next.js: 32ms, proxy.ts: 62ms, application-code: 353ms)
+ GET /bk/login 200 in 45ms (next.js: 7ms, proxy.ts: 11ms, application-code: 27ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:1340:21)
+ GET /api/auth/providers 200 in 1847ms (next.js: 1800ms, proxy.ts: 11ms, application-code: 36ms)
+ GET /api/auth/csrf 200 in 43ms (next.js: 14ms, proxy.ts: 9ms, application-code: 20ms)
+ POST /api/auth/callback/credentials? 200 in 260ms (next.js: 8ms, proxy.ts: 16ms, application-code: 236ms)
+ GET /bk 200 in 518ms (next.js: 189ms, proxy.ts: 12ms, application-code: 316ms)
+ GET /bk 200 in 373ms (next.js: 7ms, proxy.ts: 24ms, application-code: 342ms)
+ GET /bk?tab=selesai 200 in 79ms (next.js: 6ms, proxy.ts: 11ms, application-code: 62ms)
+ GET /bk 200 in 90ms (next.js: 5ms, proxy.ts: 11ms, application-code: 74ms)
+ GET /bk/seed-r2 200 in 273ms (next.js: 94ms, proxy.ts: 13ms, application-code: 167ms)
+ POST /bk/seed-r2 200 in 232ms (next.js: 16ms, proxy.ts: 10ms, application-code: 207ms)
+  └─ ƒ updateReportStatus("seed-r2", "selesai") in 58ms app/bk/(dashboard)/[reportId]/actions.ts
+ POST /bk/seed-r2 200 in 197ms (next.js: 17ms, proxy.ts: 12ms, application-code: 167ms)
+  └─ ƒ updateReportStatus("seed-r2", "ditinjau") in 19ms app/bk/(dashboard)/[reportId]/actions.ts
+ POST /bk/seed-r2 200 in 72ms (next.js: 18ms, proxy.ts: 12ms, application-code: 42ms)
+  └─ ƒ revealIdentity("seed-r2") in 25ms app/bk/(dashboard)/[reportId]/actions.ts
+ GET /bk 200 in 97ms (next.js: 7ms, proxy.ts: 13ms, application-code: 77ms)
+ GET /bk 200 in 55ms (next.js: 10ms, proxy.ts: 23ms, application-code: 22ms)
+ GET /bk 200 in 241ms (next.js: 9ms, proxy.ts: 19ms, application-code: 213ms)
+ GET /bk 200 in 43ms (next.js: 12ms, proxy.ts: 16ms, application-code: 15ms)
+ GET /bk/seed-r1 200 in 192ms (next.js: 21ms, proxy.ts: 10ms, application-code: 162ms)
+ GET /bk/chat 404 in 214ms (next.js: 21ms, proxy.ts: 12ms, application-code: 181ms)
+ GET /chat 200 in 293ms (next.js: 81ms, proxy.ts: 13ms, application-code: 200ms)
+ POST /api/chat 200 in 121ms (next.js: 74ms, proxy.ts: 20ms, application-code: 28ms)
+ POST /api/chat 200 in 84ms (next.js: 14ms, proxy.ts: 28ms, application-code: 43ms)
+ GET /draft 200 in 126ms (next.js: 74ms, proxy.ts: 17ms, application-code: 34ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/Netra Ops/Documents/www/lindra-ai/.next/dev/static/chunks/node_modules_next_dist_1ybzpk2._.js:1340:21)
+ GET /api/draft/cmrad6o550000l349t49yqm0y 200 in 1439ms (next.js: 1375ms, proxy.ts: 39ms, application-code: 25ms)
+ GET /api/draft/cmrad6o550000l349t49yqm0y 200 in 59ms (next.js: 24ms, proxy.ts: 12ms, application-code: 23ms)
+ GET /lacak 200 in 104ms (next.js: 57ms, proxy.ts: 10ms, application-code: 38ms)
+✓ Compiled in 680ms
+ GET /followup 200 in 1959ms (next.js: 523ms, proxy.ts: 1202ms, application-code: 234ms)
+ GET /chat 200 in 513ms (next.js: 274ms, proxy.ts: 112ms, application-code: 127ms)
+ GET /followup 200 in 534ms (next.js: 23ms, proxy.ts: 124ms, application-code: 387ms)
+ GET /followup 200 in 140ms (next.js: 22ms, proxy.ts: 30ms, application-code: 88ms)
+ GET /chat 200 in 258ms (next.js: 8ms, proxy.ts: 106ms, application-code: 144ms)
+ GET /followup 200 in 179ms (next.js: 8ms, proxy.ts: 67ms, application-code: 104ms)
+ GET /followup 200 in 151ms (next.js: 7ms, proxy.ts: 20ms, application-code: 124ms)
+ GET /followup 200 in 122ms (next.js: 13ms, proxy.ts: 47ms, application-code: 62ms)
+ GET /followup 200 in 98ms (next.js: 20ms, proxy.ts: 19ms, application-code: 59ms)
+ GET /chat 200 in 119ms (next.js: 8ms, proxy.ts: 74ms, application-code: 37ms)
+ GET /chat 200 in 87ms (next.js: 5ms, proxy.ts: 14ms, application-code: 68ms)
+ GET /chat 200 in 115ms (next.js: 8ms, proxy.ts: 17ms, application-code: 90ms)
+ GET /followup/masuk 200 in 216ms (next.js: 62ms, proxy.ts: 61ms, application-code: 94ms)
+ GET /chat 200 in 199ms (next.js: 7ms, proxy.ts: 150ms, application-code: 42ms)
+ GET /followup/masuk 200 in 97ms (next.js: 8ms, proxy.ts: 54ms, application-code: 35ms)
+ GET /chat 200 in 71ms (next.js: 6ms, proxy.ts: 16ms, application-code: 48ms)
+✓ Compiled in 200ms
+ GET /followup/masuk 200 in 557ms (next.js: 199ms, proxy.ts: 224ms, application-code: 134ms)
+ GET /followup/masuk 200 in 210ms (next.js: 16ms, proxy.ts: 50ms, application-code: 144ms)
+ GET /chat 200 in 199ms (next.js: 25ms, proxy.ts: 108ms, application-code: 66ms)
+ GET /chat 200 in 81ms (next.js: 16ms, proxy.ts: 17ms, application-code: 48ms)
+✓ Compiled in 188ms
+ GET /followup/masuk 200 in 259ms (next.js: 83ms, proxy.ts: 113ms, application-code: 64ms)
+ GET /chat 200 in 114ms (next.js: 12ms, proxy.ts: 23ms, application-code: 79ms)
+ GET /followup/masuk 200 in 111ms (next.js: 46ms, proxy.ts: 19ms, application-code: 46ms)
+ GET /chat 200 in 51ms (next.js: 6ms, proxy.ts: 12ms, application-code: 32ms)
+✓ Compiled in 298ms
+ GET /followup/masuk 200 in 259ms (next.js: 85ms, proxy.ts: 112ms, application-code: 61ms)
+ GET /followup/masuk 200 in 127ms (next.js: 8ms, proxy.ts: 26ms, application-code: 93ms)
+ GET /chat 200 in 116ms (next.js: 16ms, proxy.ts: 60ms, application-code: 40ms)
+ GET /chat 200 in 61ms (next.js: 6ms, proxy.ts: 12ms, application-code: 42ms)
+✓ Compiled in 90ms
+ GET /followup/masuk 200 in 460ms (next.js: 188ms, proxy.ts: 144ms, application-code: 127ms)
+ GET /chat 200 in 349ms (next.js: 18ms, proxy.ts: 265ms, application-code: 66ms)
+ GET /followup/masuk 200 in 153ms (next.js: 16ms, proxy.ts: 85ms, application-code: 52ms)
+ GET /chat 200 in 53ms (next.js: 5ms, proxy.ts: 15ms, application-code: 33ms)
+✓ Compiled in 93ms
+ GET /followup/masuk 200 in 252ms (next.js: 77ms, proxy.ts: 104ms, application-code: 71ms)
+ GET /chat 200 in 112ms (next.js: 13ms, proxy.ts: 22ms, application-code: 77ms)
+ GET /followup/masuk 200 in 112ms (next.js: 53ms, proxy.ts: 21ms, application-code: 38ms)
+ GET /chat 200 in 69ms (next.js: 7ms, proxy.ts: 13ms, application-code: 49ms)
+✓ Compiled in 125ms
+ GET /followup/masuk 200 in 524ms (next.js: 105ms, proxy.ts: 123ms, application-code: 295ms)
+ GET /chat 200 in 523ms (next.js: 333ms, proxy.ts: 122ms, application-code: 68ms)
+ GET /followup/masuk 200 in 185ms (next.js: 11ms, proxy.ts: 33ms, application-code: 141ms)
+ GET /chat 200 in 211ms (next.js: 9ms, proxy.ts: 112ms, application-code: 91ms)
+ GET /followup/masuk 200 in 134ms (next.js: 8ms, proxy.ts: 72ms, application-code: 54ms)
+ GET /followup/masuk 200 in 122ms (next.js: 8ms, proxy.ts: 25ms, application-code: 89ms)
+ GET /chat 200 in 120ms (next.js: 44ms, proxy.ts: 22ms, application-code: 54ms)
+ GET /followup/masuk 200 in 95ms (next.js: 12ms, proxy.ts: 29ms, application-code: 54ms)
+ GET /chat 200 in 253ms (next.js: 9ms, proxy.ts: 68ms, application-code: 177ms)
+ GET /followup/masuk 200 in 226ms (next.js: 21ms, proxy.ts: 86ms, application-code: 118ms)
+ GET /chat 200 in 130ms (next.js: 12ms, proxy.ts: 41ms, application-code: 78ms)
+ GET /chat 200 in 127ms (next.js: 54ms, proxy.ts: 38ms, application-code: 35ms)
+ GET / 200 in 1767ms (next.js: 187ms, proxy.ts: 6ms, application-code: 1575ms)
+ GET / 200 in 152ms (next.js: 6ms, proxy.ts: 12ms, application-code: 134ms)
+✓ Compiled in 161ms
+ GET /chat 200 in 488ms (next.js: 37ms, proxy.ts: 376ms, application-code: 75ms)
+ GET / 200 in 836ms (next.js: 237ms, proxy.ts: 223ms, application-code: 375ms)
+ GET /chat 200 in 71ms (next.js: 6ms, proxy.ts: 24ms, application-code: 41ms)
+ GET / 200 in 328ms (next.js: 9ms, proxy.ts: 110ms, application-code: 210ms)
+ GET / 200 in 279ms (next.js: 9ms, proxy.ts: 23ms, application-code: 248ms)
+ GET / 200 in 223ms (next.js: 5ms, proxy.ts: 12ms, application-code: 206ms)
+ GET / 200 in 166ms (next.js: 7ms, proxy.ts: 12ms, application-code: 147ms)
+ GET / 200 in 180ms (next.js: 4ms, proxy.ts: 15ms, application-code: 161ms)

@@ -53,8 +53,8 @@ export default function LandingPage() {
       <RevealOnScroll />
 
       <main id="top">
-        {/* 1 — HERO */}
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 pt-28 pb-16 sm:pt-32 min-[900px]:grid-cols-[1.02fr_0.98fr] min-[900px]:pb-24">
+        {/* 1 — HERO (satu "first view" penuh: min-h-svh, konten center vertikal) */}
+        <section className="mx-auto grid min-h-svh max-w-6xl content-center items-center gap-12 px-6 pt-28 pb-16 sm:pt-32 min-[900px]:grid-cols-[1.02fr_0.98fr] min-[900px]:pb-24">
           <div className="reveal">
             <p className="mb-4 text-sm font-semibold tracking-wide text-primary-ink">
               Kamu tidak sendirian
@@ -95,7 +95,7 @@ export default function LandingPage() {
             <LindraAvatar size="lg" className="size-52 drop-shadow-[var(--shadow-lift)]" />
             <LeafSpray className="absolute -left-2 bottom-4 w-32" />
 
-            <div className="float-card absolute -bottom-1 right-0 max-w-[236px] rounded-[var(--radius-lg)] border border-border bg-surface p-4 shadow-[var(--shadow-lift)]">
+            <div className="float-card absolute bottom-2 right-2 w-[min(236px,88%)] rounded-[var(--radius-lg)] border border-border bg-surface p-4 shadow-[var(--shadow-lift)]">
               <div className="mb-2 flex items-center gap-2">
                 <span className="grid size-8 place-items-center rounded-full bg-primary-soft">
                   <ShieldCheck className="size-4 text-primary-ink" strokeWidth={2} aria-hidden />
@@ -109,13 +109,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2 — BAND emosional */}
-        <section className="relative overflow-hidden bg-primary-bright px-6 py-16 sm:py-20">
-          <BirdsMotif className="pointer-events-none absolute left-6 top-6 hidden w-28 opacity-70 sm:block" />
-          <LeafSpray className="pointer-events-none absolute -bottom-4 right-6 hidden w-28 opacity-70 sm:block" />
-          <p className="reveal relative mx-auto max-w-[24ch] text-center font-bold leading-tight tracking-[-0.02em] text-ink text-[clamp(1.7rem,4vw,2.5rem)]">
+        {/* 2 — BAND emosional (momen: tinggi lega, teks besar, aksen daun di sudut) */}
+        <section className="relative overflow-hidden bg-primary-bright px-6 py-28 text-center sm:py-40">
+          <BirdsMotif className="pointer-events-none absolute left-4 top-8 hidden w-36 opacity-70 sm:block" />
+          <LeafSpray className="pointer-events-none absolute -bottom-6 right-4 hidden w-40 opacity-70 sm:block" />
+          <LeafSpray className="pointer-events-none absolute -bottom-6 -left-8 hidden w-32 -scale-x-100 opacity-50 sm:block" />
+          <p className="reveal relative mx-auto max-w-[22ch] font-bold leading-[1.08] tracking-[-0.02em] text-ink text-[clamp(2rem,5.2vw,3.4rem)]">
             Ini bukan salahmu. Setiap cerita berhak{" "}
-            <em className="font-bold text-ink underline decoration-[var(--ink)]/40 decoration-2 underline-offset-4">
+            <em className="font-bold text-ink underline decoration-[var(--ink)]/40 decoration-2 underline-offset-[6px]">
               didengar
             </em>
             .
@@ -134,12 +135,12 @@ export default function LandingPage() {
             {FLOW.map(({ spot: Spot, title, line }, i) => (
               <li
                 key={title}
-                className="reveal rounded-[var(--radius-lg)] border border-border bg-surface p-6 shadow-[var(--shadow-soft)]"
+                className="reveal flex h-full flex-col rounded-[var(--radius-lg)] border border-border bg-surface p-6 shadow-[var(--shadow-soft)]"
                 style={{ transitionDelay: `${i * 70}ms` }}
               >
                 <div className="flex items-start justify-between">
                   <Spot className="size-14" />
-                  <span className="text-sm font-semibold tabular-nums text-text-soft">
+                  <span className="grid size-8 place-items-center rounded-full bg-warm-soft text-sm font-bold tabular-nums text-ink">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                 </div>
@@ -152,8 +153,8 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        {/* 4 — KERAHASIAAN (4 poin ber-ilustrasi) */}
-        <section id="kerahasiaan" className="scroll-mt-24 bg-surface-alt px-6 py-20 sm:py-24">
+        {/* 4 — KERAHASIAAN (4 poin) — latar hangat (cream) memecah monoton teal */}
+        <section id="kerahasiaan" className="scroll-mt-24 bg-surface-warm px-6 py-20 sm:py-24">
           <div className="mx-auto max-w-6xl">
             <div className="reveal mb-12 max-w-[34ch]">
               <p className="mb-3 text-sm font-semibold tracking-wide text-primary-ink">Kerahasiaan</p>

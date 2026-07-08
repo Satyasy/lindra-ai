@@ -281,7 +281,7 @@ Breadcrumb "Antrean › #id". Action bar sticky (Kembali / dropdown "Ubah Status
 Sesuai Bagian VI.3 panduan, fitur berikut sengaja **ditunda**, bukan dibuang — kalau nanti diimplementasi, pola desain dari sistem lama masih relevan dan bisa dipakai langsung tanpa dirancang ulang:
 
 - **Chat asinkron BK (pendampingan non-formal)** — skema `ChatThread`/`ChatMessage` sudah ada. Pola desain lama untuk chat pendampingan (header inisial + presence "Online sekarang"/"Sedang offline", notice privasi "bukan layanan darurat", bubble sama seperti ChatBubble §3.4, textarea auto-grow) langsung reusable.
-- **Follow-up proaktif & SLA scheduler otomatis** — tabel `Followup` sudah dirancang untuk ini. Pola "kartu jadwal" bg `--surface-warm` dengan ikon kalender dari sistem lama bisa dipakai untuk menampilkan jadwal check-in di `/lacak` nantinya.
+- **Follow-up proaktif — TERBANGUN.** Opt-in di layar konfirmasi (toggle DEFAULT OFF + consent verbatim §4.3), email terenkripsi di `Followup.contactEmail`. Cron `/api/cron/followup-email` (Diagram A): belum dibuka + SLA breach → auto-escalate SAPA 129 sekali, BUKAN email; sudah dibuka → email NETRAL via Resend (tanpa kode/link/token/kata "kekerasan"/"laporan"). Input kode MANUAL `/followup/masuk` (tanpa kode di URL) → sesi `/followup`; `noProgressCount` ke-3 → opsi SAPA 129 (siswa pilih sendiri) + sinyal di detail BK.
 - **RAG penuh (vector similarity via pgvector)** — versi sprint saat ini boleh pakai keyword-matching sederhana dulu (`recommendArticlesSimple`); UI kartu kutipan+alasan di §6.2 poin 4 dirancang supaya tidak perlu berubah saat backend upgrade ke pgvector similarity search.
 
 ---
