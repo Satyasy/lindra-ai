@@ -4,6 +4,16 @@ import { detectCrisisSignal, CRISIS_RESPONSE } from "@/lib/ai/crisis-check";
 import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 import { followupSystemPrompt } from "@/lib/ai/prompts/followup-context-injection";
 import { groqChat, type ChatMessage } from "@/lib/ai/groq-client";
+import {
+  composeReport,
+  updateSlots,
+  advanceSlots,
+  emptySlots,
+  toStructuredDraft,
+  SLOT_DIRECTIVE,
+  type Slots,
+  type TranscriptTurn,
+} from "@/lib/ai/classify-narrative";
 import { logAction } from "@/lib/audit/log-action";
 import { readTranscript, sealTranscript } from "@/lib/transcript";
 
@@ -13,8 +23,80 @@ const SESSION_COOKIE = "lindra_session";
 const NO_KEY_FALLBACK =
   "aku di sini, dengerin kok. cerita aja pelan-pelan, mulai dari mana pun yang kamu mau.";
 
+// Konfirmasi transisi saat kode memaksa compose (siswa tak lihat model "mikir").
+const COMPOSE_CONFIRM =
+  "oke, aku udah rangkum ceritamu jadi draf laporan 🌱 muncul di panel sebelah ya — coba kamu baca & betulin dulu kalau ada yang kurang pas, sebelum dikirim.";
+
+// Direktif giliran validasi (semua field cukup, belum boleh compose).
+const READY_DIRECTIVE =
+  "PERINTAH SISTEM (bukan dari siswa): info inti sudah lengkap. Giliran ini JANGAN bertanya apa pun lagi. Cukup satu-dua kalimat validasi hangat, lalu bilang kamu akan bantu susun laporannya sekarang — tanpa menulis isi laporan apa pun.";
+
 const encoder = new TextEncoder();
 const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
+
+function readSlots(raw: unknown): Slots {
+  if (raw && typeof raw === "object" && "phase" in raw) return raw as Slots;
+  return emptySlots();
+}
+
+function buildMessages(sysContent: string, transcript: TranscriptTurn[]): ChatMessage[] {
+  return [
+    { role: "system", content: sysContent },
+    ...transcript.map(({ role, content }) => ({ role, content })),
+  ];
+}
+
+// Direktif "tanya satu hal" dari target yang dipilih kode. Sebelum ada cerita inti
+// (gambaran_kejadian masih kosong) → null: obrolan bebas, jangan interogasi.
+function targetDirective(slots: Slots, target: string | null): string | null {
+  if (!target || slots.gambaran_kejadian === "empty") return null;
+  return `FOKUS GILIRAN INI (perintah sistem, bukan dari siswa): tanyakan HANYA SATU hal — ${SLOT_DIRECTIVE[target as keyof typeof SLOT_DIRECTIVE]} — lewat pertanyaan terbuka yang natural sesuai alur obrolan. JANGAN menanyakan hal lain, JANGAN ganti topik, JANGAN sebutkan istilah teknis apa pun.`;
+}
+
+// Stream balasan model chat ke klien; kembalikan teks lengkapnya. Fallback aman
+// (tanpa key / API error / body kosong) supaya chat tidak crash.
+async function streamChat(
+  controller: ReadableStreamDefaultController,
+  messages: ChatMessage[]
+): Promise<string> {
+  const groqRes = await groqChat(messages, "student");
+  if (!groqRes || !groqRes.ok || !groqRes.body) {
+    if (!groqRes) {
+      console.error("[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong");
+    } else if (!groqRes.ok) {
+      console.error(`[Lapis2] Groq API gagal — status ${groqRes.status}: ${await groqRes.text()}`);
+    } else {
+      console.error("[Lapis2] Groq response tanpa body — fallback dipakai");
+    }
+    controller.enqueue(sse({ type: "text", delta: NO_KEY_FALLBACK }));
+    return NO_KEY_FALLBACK;
+  }
+
+  let text = "";
+  const reader = groqRes.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ") || line.includes("[DONE]")) continue;
+      try {
+        const delta = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
+        if (delta) {
+          text += delta;
+          controller.enqueue(sse({ type: "text", delta }));
+        }
+      } catch {
+        // potongan JSON tidak utuh — abaikan
+      }
+    }
+  }
+  return text;
+}
 
 export async function POST(request: Request) {
   const { message, panic } = await request.json();
@@ -57,6 +139,8 @@ export async function POST(request: Request) {
       controller.enqueue(sse({ type: "session", id: reportId }));
 
       let assistantText = "";
+      let slots = readSlots(report!.slots);
+      let slotsChanged = false;
 
       if (crisis.isCrisis) {
         assistantText = CRISIS_RESPONSE;
@@ -66,59 +150,56 @@ export async function POST(request: Request) {
           where: { id: reportId! },
           data: { urgencyLevel: "kritis" },
         });
+      } else if (followupMode) {
+        // Sesi follow-up: narasi sudah ada, tak ada gathering ulang.
+        assistantText = await streamChat(
+          controller,
+          buildMessages(followupSystemPrompt(report!.narrative), transcript)
+        );
+      } else if (slots.phase === "ready") {
+        // Field cukup + giliran validasi sudah lewat → siswa konfirmasi.
+        // TRANSISI DIPAKSA KODE: susun laporan TANPA memanggil model chat.
+        const draft = await composeReport(transcript);
+        const structured = toStructuredDraft(draft);
+        assistantText = COMPOSE_CONFIRM;
+        controller.enqueue(sse({ type: "text", delta: COMPOSE_CONFIRM }));
+        controller.enqueue(sse({ type: "draft", draft: structured }));
+        slots = { ...slots, phase: "done", target: null, targetCount: 0 };
+        slotsChanged = true;
+        await prisma.report.update({
+          where: { id: reportId! },
+          data: {
+            narrative: draft.narrativeSummary,
+            draft: structured,
+            urgencyLevel: report!.urgencyLevel ?? draft.urgencyLevel, // krisis Tier 1 tak tertimpa
+            perpetratorRole: draft.perpetratorRole,
+            locationCategory: draft.locationCategory,
+            violenceType: draft.violenceType,
+          },
+        });
+      } else if (slots.phase === "done") {
+        // Sudah tersusun — obrolan lanjutan bebas, tanpa targeting/compose ulang.
+        assistantText = await streamChat(controller, buildMessages(SYSTEM_PROMPT, transcript));
       } else {
-        const messages: ChatMessage[] = [
-          { role: "system", content: followupMode ? followupSystemPrompt(report.narrative) : SYSTEM_PROMPT },
-          ...transcript.map(({ role, content }) => ({ role, content })),
-        ];
-        const groqRes = await groqChat(messages, "student");
-
-        if (!groqRes || !groqRes.ok || !groqRes.body) {
-          // Observability: bedakan sebab fallback (key hilang vs API error vs body kosong).
-          if (!groqRes) {
-            console.error(
-              "[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong"
-            );
-          } else if (!groqRes.ok) {
-            console.error(
-              `[Lapis2] Groq API gagal — status ${groqRes.status}: ${await groqRes.text()}`
-            );
-          } else {
-            console.error("[Lapis2] Groq response tanpa body — fallback dipakai");
-          }
-          assistantText = NO_KEY_FALLBACK;
-          controller.enqueue(sse({ type: "text", delta: NO_KEY_FALLBACK }));
-        } else {
-          // Parse SSE Groq (format OpenAI) → teruskan delta bersih ke klien
-          const reader = groqRes.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
-            for (const line of lines) {
-              if (!line.startsWith("data: ") || line.includes("[DONE]")) continue;
-              try {
-                const delta = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
-                if (delta) {
-                  assistantText += delta;
-                  controller.enqueue(sse({ type: "text", delta }));
-                }
-              } catch {
-                // potongan JSON tidak utuh — abaikan
-              }
-            }
-          }
-        }
+        // phase "gathering": ekstrak → kunci slot → tentukan target → inject → chat.
+        const draft = await composeReport(transcript);
+        const advanced = advanceSlots(updateSlots(slots, draft));
+        slots = advanced.slots;
+        slotsChanged = true;
+        const directive = advanced.ready
+          ? READY_DIRECTIVE
+          : targetDirective(slots, advanced.target);
+        const sys = directive ? `${SYSTEM_PROMPT}\n\n${directive}` : SYSTEM_PROMPT;
+        assistantText = await streamChat(controller, buildMessages(sys, transcript));
       }
 
       transcript.push({ role: "assistant", content: assistantText, ts: new Date().toISOString() });
       await prisma.report.update({
         where: { id: reportId! },
-        data: { rawTranscript: sealTranscript(transcript) },
+        data: {
+          rawTranscript: sealTranscript(transcript),
+          ...(slotsChanged ? { slots } : {}),
+        },
       });
 
       controller.enqueue(sse({ type: "done" }));

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, CheckCheck, Loader2, Paperclip, Send, Smile, TriangleAlert, X } from "lucide-react";
+import { Check, CheckCheck, FileText, Loader2, Paperclip, Send, Smile, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
+import { DraftCanvas, type StructuredDraft } from "@/components/draft/DraftCanvas";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
 
 export type Msg = { role: "user" | "assistant"; content: string; ts?: number };
@@ -63,7 +64,15 @@ function TypingIndicator() {
   );
 }
 
-export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] } = {}) {
+export function ChatScreen({
+  initialMessages = [],
+  initialDraft = null,
+  initialSessionId = null,
+}: {
+  initialMessages?: Msg[];
+  initialDraft?: StructuredDraft | null;
+  initialSessionId?: string | null;
+} = {}) {
   const router = useRouter();
   // Sesi dilanjutkan (pengguna lama masukkan kode): mulai dari transkrip tersimpan,
   // fase langsung "gathering" (sembunyikan chip pembuka), dan hero intro tak diulang.
@@ -74,6 +83,9 @@ export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] }
   const [phase, setPhase] = useState<Phase>(resumed ? "gathering" : "opening");
   const [infoMode, setInfoMode] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
+  const [draft, setDraft] = useState<StructuredDraft | null>(initialDraft);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [attachment, setAttachment] = useState<
     { name: string; status: "uploading" | "done" | "error" } | null
   >(null);
@@ -114,7 +126,12 @@ export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] }
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const event = JSON.parse(line.slice(6));
+          if (event.type === "session") setSessionId(event.id);
           if (event.type === "crisis") setPhase("danger");
+          if (event.type === "draft") {
+            setDraft(event.draft);
+            setPanelOpen(true);
+          }
           if (event.type === "text") {
             setMessages((m) => {
               const next = [...m];
@@ -177,7 +194,9 @@ export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] }
 
   return (
     // Chrome (judul netral "Catatan Harian" + hamburger) disediakan StudentNav.
-    <div className="chat-canvas flex min-h-0 flex-1 flex-col">
+    // Baris: kolom chat (mengecil saat panel draf terbuka di desktop) + panel draf.
+    <div className="flex min-h-0 flex-1">
+    <div className="chat-canvas flex min-h-0 min-w-0 flex-1 flex-col">
       {/* pt besar di desktop supaya hero tidak tertabrak QuickExit fixed kanan-atas */}
       {/* [&>*]:shrink-0 — anak area scroll TIDAK boleh menyusut; kalau menyusut,
           section overflow-hidden (hero) ter-kompres & teksnya terklip. Biar kolom
@@ -298,6 +317,24 @@ export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] }
             </button>
           </div>
         )}
+
+        {/* Draf sudah tersusun tapi panel tertutup → tombol buka lagi (anti kepencet close) */}
+        {draft && !panelOpen && (
+          <div className="bubble-in flex items-center gap-3 rounded-[var(--radius-md)] border border-primary/25 bg-surface px-5 py-4 shadow-[var(--shadow-soft)]">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-primary-soft text-primary-ink">
+              <FileText className="size-4" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="flex-1 text-sm">
+              Draf laporanmu tersimpan. Buka lagi kapan aja buat baca atau betulin.
+            </p>
+            <Button
+              onClick={() => setPanelOpen(true)}
+              className="min-h-11 rounded-full px-5 font-semibold"
+            >
+              Buka draf
+            </Button>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -403,6 +440,12 @@ export function ChatScreen({ initialMessages = [] }: { initialMessages?: Msg[] }
           Bisa berhenti sebentar kapan saja — ceritamu tersimpan di perangkat ini.
         </p>
       </footer>
+      </div>
+
+      {/* Panel draf: desktop = menyempil di kanan (chat mengecil), mobile = overlay */}
+      {draft && panelOpen && sessionId && (
+        <DraftCanvas sessionId={sessionId} draft={draft} onClose={() => setPanelOpen(false)} />
+      )}
     </div>
   );
 }
