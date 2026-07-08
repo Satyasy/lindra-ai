@@ -74,6 +74,18 @@ export async function POST(request: Request) {
         const groqRes = await groqChat(messages, "student");
 
         if (!groqRes || !groqRes.ok || !groqRes.body) {
+          // Observability: bedakan sebab fallback (key hilang vs API error vs body kosong).
+          if (!groqRes) {
+            console.error(
+              "[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong"
+            );
+          } else if (!groqRes.ok) {
+            console.error(
+              `[Lapis2] Groq API gagal — status ${groqRes.status}: ${await groqRes.text()}`
+            );
+          } else {
+            console.error("[Lapis2] Groq response tanpa body — fallback dipakai");
+          }
           assistantText = NO_KEY_FALLBACK;
           controller.enqueue(sse({ type: "text", delta: NO_KEY_FALLBACK }));
         } else {
