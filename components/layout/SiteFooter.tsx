@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 // Footer editorial (à la complicated.life, tema Lindra). Latar --ink, teks terang
 // via token --on-ink / --on-ink-strong (DESIGN.md §2 + aturan keras: warna dari token).
@@ -23,6 +24,34 @@ export function SiteFooter() {
             Satu pintu masuk untuk cerita yang tidak tahu harus dibawa ke mana — supaya sampai ke
             bantuan yang tepat, dengan caramu.
           </p>
+
+          {/* Logo mitra/pendukung — 1 & 2 sejajar (tinggi seragam), 3 di tengah di bawahnya.
+              object-contain + max-w-full → tak melebihi lebar kolom footer, rapi di mobile. */}
+          <div className="mt-6">
+            <div className="flex flex-wrap items-center gap-8">
+              <Image
+                src="/logo-footer1.png"
+                alt="Logo mitra Lindra"
+                width={2242}
+                height={809}
+                className="h-11 w-auto max-w-full object-contain sm:h-14"
+              />
+              <Image
+                src="/logo-footer2.png"
+                alt="Logo mitra Lindra"
+                width={1600}
+                height={1877}
+                className="h-11 w-auto max-w-full object-contain sm:h-14"
+              />
+            </div>
+            <Image
+              src="/logo-footer3.png"
+              alt="Logo pendukung Lindra"
+              width={488}
+              height={144}
+              className="mx-auto mt-6 h-9 w-auto max-w-full object-contain sm:h-10"
+            />
+          </div>
         </div>
 
         {/* Grid 4 kolom → 2 → 1 di layar sempit */}

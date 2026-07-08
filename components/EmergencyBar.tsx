@@ -1,10 +1,10 @@
 import { Phone } from "lucide-react";
+import { GURU_BK_TEL, SAPA_TEL } from "@/lib/emergency-contacts";
 
-// DESIGN.md §3.3 — jalur darurat selalu terjangkau, link tel: langsung
+// DESIGN.md §3.3 — jalur darurat sisi siswa: HANYA SAPA 129 + Guru BK (Polisi/Ambulans dihapus)
 const LINES = [
-  { label: "Polisi 110", tel: "110" },
-  { label: "SAPA 129", tel: "129" },
-  { label: "Ambulans 119", tel: "119" },
+  { label: "Telpon SAPA 129", tel: SAPA_TEL },
+  { label: "Telpon Guru BK", tel: GURU_BK_TEL },
 ];
 
 export function EmergencyBar({ title = "Sedang dalam bahaya sekarang?" }: { title?: string }) {
