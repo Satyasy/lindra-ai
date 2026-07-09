@@ -175,6 +175,13 @@ export async function POST(request: Request) {
             perpetratorRole: draft.perpetratorRole,
             locationCategory: draft.locationCategory,
             violenceType: draft.violenceType,
+            actionSignals: {
+              cederaFisik: draft.cederaFisik,
+              sudahBerulang: draft.sudahBerulang,
+              relasiKuasaTimpang: draft.relasiKuasaTimpang,
+              adaBukti: draft.bukti?.adaBukti ?? null,
+              adaBahayaLangsung: draft.keamanan?.adaBahayaLangsung ?? null,
+            },
           },
         });
       } else if (slots.phase === "done") {

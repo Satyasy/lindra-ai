@@ -41,6 +41,13 @@ export async function GET(
         perpetratorRole: composed.perpetratorRole,
         locationCategory: composed.locationCategory,
         violenceType: composed.violenceType,
+        actionSignals: {
+          cederaFisik: composed.cederaFisik,
+          sudahBerulang: composed.sudahBerulang,
+          relasiKuasaTimpang: composed.relasiKuasaTimpang,
+          adaBukti: composed.bukti?.adaBukti ?? null,
+          adaBahayaLangsung: composed.keamanan?.adaBahayaLangsung ?? null,
+        },
       },
     });
   }
