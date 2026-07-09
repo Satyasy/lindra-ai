@@ -27,8 +27,10 @@ export async function POST(
   const contentHash = sha256(report.narrative ?? "");
   const routing = determineRoute(report);
 
-  // Kode referensi untuk siswa memantau status tanpa membuka identitas
-  const code = randomBytes(4).toString("hex");
+  // Kode referensi untuk siswa memantau status tanpa membuka identitas.
+  // Prefix "lin-" (disimpan lowercase — semua lookup /lacak,/masuk,/followup meng-
+  // lowercase input, jadi siswa boleh ketik "LIN-.." atau "lin-..").
+  const code = "lin-" + randomBytes(4).toString("hex");
 
   await prisma.$transaction([
     prisma.report.update({

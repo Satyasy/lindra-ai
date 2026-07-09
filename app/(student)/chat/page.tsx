@@ -21,6 +21,7 @@ export default async function ChatPage() {
   let initialMessages: Msg[] = [];
   let initialDraft: StructuredDraft | null = null;
   let session: StudentSession = null;
+  let criticalSummary: string | null = null; // PEMICU 1: dokumen kritis → tombol WA SAPA 129
 
   if (sessionId) {
     const report = await prisma.report.findUnique({
@@ -64,6 +65,10 @@ export default async function ChatPage() {
         narrative: report.narrative,
         consult,
       };
+      // Dokumen ditandai KRITIS + sudah ada ringkasan → tombol kirim ke SAPA 129.
+      if (report.urgencyLevel === "kritis" && report.narrative) {
+        criticalSummary = report.narrative;
+      }
     }
   }
 
@@ -74,6 +79,7 @@ export default async function ChatPage() {
         initialMessages={initialMessages}
         initialDraft={initialDraft}
         initialSessionId={sessionId ?? null}
+        criticalSummary={criticalSummary}
       />
     </StudentNav>
   );
