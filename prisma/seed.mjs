@@ -177,4 +177,28 @@ for (const r of REPORTS) {
   console.log(`Seeded report ${r.code} (${r.id}) -> ${destination}`);
 }
 
+// ── Tata tertib sekolah + pasal UU (retrieval rekomendasi kasus) ─────────────
+// 1 baris = 1 pasal/potongan (bukan seluruh dokumen jadi satu baris — biar kutipan
+// yang muncul di BK pas). documentTitle awalan "UU " => masuk section perundang-
+// undangan; selain itu => section tata tertib sekolah.
+// GANTI teks contoh di bawah dengan pasal ASLI dokumen sekolah & UU.
+const POLICY = [
+  { title: "Tata Tertib Sekolah", content: "Pasal 7: Setiap peserta didik dilarang melakukan pemerasan atau pemalakan terhadap peserta didik lain dalam bentuk apa pun." },
+  { title: "Tata Tertib Sekolah", content: "Pasal 9: Setiap peserta didik dilarang melakukan kekerasan fisik seperti memukul, menampar, menendang, atau mendorong peserta didik lain." },
+  { title: "Tata Tertib Sekolah", content: "Pasal 11: Setiap peserta didik dilarang melakukan perundungan, penghinaan, ejekan, intimidasi, atau penyebaran rumor yang merendahkan martabat peserta didik lain." },
+  { title: "Tata Tertib Sekolah", content: "Pasal 14: Setiap peserta didik dilarang menyebarkan foto, video, atau konten yang mempermalukan peserta didik lain melalui media sosial maupun grup pesan." },
+  // UU — documentTitle WAJIB diawali "UU " agar masuk section perundang-undangan.
+  { title: "UU 35/2014 Perlindungan Anak Pasal 76C", content: "Setiap Orang dilarang menempatkan, membiarkan, melakukan, menyuruh melakukan, atau turut serta melakukan kekerasan terhadap Anak." },
+  { title: "UU 12/2022 TPKS Pasal 6", content: "Setiap orang yang melakukan perbuatan seksual secara fisik yang ditujukan terhadap tubuh, keinginan seksual, dan/atau organ reproduksi seseorang dipidana karena pelecehan seksual fisik." },
+];
+for (let i = 0; i < POLICY.length; i++) {
+  const p = POLICY[i];
+  await prisma.schoolPolicyChunk.upsert({
+    where: { id: `seed-policy-${i + 1}` },
+    update: { documentTitle: p.title, content: p.content },
+    create: { id: `seed-policy-${i + 1}`, documentTitle: p.title, content: p.content },
+  });
+  console.log(`Seeded policy chunk: ${p.title}`);
+}
+
 await prisma.$disconnect();
