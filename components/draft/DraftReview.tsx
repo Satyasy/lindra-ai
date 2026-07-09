@@ -3,17 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, Copy, Send, UserRound } from "lucide-react";
+import { ArrowLeft, Check, Copy, FileText, Image as ImageIcon, Paperclip, Send, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
 import { FOLLOWUP_CONSENT } from "@/lib/followup-copy";
+import { NO_EVIDENCE_SENTINEL, type EvidenceKind } from "@/lib/evidence";
 
 export function DraftReview({ sessionId }: { sessionId: string }) {
   const router = useRouter();
   const [narrative, setNarrative] = useState<string | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceKind[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [askName, setAskName] = useState(false);
   const [identity, setIdentity] = useState("");
@@ -29,7 +31,10 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     fetch(`/api/draft/${sessionId}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d) => setNarrative(d.narrative))
+      .then((d) => {
+        setNarrative(d.narrative);
+        setEvidence(Array.isArray(d.evidence) ? d.evidence : []);
+      })
       .catch(() => setError("Draf tidak bisa dibuka. Coba kembali ke halaman cerita dulu ya."));
   }, [sessionId]);
 
@@ -199,8 +204,32 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
 
       {error && <p className="mb-4 rounded-[var(--radius-md)] bg-warm-soft px-4 py-3 text-sm">{error}</p>}
 
-      <div className="mb-8 rounded-[var(--radius-lg)] border bg-background p-6 leading-[1.65] whitespace-pre-wrap shadow-[var(--shadow-soft)]">
+      <div className="mb-6 rounded-[var(--radius-lg)] border bg-background p-6 leading-[1.65] whitespace-pre-wrap shadow-[var(--shadow-soft)]">
         {narrative ?? "Menyusun draf…"}
+      </div>
+
+      {/* Lampiran bukti — label generik saja, nama file asli tidak pernah ditampilkan */}
+      <div className="mb-8 rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
+          <Paperclip className="size-4 text-primary-ink" aria-hidden />
+          Lampiran bukti
+        </h2>
+        {evidence.length === 0 ? (
+          <p className="text-sm text-text-soft">{NO_EVIDENCE_SENTINEL}</p>
+        ) : (
+          <ul className="space-y-2">
+            {evidence.map((kind, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm text-text">
+                {kind === "foto" ? (
+                  <ImageIcon className="size-4 shrink-0 text-primary-ink" aria-hidden />
+                ) : (
+                  <FileText className="size-4 shrink-0 text-primary-ink" aria-hidden />
+                )}
+                Bukti {i + 1} ({kind})
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {askName && (

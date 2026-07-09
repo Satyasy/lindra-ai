@@ -16,7 +16,8 @@ export function logAction(
     | "followup-enabled"
     | "followup-checkin"
     | "auto-escalated"
-    | "evidence-added",
+    | "evidence-added"
+    | "evidence-opened",
   metadata?: Prisma.InputJsonValue
 ) {
   return prisma.auditLog.create({

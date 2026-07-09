@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { guardSession } from "@/lib/session";
 import { composeReport, toStructuredDraft, type StructuredDraft } from "@/lib/ai/classify-narrative";
 import { readTranscript } from "@/lib/transcript";
+import { evidenceKind } from "@/lib/evidence";
 
 const FIELDS: (keyof StructuredDraft)[] = [
   "gambaran_kejadian",
@@ -52,8 +53,17 @@ export async function GET(
     });
   }
 
+  // Blok bukti = kind generik per lampiran (foto/dokumen), TANPA nama/id file.
+  // Kosong → frontend render sentinel "Tidak ada bukti dilampirkan".
+  const evidences = await prisma.evidence.findMany({
+    where: { reportId: sessionId },
+    orderBy: { createdAt: "asc" },
+    select: { mimeType: true },
+  });
+  const evidence = evidences.map((e) => evidenceKind(e.mimeType));
+
   return Response.json(
-    { narrative, urgencyLevel, status: report.status, draft },
+    { narrative, urgencyLevel, status: report.status, draft, evidence },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
