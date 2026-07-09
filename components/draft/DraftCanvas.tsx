@@ -89,7 +89,7 @@ export function DraftCanvas({
 
       <aside
         aria-label="Draf laporan"
-        className="fixed inset-y-0 right-0 z-[960] flex w-full max-w-md flex-col bg-surface shadow-[var(--shadow-lift)] min-[900px]:static min-[900px]:z-auto min-[900px]:w-[22rem] min-[900px]:max-w-none min-[900px]:shrink-0 min-[900px]:border-l min-[900px]:border-border min-[900px]:shadow-none xl:w-[26rem]"
+        className="panel-slide-in fixed inset-y-0 right-0 z-[960] flex w-full max-w-md flex-col bg-surface shadow-[var(--shadow-lift)] min-[900px]:static min-[900px]:z-auto min-[900px]:w-[22rem] min-[900px]:max-w-none min-[900px]:shrink-0 min-[900px]:border-l min-[900px]:border-border min-[900px]:shadow-none xl:w-[26rem]"
       >
         <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4 min-[900px]:pt-20">
           <div className="flex items-start gap-3">
@@ -113,12 +113,16 @@ export function DraftCanvas({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-5">
-          {/* Rincian singkat */}
-          <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto px-5 py-6">
+          {/* Rincian singkat — tiap section muncul bertahap (stagger 150ms) */}
+          <div className="space-y-5">
             <p className="text-[0.75rem] font-semibold uppercase tracking-wide text-text-muted">Rincian</p>
-            {DETAIL_FIELDS.map(({ key, label, icon: Icon, area }) => (
-              <div key={key} className="space-y-1.5">
+            {DETAIL_FIELDS.map(({ key, label, icon: Icon, area }, i) => (
+              <div
+                key={key}
+                className="section-stagger space-y-1.5"
+                style={{ ["--i" as string]: i } as React.CSSProperties}
+              >
                 <label
                   htmlFor={`draft-${key}`}
                   className="flex items-center gap-1.5 text-[0.875rem] font-medium text-ink"
@@ -149,7 +153,10 @@ export function DraftCanvas({
           </div>
 
           {/* Narasi = teks yang dikirim ke BK — dibedakan dgn tint surface-alt */}
-          <div className="mt-6 space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface-alt p-4">
+          <div
+            className="section-stagger mt-7 space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface-alt p-4"
+            style={{ ["--i" as string]: DETAIL_FIELDS.length } as React.CSSProperties}
+          >
             <label htmlFor="draft-narasi" className="block text-[0.875rem] font-semibold text-ink">
               Narasi laporan
             </label>

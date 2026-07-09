@@ -25,6 +25,7 @@ model Report {
   perpetratorRole  String? // siswa | guru-staf | orangtua-wali
   locationCategory String? // dalam-sekolah | lintas-sekolah
   violenceType     String[]
+  actionSignals    Json? // {cederaFisik, sudahBerulang, relasiKuasaTimpang, adaBukti, adaBahayaLangsung} — input rule-engine rekomendasi aksi (lib/ai/recommend-action)
   urgentVisum      Boolean  @default(false)
   status           String   @default("draft") // draft -> terkirim -> ditinjau -> selesai
   contentHash      String?

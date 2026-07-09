@@ -15,6 +15,11 @@ export interface PolicyRecommendation {
   reasoning: string;
 }
 
+// Tata tertib & UU berbagi tabel SchoolPolicyChunk. Baris ber-documentTitle awalan
+// ini = pasal UU (masuk section perundang-undangan); selain itu = tata tertib sekolah.
+// recommendArticles MENGECUALIKAN awalan ini; recommendLaws HANYA yang berawalan ini.
+export const UU_TITLE_PREFIX = "UU ";
+
 const MIN_SCORE = 2; // ambang minimal jumlah kata kunci yang cocok
 const MAX_RESULTS = 5;
 
@@ -74,16 +79,18 @@ async function explain(narrativeSummary: string, quote: string): Promise<string>
   }
 }
 
-export async function recommendArticles(
-  narrativeSummary: string
-): Promise<PolicyRecommendation[]> {
+// Retrieval keyword bersama (dipakai tata tertib & UU). `where` menyaring baris
+// mana yang dicari; scoring/quote/explain identik supaya tak ada duplikasi logika.
+async function retrieve(
+  narrativeSummary: string,
+  where: { documentTitle: { startsWith: string } } | { NOT: { documentTitle: { startsWith: string } } }
+): Promise<{ id: string; documentTitle: string; quote: string; reasoning: string }[]> {
   const keywords = extractKeywords(narrativeSummary);
   if (keywords.length === 0) return [];
 
-  // TODO: verifikasi nama field asli ke tim backend.
-  // Skema saat ini: SchoolPolicyChunk { id, content } — tidak ada "articleNumber".
   const chunks = await prisma.schoolPolicyChunk.findMany({
-    select: { id: true, content: true },
+    where,
+    select: { id: true, documentTitle: true, content: true },
   });
 
   const scored = chunks
@@ -101,7 +108,31 @@ export async function recommendArticles(
   return Promise.all(
     scored.map(async ({ chunk }) => {
       const quote = pickQuote(chunk.content, keywords);
-      return { chunkId: chunk.id, quote, reasoning: await explain(narrativeSummary, quote) };
+      return {
+        id: chunk.id,
+        documentTitle: chunk.documentTitle,
+        quote,
+        reasoning: await explain(narrativeSummary, quote),
+      };
     })
   );
+}
+
+export async function recommendArticles(
+  narrativeSummary: string
+): Promise<PolicyRecommendation[]> {
+  const rows = await retrieve(narrativeSummary, {
+    NOT: { documentTitle: { startsWith: UU_TITLE_PREFIX } },
+  });
+  return rows.map((r) => ({ chunkId: r.id, quote: r.quote, reasoning: r.reasoning }));
+}
+
+// Pasal UU (documentTitle awalan "UU "). Section perundang-undangan di narasi kasus.
+export async function recommendLaws(
+  narrativeSummary: string
+): Promise<{ pasal: string; kutipan: string; alasan: string }[]> {
+  const rows = await retrieve(narrativeSummary, {
+    documentTitle: { startsWith: UU_TITLE_PREFIX },
+  });
+  return rows.map((r) => ({ pasal: r.documentTitle, kutipan: r.quote, alasan: r.reasoning }));
 }
