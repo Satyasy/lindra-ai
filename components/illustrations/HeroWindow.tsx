@@ -79,7 +79,8 @@ export function HeroWindow({ className }: { className?: string }) {
       </svg>
 
       {/* kartu chat mengambang (teks nyata, bukan SVG) */}
-      <div className="float-card absolute -bottom-3 left-0 w-[min(280px,84%)] rounded-[var(--radius-lg)] border border-border bg-surface p-4 shadow-[var(--shadow-lift)] sm:-left-4">
+      {/* Kartu chat mengambang — disembunyikan di mobile (fokus ke gambar), tampil >=900px */}
+      <div className="float-card absolute -bottom-3 left-0 hidden w-[min(280px,84%)] rounded-[var(--radius-lg)] border border-border bg-surface p-4 shadow-[var(--shadow-lift)] sm:-left-4 min-[900px]:block">
         <div className="flex items-start gap-3">
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft">
             <MessageCircle className="size-4 text-primary-ink" strokeWidth={2} aria-hidden />
