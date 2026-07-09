@@ -7,7 +7,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm install --no-audit --no-fund
+RUN npm install --no-audit --no-fund --fetch-retries=5 --fetch-retry-maxtimeout=120000
 
 # NEXT_PUBLIC_* di-INLINE saat `next build` → HARUS ada sebelum build. .env
 # di-.dockerignore (& git-ignore), jadi flag demo dilewatkan sebagai build ARG

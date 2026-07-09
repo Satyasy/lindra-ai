@@ -24,6 +24,12 @@ export interface ReportDraft {
   dampak: { deskripsi: string | null };
   keamanan: { adaBahayaLangsung: boolean | null; deskripsi: string | null };
 
+  // Sinyal rule-engine rekomendasi aksi (lib/ai/recommend-action.ts). null bila
+  // tak diceritakan — JANGAN ditebak. Dipersist ke Report.actionSignals saat compose.
+  cederaFisik: boolean | null;
+  sudahBerulang: boolean | null;
+  relasiKuasaTimpang: boolean | null;
+
   // duplikasi top-level, dibaca langsung oleh routing engine — JANGAN dihapus
   urgencyLevel: "rendah" | "sedang" | "tinggi" | "kritis";
   perpetratorRole: "siswa" | "guru-staf" | "orangtua-wali" | null;
@@ -45,6 +51,9 @@ SKEMA JSON (semua field wajib ada):
   "bukti": { "adaBukti": boolean|null, "deskripsi": string|null },
   "dampak": { "deskripsi": string|null },
   "keamanan": { "adaBahayaLangsung": boolean|null, "deskripsi": string|null },
+  "cederaFisik": boolean|null,
+  "sudahBerulang": boolean|null,
+  "relasiKuasaTimpang": boolean|null,
   "urgencyLevel": "rendah"|"sedang"|"tinggi"|"kritis",
   "perpetratorRole": "siswa"|"guru-staf"|"orangtua-wali"|null,
   "locationCategory": "dalam-sekolah"|"lintas-sekolah"|null,
@@ -57,6 +66,9 @@ ATURAN ISI:
 - Isi field null (atau [] untuk array) kalau informasinya BELUM tersedia dari transkrip. JANGAN mengarang, menebak, atau melengkapi yang tidak diceritakan siswa.
 - Kamu TIDAK PERNAH menyimpulkan siapa yang benar/salah. Kamu hanya mencatat apa yang diceritakan siswa.
 - "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai kronologi apa adanya dari sudut siswa, tanpa penilaian salah/benar dan tanpa menambah fakta.
+- "cederaFisik": true HANYA bila siswa menyebut ada luka/cedera fisik (lebam, berdarah, sakit, dsb). false bila jelas tak ada. null bila tak disinggung.
+- "sudahBerulang": true bila kejadian disebut terjadi lebih dari sekali. false bila jelas sekali saja. null bila tak jelas.
+- "relasiKuasaTimpang": true bila ada ketimpangan relasi kuasa (mis. kakak kelas ke adik kelas, guru ke siswa, senior ke junior). false bila jelas setara. null bila tak jelas.
 
 TAKSONOMI violenceType (Permendikbudristek 46/2023 Pasal 6 & 8 — pakai PERSIS kode ini, jangan bikin kategori sendiri):
 - "kekerasan-fisik": kontak fisik pelaku ke korban (pakai/tanpa alat) — tawuran, penganiayaan, perkelahian, kerja paksa, pembunuhan.
@@ -88,6 +100,9 @@ function safeDefault(transcript: TranscriptTurn[]): ReportDraft {
     bukti: { adaBukti: null, deskripsi: null },
     dampak: { deskripsi: null },
     keamanan: { adaBahayaLangsung: null, deskripsi: null },
+    cederaFisik: null,
+    sudahBerulang: null,
+    relasiKuasaTimpang: null,
     urgencyLevel: "sedang",
     perpetratorRole: null,
     locationCategory: null,
@@ -108,6 +123,8 @@ function coerceDraft(raw: unknown, transcript: TranscriptTurn[]): ReportDraft {
   // Field wajib hilang/rusak -> default aman.
   if (!validUrgency || !summary) return safeDefault(transcript);
 
+  const asBool = (v: unknown): boolean | null => (typeof v === "boolean" ? v : null);
+
   const base = safeDefault(transcript);
   // Merge dangkal: pakai nilai model bila ada, kalau tidak jatuh ke default.
   return {
@@ -115,6 +132,10 @@ function coerceDraft(raw: unknown, transcript: TranscriptTurn[]): ReportDraft {
     ...(o as Partial<ReportDraft>),
     urgencyLevel: urgency,
     violenceType: Array.isArray(o.violenceType) ? (o.violenceType as string[]) : [],
+    // Sinyal rule-engine: guard tipe (input jalur legal) — non-boolean → null.
+    cederaFisik: asBool(o.cederaFisik),
+    sudahBerulang: asBool(o.sudahBerulang),
+    relasiKuasaTimpang: asBool(o.relasiKuasaTimpang),
     narrativeSummary: o.narrativeSummary as string,
   };
 }

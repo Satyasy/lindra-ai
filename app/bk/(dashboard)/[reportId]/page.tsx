@@ -17,7 +17,7 @@ import {
 import { auth, staffRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
-import { recommendArticles } from "@/lib/ai/recommend-policy";
+import { buildCaseRecommendation, type ActionSignals } from "@/lib/ai/recommend-action";
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
 import { cn } from "@/lib/utils";
 import { StatusSelect } from "@/components/bk/StatusSelect";
@@ -132,8 +132,28 @@ export default async function ReportDetailPage({
     await logAction(reportId, session?.user?.email ?? "staff", "opened");
   }
 
-  const [recommendations, audits] = await Promise.all([
-    recommendArticles(report.narrative ?? ""),
+  // Sinyal rule-engine dari kolom persist (null-safe — laporan lama tak punya kolom ini).
+  const draftData = (report.draft ?? {}) as Record<string, unknown>;
+  const rawSignals = (report.actionSignals ?? {}) as Record<string, unknown>;
+  const asBool = (v: unknown) => (typeof v === "boolean" ? v : null);
+  const asStr = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+  const [caseRec, audits] = await Promise.all([
+    buildCaseRecommendation({
+      narrative: report.narrative ?? "",
+      terlaporDeskripsi: asStr(draftData.pelaku),
+      kejadianDeskripsi: asStr(draftData.gambaran_kejadian),
+      signals: {
+        urgencyLevel: (report.urgencyLevel as ActionSignals["urgencyLevel"]) ?? "sedang",
+        violenceType: report.violenceType,
+        cederaFisik: asBool(rawSignals.cederaFisik),
+        sudahBerulang: asBool(rawSignals.sudahBerulang),
+        relasiKuasaTimpang: asBool(rawSignals.relasiKuasaTimpang),
+        adaBukti: asBool(rawSignals.adaBukti),
+        adaBahayaLangsung: asBool(rawSignals.adaBahayaLangsung),
+        adaDampak: asStr(draftData.dampak) !== null,
+      },
+    }),
     prisma.auditLog.findMany({ where: { reportId }, orderBy: { createdAt: "asc" } }),
   ]);
 
@@ -269,25 +289,93 @@ export default async function ReportDetailPage({
             </div>
           </Section>
 
-          <Section title="Rekomendasi pasal tata tertib" icon={BookOpen}>
-            {recommendations.length === 0 ? (
-              <p className="text-muted-foreground">
-                Tidak ditemukan pasal yang relevan. Rekomendasi hanya muncul bila ada kutipan asli
-                dari dokumen tata tertib — sistem tidak pernah mengarang kecocokan.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {recommendations.map((rec) => (
-                  <blockquote key={rec.chunkId} className="border-l-2 border-primary pl-3">
-                    <p className="italic">&ldquo;{rec.quote}&rdquo;</p>
-                    <p className="mt-1 text-sm text-text-soft">{rec.reasoning}</p>
-                  </blockquote>
-                ))}
+          <Section title="Narasi & rekomendasi kasus" icon={BookOpen}>
+            {/* 1. Narasi tindakan — hedging "menurut penuturan siswa / diduga" dijamin template */}
+            <p className="text-[0.9375rem] leading-relaxed text-text">{caseRec.narasiTindakan}</p>
+
+            {/* 2. Tata tertib sekolah */}
+            <div className="mt-5">
+              <h3 className="mb-2 text-sm font-semibold text-ink">
+                Berpotensi melanggar tata tertib sekolah
+              </h3>
+              {caseRec.tataTertib.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Tidak ditemukan pasal yang relevan. Rekomendasi hanya muncul bila ada kutipan
+                  asli dari dokumen tata tertib — sistem tidak pernah mengarang kecocokan.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {caseRec.tataTertib.map((rec) => (
+                    <blockquote key={rec.chunkId} className="border-l-2 border-primary pl-3">
+                      <p className="italic">&ldquo;{rec.quote}&rdquo;</p>
+                      <p className="mt-1 text-sm text-text-soft">{rec.reasoning}</p>
+                    </blockquote>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 3. UU — hanya render bila retrieval UU di-enable & ada isi (flag off → key absen) */}
+            {caseRec.undangUndang && caseRec.undangUndang.length > 0 && (
+              <div className="mt-5">
+                <h3 className="mb-2 text-sm font-semibold text-ink">
+                  Berpotensi melanggar peraturan perundang-undangan
+                </h3>
+                <div className="space-y-3">
+                  {caseRec.undangUndang.map((uu, i) => (
+                    <blockquote key={i} className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium text-ink">{uu.pasal}</p>
+                      <p className="italic">&ldquo;{uu.kutipan}&rdquo;</p>
+                      <p className="mt-1 text-sm text-text-soft">{uu.alasan}</p>
+                    </blockquote>
+                  ))}
+                </div>
               </div>
             )}
-            <p className="mt-3 text-[0.8125rem] text-muted-foreground">
-              Kutipan + alasan, bukan angka final — penilaian konteks dan keputusan tetap di tangan
-              staf.
+
+            {/* 4 & 5. Rekomendasi aksi — opsi ditentukan kode, alasan dari explainer */}
+            {(["korban", "pelaku"] as const).map((pihak) => {
+              const side = caseRec[pihak];
+              if (!side) return null;
+              return (
+                <div key={pihak} className="mt-5">
+                  <h3 className="mb-2 text-sm font-semibold capitalize text-ink">
+                    Rekomendasi AI untuk {pihak}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {side.opsi.map((o) => (
+                      <span
+                        key={o.key}
+                        className={cn(
+                          "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                          o.key === "ranahHukum"
+                            ? "bg-warm-soft text-warm-deep"
+                            : "bg-primary-soft text-primary-ink"
+                        )}
+                      >
+                        {o.label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-text-soft">{side.alasan}</p>
+                </div>
+              );
+            })}
+
+            {/* 6. Catatan data belum cukup */}
+            {!caseRec.cukupData && (
+              <div className="mt-5 flex items-start gap-2 rounded-[var(--radius-md)] bg-warm-soft p-3 text-sm text-warm-deep">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>
+                  Data belum cukup untuk rekomendasi presisi — mediasi BK diusulkan sebagai
+                  langkah awal, tinjau ulang setelah informasi lebih lengkap.
+                </span>
+              </div>
+            )}
+
+            <p className="mt-4 text-[0.8125rem] text-muted-foreground">
+              Kutipan + pertimbangan, bukan angka final — penilaian konteks dan keputusan tetap
+              di tangan staf.
             </p>
           </Section>
         </div>

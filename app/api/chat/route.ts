@@ -23,9 +23,11 @@ const SESSION_COOKIE = "lindra_session";
 const NO_KEY_FALLBACK =
   "aku di sini, dengerin kok. cerita aja pelan-pelan, mulai dari mana pun yang kamu mau.";
 
-// Konfirmasi transisi saat kode memaksa compose (siswa tak lihat model "mikir").
+// Ajakan menyusun draf — MEMINTA IZIN dulu (bukan mengumumkan draf sudah muncul).
+// Panel TIDAK terbuka otomatis; klien menampilkan tombol [Belum]/[Buat Draf] di
+// bawah pesan ini, dan panel baru meluncur saat siswa menekan "Buat Draf".
 const COMPOSE_CONFIRM =
-  "oke, aku udah rangkum ceritamu jadi draf laporan 🌱 muncul di panel sebelah ya — coba kamu baca & betulin dulu kalau ada yang kurang pas, sebelum dikirim.";
+  "terima kasih sudah cerita sejauh ini. aku rasa aku sudah cukup memahami ceritamu. kalau kamu setuju, aku bisa bantu menyusunnya jadi draf laporan.";
 
 // Direktif giliran validasi (semua field cukup, belum boleh compose).
 const READY_DIRECTIVE =
@@ -175,6 +177,13 @@ export async function POST(request: Request) {
             perpetratorRole: draft.perpetratorRole,
             locationCategory: draft.locationCategory,
             violenceType: draft.violenceType,
+            actionSignals: {
+              cederaFisik: draft.cederaFisik,
+              sudahBerulang: draft.sudahBerulang,
+              relasiKuasaTimpang: draft.relasiKuasaTimpang,
+              adaBukti: draft.bukti?.adaBukti ?? null,
+              adaBahayaLangsung: draft.keamanan?.adaBahayaLangsung ?? null,
+            },
           },
         });
       } else if (slots.phase === "done") {
