@@ -1,0 +1,11 @@
+# Jangan unggah env lokal ke build Vercel — rahasia & NEXTAUTH_URL=localhost
+# bocor ke deployment. Env produksi diatur lewat dashboard Vercel (vercel env).
+.env
+.env.*
+
+# Artefak lokal / non-runtime
+QA.md
+DEPLOY_STATE.md
+playwright-report
+coverage
+*.log
