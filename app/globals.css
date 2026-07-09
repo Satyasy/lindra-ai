@@ -199,9 +199,13 @@ html { scroll-behavior: smooth; }
    ============================================================ */
 
 /* Kanvas percakapan ber-tint lembut supaya bubble putih terangkat.
-   Tetap kalem (trauma-informed): mint sangat tipis, memudar ke cream kehijauan. */
+   Tetap kalem (trauma-informed): mint sangat tipis, memudar ke cream kehijauan.
+   Layer pertama = grain organik ~3% (di-bake ke opacity SVG) supaya permukaan
+   terasa hangat, bukan steril. Selalu di BELAKANG konten (background layer),
+   jadi tak pernah menutupi teks/bubble. */
 .chat-canvas {
   background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E") repeat,
     radial-gradient(130% 90% at 50% -10%, rgba(109, 205, 179, 0.14), transparent 55%),
     linear-gradient(180deg, #FAFAFA 0%, #ECF6F0 100%);
 }
@@ -247,6 +251,59 @@ html { scroll-behavior: smooth; }
 /* FAQ accordion native <details>: putar chevron saat terbuka */
 .faq-chevron { transition: transform 200ms ease; }
 details[open] > summary .faq-chevron { transform: rotate(180deg); }
+
+/* ============================================================
+   Experience redesign — pacing, hierarki, microinteraksi lembut
+   (branding/warna TIDAK berubah; hanya gerak & ritme)
+   ============================================================ */
+
+/* Welcome card keluar: fade + naik + sedikit blur (larut, bukan menghilang tiba-tiba),
+   lalu di-unmount JS setelah animasi (400ms). */
+@keyframes lindra-hero-leave {
+  from { opacity: 1; transform: none; filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-14px); filter: blur(3px); }
+}
+.hero-leave { animation: lindra-hero-leave 380ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+/* Avatar bernapas lembut selagi Lindra "memikirkan" balasan — hadir, hidup, tenang.
+   Skala sangat kecil (≤4.5%) supaya tak mengagetkan. Dimatikan reduced-motion. */
+@keyframes lindra-avatar-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+.avatar-breathe {
+  transform-origin: center;
+  animation: lindra-avatar-breathe 2.6s ease-in-out infinite;
+}
+
+/* Panel draf meluncur dari kanan — 250ms (DESIGN.md motion). Dipakai untuk
+   varian inline desktop DAN overlay mobile (keduanya masuk dari kanan). */
+@keyframes lindra-panel-slide {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: none; }
+}
+.panel-slide-in { animation: lindra-panel-slide 250ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+/* Section draf muncul progresif: fade + naik. Stagger diberi via --i (inline
+   style index) → delay 150ms per section (DESIGN.md brief). */
+@keyframes lindra-section-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.section-stagger {
+  animation: lindra-section-in 320ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 150ms);
+}
+
+/* Presence dot kecil di atas input — denyut lembut saat idle (Lindra "hadir"). */
+@keyframes lindra-presence-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.presence-dot { animation: lindra-presence-pulse 2.4s ease-in-out infinite; }
+
+/* Rail sidebar (mode ikon) transisi lebar halus. */
+.sidebar-shell { transition: width 250ms cubic-bezier(0.2, 0.7, 0.3, 1); }
 
 /* Hormati reduced-motion: matikan semua animasi/transisi */
 @media (prefers-reduced-motion: reduce) {
