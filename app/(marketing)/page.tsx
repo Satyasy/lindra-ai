@@ -103,7 +103,7 @@ export default function LandingPage() {
               Mobile: gambar di ATAS teks (order-first) & lebih kecil agar H1 tak terdorong
               ke bawah layar. Desktop (>=900px) kembali ke kolom kanan, ukuran penuh. */}
           <div className="reveal order-first min-[900px]:order-none" style={{ transitionDelay: "80ms" }}>
-            <HeroWindow className="max-w-[15rem] min-[900px]:max-w-[440px]" />
+            <HeroWindow className="max-w-[18rem] min-[900px]:max-w-[440px]" />
           </div>
         </section>
 
