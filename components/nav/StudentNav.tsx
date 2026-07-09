@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
 import {
   ChevronRight,
   FileText,
@@ -23,7 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { LeafSpray } from "@/components/illustrations";
-import { ChatUIContext } from "@/components/chat/chat-ui-context";
+import { Logo } from "@/components/Logo";
 import { sendStudentConsult } from "@/app/(student)/chat/actions";
 import { GURU_BK_TEL, SAPA_TEL } from "@/lib/emergency-contacts";
 
@@ -41,22 +39,6 @@ const DARURAT = [
   { label: "Guru BK", tel: GURU_BK_TEL },
   { label: "SAPA", tel: SAPA_TEL },
 ];
-
-// Logo Lindra dapat diklik → "/". object-contain + max-w-full agar tak melebihi sidebar.
-function BrandLogo({ className = "h-9" }: { className?: string }) {
-  return (
-    <Link href="/" aria-label="Lindra — ke beranda" className="inline-flex shrink-0">
-      <Image
-        src="/lindra-logo.png"
-        alt="Lindra"
-        width={2000}
-        height={2000}
-        priority
-        className={`${className} w-auto max-w-full object-contain`}
-      />
-    </Link>
-  );
-}
 
 const primaryItem =
   "flex min-h-12 items-center gap-2 rounded-full bg-primary px-4 font-semibold text-ink transition-colors duration-[180ms] hover:bg-primary-deep";
@@ -108,58 +90,13 @@ export function StudentNav({
     window.location.assign("/");
   }
 
-  const items: NavItem[] = [
-    {
-      key: "chat",
-      icon: MessageCircle,
-      label: hasSession ? "Lanjutkan percakapan" : "Percakapan baru",
-      href: "/chat",
-      primary: true,
-    },
-    ...(hasSession && session!.narrative
-      ? [{ key: "doc", icon: FileText, label: "Dokumen laporan", panel: "doc" as const }]
-      : []),
-    ...(hasSession && session!.hasDraft
-      ? [{ key: "draft", icon: Send, label: "Tinjau & kirim draf", href: "/draft" }]
-      : []),
-    { key: "lacak", icon: Route, label: "Lacak status", href: "/lacak" },
-    {
-      key: "consult",
-      icon: Users,
-      label: "Chat dengan guru BK",
-      panel: "consult",
-      disabled: !hasSession,
-      disabledTitle: "Tersedia setelah kamu membuat laporan",
-      badge: hasSession ? session!.consult.length : 0,
-    },
-    ...(!hasSession
-      ? [{ key: "masuk", icon: KeyRound, label: "Masukkan kode", href: "/masuk" }]
-      : []),
-    { key: "home", icon: Home, label: "Kembali ke beranda", href: "/" },
-  ];
-
-  const isActive = (it: NavItem) =>
-    !!it.href && (it.href === "/" ? pathname === "/" : pathname.startsWith(it.href));
-
-  const onItem = (it: NavItem) => {
-    if (it.disabled) return;
-    if (it.panel) {
-      setPanel(it.panel);
-      close();
-    } else {
-      close();
-    }
-  };
-
-  // Item menu (nav penuh). Non-aktif diredupkan ke 65% opasitas (§brief SIDEBAR).
-  function MenuItem({ it }: { it: NavItem }) {
-    const active = isActive(it);
-    const dim = !it.primary && !active ? "opacity-65" : "opacity-100";
-    const inner = (
-      <>
-        <span className="flex items-center gap-2">
-          <it.icon className="size-4" strokeWidth={2} aria-hidden />
-          {it.label}
+  const nav = (
+    <nav className="flex h-full flex-col gap-1 p-4">
+      <div className="mb-5 flex items-center gap-2.5 px-2 py-1">
+        {/* Chrome siswa: mark saja (tanpa wordmark), §1.4 */}
+        <Logo href="/" wordmark={false} markClassName="h-9" className="shrink-0" />
+        <span className="min-w-0">
+          <span className="mt-0.5 block text-xs text-text-soft">Teman bicara yang aman</span>
         </span>
         {it.badge ? (
           <span className="flex min-w-5 items-center justify-center rounded-full bg-primary-ink px-1 text-[0.6875rem] font-bold text-white tabular-nums">
@@ -393,19 +330,19 @@ export function StudentNav({
           {collapsed && <div className="hidden h-full min-[900px]:block">{railNav}</div>}
         </aside>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="flex items-center gap-2 border-b border-border bg-surface px-4 py-3 min-[900px]:hidden">
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              aria-label="Buka menu"
-              aria-expanded={open}
-              className="flex size-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-alt"
-            >
-              <Menu className="size-6" aria-hidden />
-            </button>
-            <BrandLogo className="h-8" />
-          </header>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex items-center gap-2 border-b border-border bg-surface px-4 py-3 min-[900px]:hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Buka menu"
+            aria-expanded={open}
+            className="flex size-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-alt"
+          >
+            <Menu className="size-6" aria-hidden />
+          </button>
+          <Logo href="/" wordmark={false} markClassName="h-8" className="shrink-0" />
+        </header>
 
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         </div>

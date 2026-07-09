@@ -142,7 +142,7 @@ Max-width 80%, padding 16×24px, font 17px. **Lindra (kiri):** bg `--surface`, b
 
 ### 3.5 Logo & Brand — disesuaikan
 
-`Logo`: link ke `/` (Situs Informasi), mark `/lindra-logo.png` + wordmark "Lindra" — dipakai di landing dan Portal BK saja (**bukan** di chrome aplikasi siswa, lihat aturan §1.4). Sidebar Portal BK pakai brand stack: "Lindra" (1.7rem, 800) di atas label peran (uppercase `--t-xs`, warna aksen **BK** teal atau **Satgas** warm — hanya 2 varian, bukan 5).
+`Logo` (`components/Logo.tsx`) — **satu komponen terpusat, dipakai di semua permukaan merek**: `<Image src="/lindra-logo.png">` (mark berwarna, latar transparan, `object-contain` + `w-auto max-w-full` + dimensi eksplisit → tak pernah melebihi kontainer) + wordmark opsional "Lindra". Link ke `/` (default; `href={null}` → `<span>` tanpa navigasi). Dipakai di landing publik, Portal BK, **dan chrome aplikasi siswa** (§1.4 — keputusan pemilik produk; di chrome siswa umumnya `wordmark={false}`, mark saja). Prop `tone="light"` memutihkan **wordmark** untuk latar `--ink` (sidebar/header BK). **Tidak ada varian putih / filter invert**: mark ini dua-warna dan membawa shield mint sendiri → sudah kontras di atas `--ink` (terverifikasi); siluet putih justru meleburkan kedua tangan jadi satu blob & menghapus maknanya. Sidebar Portal BK: brand stack `Logo tone="light"` di atas label peran (uppercase `--t-xs`, aksen **BK** teal / **Satgas** warm — 2 varian, bukan 5). Favicon = `app/icon.png` (di-generate dari logo, konvensi Next App Router).
 
 ### 3.6 Badge & indikator status — kosakata diperbarui ke skema Lindra
 
