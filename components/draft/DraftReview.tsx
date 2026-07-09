@@ -20,6 +20,7 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ referralCode: string; destinations: RouteDestination[] } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false); // gate: kode wajib disimpan sebelum lanjut
   const [followupOn, setFollowupOn] = useState(false); // opt-in, DEFAULT OFF
   const [followupEmail, setFollowupEmail] = useState("");
   const [followupSaved, setFollowupSaved] = useState(false);
@@ -86,6 +87,7 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
               onClick={() => {
                 navigator.clipboard.writeText(result.referralCode);
                 setCopied(true);
+                setSaved(true);
               }}
               className="min-h-11 rounded-full font-semibold"
             >
@@ -93,6 +95,18 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
               {copied ? "Kode tersalin ✓" : "Salin kode"}
             </Button>
           </div>
+
+          {/* Gate: jangan lanjut sebelum kode disimpan. Client-only, tanpa storage —
+              simpan kode di localStorage = jejak berbahaya di perangkat terpantau. */}
+          <label className="mt-4 flex items-center gap-2 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={saved}
+              onChange={(e) => setSaved(e.target.checked)}
+              className="size-4 shrink-0 accent-[var(--primary-deep)]"
+            />
+            Aku sudah menyimpan kodeku
+          </label>
         </div>
 
         {/* Kartu transparansi rute (DESIGN.md §1.11) — bukti "AI tidak memutuskan rute" */}
@@ -154,14 +168,20 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
           )}
         </div>
 
-        <div className="mb-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-          <Link href="/lacak" className="text-primary-ink underline underline-offset-4">
-            Cek status laporan
-          </Link>
-          <Link href="/" className="text-primary-ink underline underline-offset-4">
-            Kembali ke beranda
-          </Link>
-        </div>
+        {saved ? (
+          <div className="mb-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+            <Link href="/lacak" className="text-primary-ink underline underline-offset-4">
+              Cek status laporan
+            </Link>
+            <Link href="/" className="text-primary-ink underline underline-offset-4">
+              Kembali ke beranda
+            </Link>
+          </div>
+        ) : (
+          <p className="mb-10 text-center text-sm text-text-soft">
+            Simpan kodemu dulu ya — salin atau centang di atas, baru bisa lanjut.
+          </p>
+        )}
 
         <EmergencyBar title="Kalau keadaan mendesak, jangan tunggu —" />
       </div>

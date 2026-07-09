@@ -16,7 +16,10 @@ ARG NEXT_PUBLIC_DEMO_MODE
 ENV NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
 
 COPY . .
-RUN npm run build
+# Turbopack (default build next 16) butuh native SWC bindings yang tak load di alpine/musl
+# (cuma WASM tersedia) → build via webpack. ponytail: pindah base ke glibc (node:24-slim)
+# kalau mau Turbopack + build lebih cepat.
+RUN npm run build -- --webpack
 
 EXPOSE 3000
 CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm start"]

@@ -19,6 +19,10 @@ services:
       GROQ_API_KEY_BK: ${GROQ_API_KEY_BK:-}
       GROQ_API_KEY_BACKUP: ${GROQ_API_KEY_BACKUP:-}
       SLA_THRESHOLD_HOURS: 48
+      # Follow-up email via Resend — dibaca dari .env host (compose interpolasi ${...}).
+      # .env di-.dockerignore (tak masuk image), jadi WAJIB diteruskan di sini.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      FOLLOWUP_EMAIL_FROM: "${FOLLOWUP_EMAIL_FROM:-Catatan Harian <halo@lindra.resatya.dev>}"
     depends_on:
       db:
         condition: service_healthy
