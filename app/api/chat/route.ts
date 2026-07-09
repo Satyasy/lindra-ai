@@ -37,7 +37,9 @@ const encoder = new TextEncoder();
 const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
 
 function readSlots(raw: unknown): Slots {
-  if (raw && typeof raw === "object" && "phase" in raw) return raw as Slots;
+  // Merge default: sesi lama (skema slot < 8 blok) dapat slot baru sebagai "empty",
+  // bukan undefined — kalau undefined, nextEmptyField salah anggap sudah tersentuh.
+  if (raw && typeof raw === "object" && "phase" in raw) return { ...emptySlots(), ...(raw as Slots) };
   return emptySlots();
 }
 
