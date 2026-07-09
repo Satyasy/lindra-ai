@@ -205,11 +205,15 @@ export interface Slots {
   phase: SessionPhase;
   target: SlotField | null; // field yang ditanyakan giliran lalu (untuk anti-stall)
   targetCount: number; // berapa kali target ini sudah ditanyakan berturut-turut
-  [key: string]: string | number | null; // agar bisa disimpan langsung ke kolom Json Prisma
+  // W3: pertanyaan bukti ditanya SEKALI setelah semua field selesai (bukan slot gathering).
+  evidenceQuestionAsked: boolean; // AI sudah menanyakan bukti → jangan tanya ulang
+  evidenceResolved: boolean; // siswa upload ≥1 file ATAU tekan "lewati" → boleh tawarkan draf
+  [key: string]: string | number | boolean | null; // agar bisa disimpan langsung ke kolom Json Prisma
 }
 
-// Urutan gali: cerita dulu, keamanan di tengah, identitas & bukti belakangan.
-// bukti TERAKHIR (poin 20 system prompt: bukti ditanya tepat sebelum tawaran draf).
+// Urutan gali: cerita dulu, keamanan di tengah, identitas belakangan.
+// "bukti" SENGAJA tidak di sini (W3): bukti bukan lagi slot gathering verbal —
+// ditangani sebagai langkah widget upload terpisah SETELAH semua field ini selesai.
 export const SLOT_ORDER: SlotField[] = [
   "gambaran_kejadian",
   "pelaku",
@@ -220,7 +224,6 @@ export const SLOT_ORDER: SlotField[] = [
   "pelapor",
   "korban",
   "klasifikasi",
-  "bukti",
 ];
 
 // Frasa terbuka untuk di-inject ke prompt chat — BUKAN istilah teknis field.
@@ -255,7 +258,19 @@ export function emptySlots(): Slots {
     phase: "gathering",
     target: null,
     targetCount: 0,
+    evidenceQuestionAsked: false,
+    evidenceResolved: false,
   };
+}
+
+// W3 gate. isReadyForDraftOffer = semua field gathering (W2) selesai — sinyal "info inti
+// lengkap". isReadyToShowDraft = itu DAN pertanyaan bukti sudah terjawab (upload/lewati);
+// hanya ini yang boleh memicu tawaran draf, supaya makna gate W2 tak berubah.
+export function isReadyForDraftOffer(slots: Slots): boolean {
+  return nextEmptyField(slots) === null;
+}
+export function isReadyToShowDraft(slots: Slots): boolean {
+  return isReadyForDraftOffer(slots) && slots.evidenceResolved;
 }
 
 // "Tersentuh" = ada isi ATAU sentinel decline (string non-kosong → truthy, ikut ke-catch di sini).
