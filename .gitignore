@@ -48,9 +48,15 @@ next-env.d.ts
 *.jpg
 *.jpeg
 *.gif
+# ...tapi aset app di /public & ikon app WAJIB ikut repo (kecualikan dari aturan di atas)
+!/public/**/*.png
+!/public/**/*.jpg
+!/app/**/icon.png
+!/app/**/apple-icon.png
 
 # scratch / temp sesi debugging (mis. _dev3000.txt) — jangan commit
 /_*.txt
 _dev3000.txt
 /_*.mjs
 *.log
+.env*

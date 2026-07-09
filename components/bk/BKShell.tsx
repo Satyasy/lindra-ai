@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Inbox, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 // Shell interaktif Portal BK — sidebar bisa diciutkan ke ICON RAIL (~w-16) agar
 // antrean melebar. State di useState (instan) + cookie "bk-sidebar-collapsed"
@@ -49,7 +50,8 @@ export function BKShell({
         <div className={`mb-7 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
             <div>
-              <p className="text-[1.7rem] font-extrabold leading-none tracking-tight">Lindra</p>
+              {/* Mark berwarna (kontras di atas --ink) + wordmark putih via tone="light" */}
+              <Logo tone="light" href={null} markClassName="h-8" />
               <p className="mt-1.5 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--role-accent)]">
                 {roleLabel}
               </p>
@@ -128,12 +130,12 @@ export function BKShell({
         style={accentVar}
         className="fixed inset-x-0 top-0 z-40 flex items-center justify-between bg-ink px-4 py-3 text-white md:hidden"
       >
-        <p className="font-extrabold">
-          Lindra{" "}
+        <div className="flex items-center gap-2">
+          <Logo tone="light" href={null} markClassName="h-7" />
           <span className="text-[0.7rem] font-semibold uppercase tracking-widest text-[color:var(--role-accent)]">
             {roleLabel}
           </span>
-        </p>
+        </div>
         <form action={signOutAction}>
           <button type="submit" className="flex min-h-11 items-center gap-2 text-sm text-white/80">
             <LogOut className="size-4" aria-hidden />

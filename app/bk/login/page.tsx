@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { ShieldCheck } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,12 +33,9 @@ export default function LoginPage() {
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm">
         {/* Brand — "Lindra" boleh tampil penuh di Portal BK (DESIGN.md §1.4/§3.5) */}
-        <div className="mb-7 flex flex-col items-center text-center">
-          <span className="mb-4 flex size-14 items-center justify-center rounded-full bg-primary-soft">
-            <ShieldCheck className="size-7 text-primary-ink" strokeWidth={2} aria-hidden />
-          </span>
-          <p className="text-2xl font-extrabold tracking-tight text-ink">Lindra</p>
-          <p className="mt-1 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-primary-ink">
+        <div className="mb-7 flex flex-col items-center gap-3 text-center">
+          <Logo href={null} markClassName="h-14" />
+          <p className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-primary-ink">
             Portal BK
           </p>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { usePathname } from "next/navigation";
 import {
   ChevronRight,
@@ -42,21 +42,7 @@ const DARURAT = [
   { label: "SAPA", tel: SAPA_TEL },
 ];
 
-// Logo Lindra dapat diklik → "/". object-contain + max-w-full agar tak melebihi sidebar.
-function BrandLogo({ className = "h-9" }: { className?: string }) {
-  return (
-    <Link href="/" aria-label="Lindra — ke beranda" className="inline-flex shrink-0">
-      <Image
-        src="/lindra-logo.png"
-        alt="Lindra"
-        width={2000}
-        height={2000}
-        priority
-        className={`${className} w-auto max-w-full object-contain`}
-      />
-    </Link>
-  );
-}
+// BrandLogo lokal dihapus — pakai <Logo> terpusat (@/components/Logo, §1.4).
 
 const primaryItem =
   "flex min-h-12 items-center gap-2 rounded-full bg-primary px-4 font-semibold text-ink transition-colors duration-[180ms] hover:bg-primary-deep";
@@ -249,7 +235,7 @@ export function StudentNav({
     <nav className="flex h-full flex-col gap-1 p-4">
       <div className="mb-5 flex items-center justify-between gap-2 px-2 py-1">
         <div className="flex min-w-0 items-center gap-2.5">
-          <BrandLogo className="h-9" />
+          <Logo href="/" wordmark={false} markClassName="h-9" className="shrink-0" />
           <span className="mt-0.5 block text-xs text-text-soft">Teman bicara yang aman</span>
         </div>
         {/* Kempiskan sidebar (desktop) → rail ikon */}
@@ -323,7 +309,7 @@ export function StudentNav({
   // Rail ikon (desktop, saat mengempis). Emergency tetap terjangkau di bawah.
   const railNav = (
     <nav className="flex h-full flex-col items-center gap-1.5 py-4">
-      <BrandLogo className="h-8 w-8" />
+      <Logo href="/" wordmark={false} markClassName="h-8 w-8" />
       <button
         type="button"
         onClick={() => setCollapsed(false)}
@@ -404,7 +390,7 @@ export function StudentNav({
             >
               <Menu className="size-6" aria-hidden />
             </button>
-            <BrandLogo className="h-8" />
+            <Logo href="/" wordmark={false} markClassName="h-8" className="shrink-0" />
           </header>
 
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>

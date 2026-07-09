@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ChevronDown, ShieldCheck } from "lucide-react";
+import { ArrowRight, ChevronDown, Lock } from "lucide-react";
 import { PublicNavbar } from "@/components/nav/PublicNavbar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
 import {
-  LindraAvatar,
+  HeroWindow,
   BirdsMotif,
   LeafSpray,
   TipDoodle,
@@ -50,71 +50,60 @@ export default function LandingPage() {
   return (
     <>
       <PublicNavbar />
+      {/* Landing publik = bukan halaman siswa → tanpa QuickExit (DESIGN.md §4). */}
       <RevealOnScroll />
 
       <main id="top">
         {/* 1 — HERO (satu "first view" penuh: min-h-svh, konten center vertikal) */}
-        <section className="mx-auto grid min-h-svh max-w-6xl content-center items-center gap-12 px-6 pt-28 pb-16 sm:pt-32 min-[900px]:grid-cols-[1.02fr_0.98fr] min-[900px]:pb-24">
+        <section className="mx-auto grid min-h-svh max-w-6xl content-center items-center gap-12 px-6 pt-28 pb-16 sm:pt-32 min-[900px]:grid-cols-[1.05fr_0.95fr] min-[900px]:pb-24">
           <div className="reveal">
-            <p className="mb-4 text-sm font-semibold tracking-wide text-primary-ink">
+            <p className="mb-5 flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.16em] text-primary-ink">
+              <span aria-hidden className="h-0.5 w-8 rounded-full bg-warm-deep" />
               Kamu tidak sendirian
             </p>
-            <h1 className="mb-5 max-w-[15ch] text-ink" style={{ fontSize: "var(--t-hero)" }}>
-              Ada cerita yang tidak tahu harus dibawa ke mana.
+            <h1 className="mb-6 max-w-[15ch] text-ink" style={{ fontSize: "var(--t-hero)" }}>
+              Kamu tidak harus kuat dulu untuk{" "}
+              <span className="text-primary-ink">mulai bicara.</span>
             </h1>
-            <p className="mb-8 max-w-[38ch] text-lg leading-relaxed text-text-soft">
-              Lindra bantu kamu menceritakannya — lalu sampai ke bantuan yang tepat.
+            <p className="mb-8 max-w-[42ch] text-lg leading-relaxed text-text-soft">
+              Lindra menemanimu menyusun cerita jadi laporan yang bisa
+              ditindaklanjuti — pelan-pelan, sesuai tempomu.
             </p>
-            <div className="flex flex-wrap gap-3">
-              {/* CTA di-gate: entri /chat & /masuk HANYA saat demo, produksi anchor non-chat
-                  (§1.9 — landing publik tak boleh nge-link ke /chat di produksi). */}
-              {demo ? (
-                <>
-                  <Link
-                    href="/chat"
-                    className="flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-ink transition-colors hover:bg-primary-deep"
-                  >
-                    Mulai cerita
-                  </Link>
-                  <Link
-                    href="/masuk"
-                    className="flex min-h-12 items-center rounded-full border-2 border-border px-6 font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
-                  >
-                    Masukkan kode
-                  </Link>
-                </>
-              ) : (
-                <a
-                  href="#cara-kerja"
-                  className="flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-ink transition-colors hover:bg-primary-deep"
+            <div className="flex flex-wrap items-center gap-3">
+              {/* CTA di-gate: entri /chat HANYA saat demo. Di produksi primary jadi
+                  anchor non-chat (§1.9 — landing publik tak boleh nge-link ke /chat). */}
+              {demo && (
+                <Link
+                  href="/chat"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-7 font-semibold text-ink transition-colors hover:bg-primary-deep"
                 >
-                  Pelajari cara kerja
-                </a>
+                  Buka chat
+                  <ArrowRight className="size-4" strokeWidth={2.5} aria-hidden />
+                </Link>
               )}
+              <a
+                href="#cara-kerja"
+                className={
+                  demo
+                    ? "inline-flex min-h-12 items-center rounded-full border-2 border-border px-7 font-semibold text-primary-ink transition-colors hover:bg-surface-alt"
+                    : "inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-7 font-semibold text-ink transition-colors hover:bg-primary-deep"
+                }
+              >
+                Pelajari cara kerja
+                {!demo && <ArrowRight className="size-4" strokeWidth={2.5} aria-hidden />}
+              </a>
             </div>
+            <p className="mt-6 flex items-center gap-2 text-sm text-text-soft">
+              <Lock className="size-4 shrink-0 text-primary-ink" strokeWidth={2} aria-hidden />
+              Percakapan ini dengan AI. Tidak ada yang dibagikan tanpa izinmu.
+            </p>
           </div>
 
-          {/* Hero visual — LindraAvatar besar + burung + daun + kartu preview */}
-          <div
-            className="reveal relative mx-auto flex aspect-square w-full max-w-[420px] items-center justify-center"
-            style={{ transitionDelay: "80ms" }}
-          >
-            <div className="absolute right-8 top-6 -z-10 size-44 rounded-full bg-warm-soft/60" aria-hidden />
-            <BirdsMotif className="absolute right-0 top-6 w-32" />
-            <LindraAvatar size="lg" className="size-52 drop-shadow-[var(--shadow-lift)]" />
-            <LeafSpray className="absolute -left-2 bottom-4 w-32" />
-
-            <div className="float-card absolute bottom-2 right-2 w-[min(236px,88%)] rounded-[var(--radius-lg)] border border-border bg-surface p-4 shadow-[var(--shadow-lift)]">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="grid size-8 place-items-center rounded-full bg-primary-soft">
-                  <ShieldCheck className="size-4 text-primary-ink" strokeWidth={2} aria-hidden />
-                </span>
-                <span className="text-sm font-semibold text-ink">Catatan Harian</span>
-              </div>
-              <p className="rounded-[var(--radius-md)] rounded-bl-[var(--radius-sm)] bg-primary px-4 py-2 text-sm leading-relaxed text-ink">
-                Kamu yang pegang kendali — bisa berhenti kapan saja.
-              </p>
-            </div>
+          {/* Hero visual — jendela terbuka menghadap harapan + kartu chat mengambang.
+              Mobile: gambar di ATAS teks (order-first) & lebih kecil agar H1 tak terdorong
+              ke bawah layar. Desktop (>=900px) kembali ke kolom kanan, ukuran penuh. */}
+          <div className="reveal order-first min-[900px]:order-none" style={{ transitionDelay: "80ms" }}>
+            <HeroWindow className="max-w-[18rem] min-[900px]:max-w-[440px]" />
           </div>
         </section>
 
