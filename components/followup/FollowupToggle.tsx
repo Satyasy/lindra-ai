@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FOLLOWUP_CONSENT } from "@/lib/followup-copy";
 
+// Demo juri — tombol kirim-email-tes (cron tak jalan di next dev). Off di produksi.
+const demo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 // Toggle follow-up di /lacak — terikat ke laporan yang barusan dicek (via kode).
 // DEFAULT OFF. ON → wajib "email rahasia" + peringatan verbatim SEBELUM form; email
 // disimpan TERENKRIPSI (server). OFF → proactiveEnabled=false. Switch aksesibel
@@ -16,6 +19,7 @@ export function FollowupToggle({ code, initialEnabled }: { code: string; initial
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testMsg, setTestMsg] = useState<string | null>(null);
 
   const on = enabled || arming;
 
@@ -56,6 +60,20 @@ export function FollowupToggle({ code, initialEnabled }: { code: string; initial
     }
   }
 
+  // Demo juri — picu email follow-up sekarang (cron tak jalan di next dev).
+  async function testSend() {
+    setTestMsg("Mengirim…");
+    const res = await fetch("/api/followup/test-send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) setTestMsg(`Gagal: ${data.error ?? res.status}`);
+    else if (data.skipped) setTestMsg("Di-skip: RESEND_API_KEY belum diset.");
+    else setTestMsg("Terkirim ke email follow-up — cek inbox (dan folder spam).");
+  }
+
   return (
     <section className="rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
       <div className="flex items-start justify-between gap-4">
@@ -89,10 +107,25 @@ export function FollowupToggle({ code, initialEnabled }: { code: string; initial
       </div>
 
       {enabled && (
-        <p className="mt-4 flex items-center gap-2 text-sm font-medium text-primary-ink">
-          <Check className="size-4" aria-hidden />
-          Follow-up aktif — kami akan menyapa lewat email netral.
-        </p>
+        <div className="mt-4 space-y-3">
+          <p className="flex items-center gap-2 text-sm font-medium text-primary-ink">
+            <Check className="size-4" aria-hidden />
+            Follow-up aktif — kami akan menyapa lewat email netral.
+          </p>
+          {demo && (
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={testSend}
+                className="min-h-11 rounded-full font-semibold"
+              >
+                Kirim email tes sekarang
+              </Button>
+              {testMsg && <p className="text-sm text-text-soft">{testMsg}</p>}
+            </div>
+          )}
+        </div>
       )}
 
       {arming && !enabled && (
