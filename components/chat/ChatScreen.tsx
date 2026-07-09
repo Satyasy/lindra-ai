@@ -69,12 +69,19 @@ export function ChatScreen({
   initialMessages = [],
   initialDraft = null,
   initialSessionId = null,
+  criticalSummary = null,
 }: {
   initialMessages?: Msg[];
   initialDraft?: StructuredDraft | null;
   initialSessionId?: string | null;
+  // Ringkasan (Report.narrative) bila dokumen ditandai KRITIS → tombol kirim ke SAPA 129.
+  criticalSummary?: string | null;
 } = {}) {
   const router = useRouter();
+  // PEMICU 1 (korban, kasus kritis): link WhatsApp SAPA 129 dengan ringkasan ter-prefill.
+  const waHref = criticalSummary
+    ? `https://wa.me/${SAPA_WA}?text=${encodeURIComponent(criticalSummary.slice(0, 600))}`
+    : null;
   // Sesi dilanjutkan (pengguna lama masukkan kode): mulai dari transkrip tersimpan,
   // fase langsung "gathering" (sembunyikan chip pembuka), dan hero intro tak diulang.
   const resumed = initialMessages.length > 0;
@@ -178,6 +185,26 @@ export function ChatScreen({
     // Baris: kolom chat (mengecil saat panel draf terbuka di desktop) + panel draf.
     <div className="flex min-h-0 flex-1">
     <div className="chat-canvas flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* PEMICU 1 — dokumen KRITIS: DI ATAS kolom chat, tombol kirim ringkasan ke SAPA 129
+          (korban yang menekan — student agency). Merah = konteks krisis sungguhan. */}
+      {waHref && (
+        <div className="border-b border-danger-deep/40 bg-danger px-4 py-3 text-white sm:px-6">
+          <div className="mx-auto flex w-full max-w-4xl 2xl:max-w-6xl flex-wrap items-center justify-between gap-3">
+            <p className="font-bold">
+              Kasus ini ditandai darurat. Kalau kamu mau, kirim ringkasannya ke SAPA 129.
+            </p>
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-danger-deep px-4 text-sm font-semibold text-white transition-colors hover:border-white/60"
+            >
+              <Send className="size-4" strokeWidth={2} aria-hidden />
+              Kirim dokumen ke SAPA 129
+            </a>
+          </div>
+        </div>
+      )}
       {/* pt besar di desktop supaya hero tidak tertabrak QuickExit fixed kanan-atas */}
       {/* [&>*]:shrink-0 — anak area scroll TIDAK boleh menyusut; kalau menyusut,
           section overflow-hidden (hero) ter-kompres & teksnya terklip. Biar kolom

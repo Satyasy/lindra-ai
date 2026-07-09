@@ -37,6 +37,7 @@ coverage
 _*.txt
 _*.mjs
 tsconfig.tsbuildinfo
+*.txt
 
 # Docker sendiri — tak perlu di dalam image
 Dockerfile
