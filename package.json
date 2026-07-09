@@ -10,7 +10,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "test": "vitest run",
-    "db:seed": "node prisma/seed.mjs"
+    "db:seed": "node prisma/seed.mjs",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
