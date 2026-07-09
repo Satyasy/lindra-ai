@@ -5,6 +5,7 @@ import { CheckCheck, FileText, Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { MicButton } from "@/components/chat/MicButton";
+import { EvidenceUpload } from "@/components/chat/EvidenceUpload";
 import { DraftCanvas, type StructuredDraft } from "@/components/draft/DraftCanvas";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
 import { useChatUI } from "@/components/chat/chat-ui-context";
@@ -148,6 +149,9 @@ export function ChatScreen({
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [draft, setDraft] = useState<StructuredDraft | null>(initialDraft);
   const [draftReady, setDraftReady] = useState<boolean>(!!initialDraft);
+  // W3 — langkah bukti: flag dari backend (business logic, bukan parsing teks AI).
+  // Draf sudah ada (sesi lanjutan) → langkah bukti pasti sudah lewat.
+  const [evidence, setEvidence] = useState({ questionAsked: false, resolved: !!initialDraft });
   const [consentDismissed, setConsentDismissed] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [badge, setBadge] = useState(false); // floating "Draft diperbarui"
@@ -191,12 +195,13 @@ export function ChatScreen({
     badgeTimer.current = setTimeout(() => setBadge(false), 3500);
   }
 
-  async function send(text: string, panic = false) {
-    if (!text.trim() || sending) return;
+  // control "resolve-evidence" (W3): sinyal tanpa pesan/bubble siswa — buka gate draf.
+  async function send(text: string, panic = false, control?: "resolve-evidence") {
+    if ((!text.trim() && !control) || sending) return;
     markStarted(); // pesan pertama → sidebar mengempis, hero keluar, chat melebar
     setInput("");
     setSending(true);
-    setMessages((m) => [...m, { role: "user", content: text, ts: Date.now() }]);
+    if (!control) setMessages((m) => [...m, { role: "user", content: text, ts: Date.now() }]);
 
     const reduce = prefersReducedMotion();
     // Pengali jeda dari bobot emosional pesan siswa (dirasakan, tak terlihat).
@@ -209,7 +214,7 @@ export function ChatScreen({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, panic: panic || undefined }),
+        body: JSON.stringify({ message: text, panic: panic || undefined, control }),
       });
       if (!res.body) throw new Error("no stream");
 
@@ -240,6 +245,8 @@ export function ChatScreen({
               setConsentDismissed(false);
               flashBadge();
             }
+            if (event.type === "evidence")
+              setEvidence({ questionAsked: event.questionAsked, resolved: event.resolved });
             if (event.type === "text") sentenceBuf += event.delta;
           }
         }
@@ -418,6 +425,15 @@ export function ChatScreen({
           <div className="pt-2">
             <EmergencyBar />
           </div>
+        )}
+
+        {/* W3 — widget bukti dinamis, inline di thread, nempel di bawah pesan AI yang
+            menanyakan bukti. Persist sampai resolved (upload/lewati), lalu jadi "selesai". */}
+        {evidence.questionAsked && (
+          <EvidenceUpload
+            resolved={evidence.resolved}
+            onResolve={() => send("", false, "resolve-evidence")}
+          />
         )}
 
         {/* Ajakan susun draf — MEMINTA IZIN dulu. Tombol muncul di bawah pesan AI
