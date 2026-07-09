@@ -4,6 +4,7 @@ export { GardenCorner } from "./GardenCorner";
 export { LeafSpray } from "./LeafSpray";
 export { BirdsMotif } from "./BirdsMotif";
 export { SchoolScene } from "./SchoolScene";
+export { HeroWindow } from "./HeroWindow";
 export { TipDoodle } from "./TipDoodle";
 export { RoutingScene } from "./RoutingScene";
 export {
