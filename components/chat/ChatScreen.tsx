@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CheckCheck, FileText, Loader2, Paperclip, Send, Smile, TriangleAlert, X } from "lucide-react";
+import { CheckCheck, FileText, Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
-import { SAPA_WA } from "@/lib/emergency-contacts";
+import { MicButton } from "@/components/chat/MicButton";
 import { DraftCanvas, type StructuredDraft } from "@/components/draft/DraftCanvas";
 import { LindraCharacter, BirdsMotif, GardenCorner } from "@/components/illustrations";
 import { useChatUI } from "@/components/chat/chat-ui-context";
+import { SAPA_WA } from "@/lib/emergency-contacts";
 
 export type Msg = { role: "user" | "assistant"; content: string; ts?: number };
 type Phase = "opening" | "gathering" | "danger";
@@ -153,11 +154,7 @@ export function ChatScreen({
   const [idle, setIdle] = useState(false); // hening lama → presence menenangkan
   const [heroLeaving, setHeroLeaving] = useState(false);
   const [heroGone, setHeroGone] = useState(resumed);
-  const [attachment, setAttachment] = useState<
-    { name: string; status: "uploading" | "done" | "error" } | null
-  >(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const badgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sesi dilanjutkan = percakapan sudah berjalan → langsung fokus (sidebar mengempis).
@@ -291,22 +288,6 @@ export function ChatScreen({
     if (chip.danger) setPhase("danger");
     if (chip.info) setInfoMode(true);
     send(chip.label, chip.danger);
-  }
-
-  async function uploadEvidence(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // reset agar file yang sama bisa dipilih lagi setelah dihapus
-    if (!file) return;
-    setAttachment({ name: file.name, status: "uploading" });
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const res = await fetch("/api/evidence", { method: "POST", body });
-      if (!res.ok) throw new Error(String(res.status));
-      setAttachment({ name: file.name, status: "done" });
-    } catch {
-      setAttachment({ name: file.name, status: "error" });
-    }
   }
 
   const lastIsAssistant =
@@ -494,43 +475,6 @@ export function ChatScreen({
       )}
 
       <footer className="border-t border-border/70 bg-surface/85 px-4 py-3 backdrop-blur-sm max-sm:pb-16">
-        {/* Chip lampiran terpilih — status unggah nyata */}
-        {attachment && (
-          <div className="mx-auto mb-2 flex w-full max-w-4xl 2xl:max-w-6xl">
-            <span
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-                attachment.status === "error"
-                  ? "bg-danger-soft text-danger-deep"
-                  : "bg-surface-alt text-ink"
-              }`}
-            >
-              {attachment.status === "uploading" ? (
-                <Loader2 className="size-3.5 animate-spin text-primary-ink" aria-hidden />
-              ) : attachment.status === "done" ? (
-                <Check className="size-3.5 text-primary-deep" aria-hidden />
-              ) : (
-                <TriangleAlert className="size-3.5 text-danger-deep" aria-hidden />
-              )}
-              {attachment.name}
-              <span className="text-xs text-text-muted">
-                {attachment.status === "uploading"
-                  ? "mengunggah…"
-                  : attachment.status === "error"
-                    ? "gagal, coba lagi"
-                    : "terlampir"}
-              </span>
-              <button
-                type="button"
-                onClick={() => setAttachment(null)}
-                aria-label="Hapus lampiran"
-                className="ml-1 text-text-muted hover:text-foreground"
-              >
-                <X className="size-3.5" aria-hidden />
-              </button>
-            </span>
-          </div>
-        )}
-
         {/* Presence — Lindra selalu "hadir", tak hilang antar-pesan (§brief PRESENCE) */}
         <div
           className="mx-auto mb-2 flex w-full max-w-4xl 2xl:max-w-6xl items-center gap-2 text-xs text-text-muted"
@@ -569,22 +513,11 @@ export function ChatScreen({
             send(input);
           }}
         >
-          {/* Lampirkan bukti (§5.2) — paperclip lucide, bukan emoji */}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            hidden
-            onChange={uploadEvidence}
+          {/* Mic STT (W1) menggantikan tombol upload statis. Hasil transkrip di-append
+              ke input, tak menimpa ketikan, tak auto-send. Upload → EvidenceUpload (W3). */}
+          <MicButton
+            onTranscript={(t) => setInput((v) => (v ? `${v} ${t}` : t))}
           />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            aria-label="Lampirkan bukti"
-            className="flex size-[3.6rem] shrink-0 items-center justify-center rounded-full text-text-muted transition-colors duration-[180ms] hover:bg-primary-soft hover:text-primary-ink"
-          >
-            <Paperclip className="size-5" strokeWidth={2} aria-hidden />
-          </button>
 
           <div className="relative flex-1">
             <textarea
