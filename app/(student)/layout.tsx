@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { QuickExit } from "@/components/QuickExit";
+import { Toaster } from "@/components/ui/sonner";
 
 // Chrome aplikasi siswa memakai judul NETRAL (DESIGN.md §1.4) —
 // nama "Lindra" tidak boleh mencolok di tab browser perangkat yang mungkin diawasi pelaku
@@ -10,6 +11,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     <>
       <QuickExit />
       {children}
+      <Toaster />
     </>
   );
 }
