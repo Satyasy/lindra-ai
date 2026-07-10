@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { detectCrisisSignal, CRISIS_RESPONSE } from "@/lib/ai/crisis-check";
 import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 import { followupSystemPrompt } from "@/lib/ai/prompts/followup-context-injection";
-import { groqChat, type ChatMessage } from "@/lib/ai/groq-client";
 import {
   composeReport,
   updateSlots,
@@ -13,16 +12,12 @@ import {
   isReadyForDraftOffer,
   SLOT_DIRECTIVE,
   type Slots,
-  type TranscriptTurn,
 } from "@/lib/ai/classify-narrative";
+import { sse, buildMessages, streamChat } from "@/lib/ai/stream-chat";
 import { logAction } from "@/lib/audit/log-action";
 import { readTranscript, sealTranscript } from "@/lib/transcript";
 
 const SESSION_COOKIE = "lindra_session";
-
-// Balasan saat GROQ_API_KEY_STUDENT belum diisi — alur tetap demoable tanpa key
-const NO_KEY_FALLBACK =
-  "aku di sini, dengerin kok. cerita aja pelan-pelan, mulai dari mana pun yang kamu mau.";
 
 // Ajakan menyusun draf — MEMINTA IZIN dulu (bukan mengumumkan draf sudah muncul).
 // Panel TIDAK terbuka otomatis; klien menampilkan tombol [Belum]/[Buat Draf] di
@@ -40,9 +35,6 @@ const EVIDENCE_ASK_DIRECTIVE =
 const EVIDENCE_WAIT_DIRECTIVE =
   "PERINTAH SISTEM (bukan dari siswa): kamu sudah menanyakan soal bukti dan siswa belum memutuskan. JANGAN menanyakan bukti lagi dan JANGAN menawarkan draf laporan. Cukup tanggapi pesannya dengan hangat seperti biasa.";
 
-const encoder = new TextEncoder();
-const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
-
 function readSlots(raw: unknown): Slots {
   // Merge default: sesi lama (skema slot < 8 blok) dapat slot baru sebagai "empty",
   // bukan undefined — kalau undefined, nextEmptyField salah anggap sudah tersentuh.
@@ -50,63 +42,11 @@ function readSlots(raw: unknown): Slots {
   return emptySlots();
 }
 
-function buildMessages(sysContent: string, transcript: TranscriptTurn[]): ChatMessage[] {
-  return [
-    { role: "system", content: sysContent },
-    ...transcript.map(({ role, content }) => ({ role, content })),
-  ];
-}
-
 // Direktif "tanya satu hal" dari target yang dipilih kode. Sebelum ada cerita inti
 // (gambaran_kejadian masih kosong) → null: obrolan bebas, jangan interogasi.
 function targetDirective(slots: Slots, target: string | null): string | null {
   if (!target || slots.gambaran_kejadian === "empty") return null;
   return `FOKUS GILIRAN INI (perintah sistem, bukan dari siswa): tanyakan HANYA SATU hal — ${SLOT_DIRECTIVE[target as keyof typeof SLOT_DIRECTIVE]} — lewat pertanyaan terbuka yang natural sesuai alur obrolan. JANGAN menanyakan hal lain, JANGAN ganti topik, JANGAN sebutkan istilah teknis apa pun.`;
-}
-
-// Stream balasan model chat ke klien; kembalikan teks lengkapnya. Fallback aman
-// (tanpa key / API error / body kosong) supaya chat tidak crash.
-async function streamChat(
-  controller: ReadableStreamDefaultController,
-  messages: ChatMessage[]
-): Promise<string> {
-  const groqRes = await groqChat(messages, "student");
-  if (!groqRes || !groqRes.ok || !groqRes.body) {
-    if (!groqRes) {
-      console.error("[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong");
-    } else if (!groqRes.ok) {
-      console.error(`[Lapis2] Groq API gagal — status ${groqRes.status}: ${await groqRes.text()}`);
-    } else {
-      console.error("[Lapis2] Groq response tanpa body — fallback dipakai");
-    }
-    controller.enqueue(sse({ type: "text", delta: NO_KEY_FALLBACK }));
-    return NO_KEY_FALLBACK;
-  }
-
-  let text = "";
-  const reader = groqRes.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (!line.startsWith("data: ") || line.includes("[DONE]")) continue;
-      try {
-        const delta = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
-        if (delta) {
-          text += delta;
-          controller.enqueue(sse({ type: "text", delta }));
-        }
-      } catch {
-        // potongan JSON tidak utuh — abaikan
-      }
-    }
-  }
-  return text;
 }
 
 export async function POST(request: Request) {
