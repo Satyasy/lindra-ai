@@ -13,34 +13,40 @@ export async function resumeWithCode(_prev: ResumeState, formData: FormData): Pr
   const code = String(formData.get("code") ?? "").trim().toLowerCase();
   if (!code) return { error: "Masukkan kodenya dulu ya." };
 
-  const ref = await prisma.referralCode.findUnique({ where: { code } });
+  const ref = await prisma.referralCode.findUnique({
+    where: { code },
+    include: { report: { select: { narrative: true } } },
+  });
   if (!ref) return { error: "Kode itu tidak kami temukan. Coba periksa lagi ya — huruf kecil semua." };
 
   const store = await cookies();
+  const secure = process.env.NODE_ENV === "production";
 
-  // Kasus dengan follow-up proaktif aktif → arahkan ke sesi follow-up terstruktur
-  // (KABAR → CEK_KASUS), bukan resume intake. Set cookie follow-up (followupId); SENGAJA
-  // tidak set lindra_session → tombol "cerita lagi" nanti memulai intake BARU (bukan
-  // menyambung sesi ini), sesuai batas scope §7.2.
-  const followup = await prisma.followup.findFirst({
-    where: { reportId: ref.reportId, proactiveEnabled: true },
-  });
-  if (followup) {
+  // Selalu simpan cookie sesi lama (reportId) → chat lama TETAP bisa dibuka lewat dropdown
+  // nav, walaupun kita default ke sesi tanya-kabar. (Ganti keputusan §7.2 lama: dua chat
+  // kini bisa diakses bersamaan, atas permintaan produk.)
+  store.set(SESSION_COOKIE, ref.reportId, { httpOnly: true, sameSite: "strict", path: "/", secure });
+
+  // Siswa lama yang laporannya sudah punya narasi (kasus nyata) → default ke sesi tanya-kabar
+  // (KABAR → CEK_KASUS). Intake yang belum kelar (belum ada narasi) → langsung lanjut /chat.
+  if (ref.report?.narrative) {
+    // Satu Followup per report (samakan pola dgn /api/followup/enable). proactiveEnabled
+    // (consent EMAIL) TIDAK disentuh di sini — email tetap opt-in terpisah di /lacak.
+    let followup = await prisma.followup.findFirst({ where: { reportId: ref.reportId } });
+    if (!followup) {
+      followup = await prisma.followup.create({
+        data: { reportId: ref.reportId, scheduledAt: new Date(), state: "kabar" },
+      });
+    }
     store.set("lindra_followup", followup.id, {
       httpOnly: true,
       sameSite: "strict",
       path: "/",
-      secure: process.env.NODE_ENV === "production",
+      secure,
       maxAge: 1800,
     });
     redirect("/followup"); // throw NEXT_REDIRECT — jangan bungkus try/catch
   }
 
-  store.set(SESSION_COOKIE, ref.reportId, {
-    httpOnly: true,
-    sameSite: "strict",
-    path: "/",
-    secure: process.env.NODE_ENV === "production",
-  });
   redirect("/chat"); // throw NEXT_REDIRECT — jangan bungkus try/catch
 }

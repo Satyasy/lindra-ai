@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE } from "@/lib/session";
 import { readTranscript } from "@/lib/transcript";
-import { FOLLOWUP_OPENER } from "@/lib/followup-copy";
 import { StudentNav, type StudentSession } from "@/components/nav/StudentNav";
 import { ChatScreen, type Msg } from "@/components/chat/ChatScreen";
 import type { StructuredDraft } from "@/components/draft/DraftCanvas";
@@ -29,7 +28,7 @@ export default async function ChatPage() {
       include: {
         referralCode: true,
         chatThreads: { include: { messages: { orderBy: { createdAt: "asc" } } } },
-        followups: { where: { proactiveEnabled: true }, select: { id: true } },
+        followups: { select: { id: true }, take: 1 },
       },
     });
     if (report) {
@@ -38,12 +37,8 @@ export default async function ChatPage() {
         content: t.content,
         ts: Date.parse(t.ts) || undefined,
       }));
-      // Sesi follow-up (laporan dgn follow-up aktif) → buka dengan sapaan kabar.
-      // Display-only & non-leading (tak dipersist ke transkrip). Chat API meng-inject
-      // konteks narasi untuk balasan berikutnya.
-      if (report.followups.length > 0) {
-        initialMessages = [...initialMessages, { role: "assistant", content: FOLLOWUP_OPENER }];
-      }
+      // Sapaan kabar TIDAK lagi diselipkan di sini — sesi tanya-kabar punya halaman sendiri
+      // (/followup). /chat murni menampilkan transkrip lama.
       const consult = report.chatThreads
         .flatMap((t: (typeof report.chatThreads)[number]) => t.messages)
         .sort(
@@ -64,6 +59,7 @@ export default async function ChatPage() {
         hasDraft: report.status === "draft",
         narrative: report.narrative,
         consult,
+        hasFollowup: report.followups.length > 0, // ada sesi tanya-kabar → dropdown nav
       };
       // Dokumen ditandai KRITIS + sudah ada ringkasan → tombol kirim ke SAPA 129.
       if (report.urgencyLevel === "kritis" && report.narrative) {

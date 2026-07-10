@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { usePathname } from "next/navigation";
 import {
+  ChevronDown,
   ChevronRight,
   FileText,
   Heart,
@@ -34,6 +35,7 @@ export type StudentSession = {
   hasDraft: boolean;
   narrative: string | null;
   consult: { id: string; sender: string; content: string; timeLabel: string }[];
+  hasFollowup: boolean; // ada sesi tanya-kabar (/followup) → tombol chat jadi dropdown
 } | null;
 
 // Sisi siswa: HANYA 2 jalur darurat — Guru BK (dummy) + SAPA 129. Polisi/Ambulans dihapus.
@@ -60,6 +62,7 @@ type NavItem = {
   disabled?: boolean;
   disabledTitle?: string;
   badge?: number;
+  dropdown?: { label: string; href: string; icon: LucideIcon }[]; // ada → dropdown (nav penuh) / ikon terpisah (rail)
 };
 
 export function StudentNav({
@@ -101,6 +104,14 @@ export function StudentNav({
       label: hasSession ? "Lanjutkan percakapan" : "Percakapan baru",
       href: "/chat",
       primary: true,
+      // Ada sesi tanya-kabar → tombol jadi dropdown: pilih lanjut chat lama atau tanya kabar.
+      dropdown:
+        hasSession && session!.hasFollowup
+          ? [
+              { label: "Lanjutkan percakapan", href: "/chat", icon: MessageCircle },
+              { label: "Tanya kabar", href: "/followup", icon: Heart },
+            ]
+          : undefined,
     },
     ...(hasSession && session!.narrative
       ? [{ key: "doc", icon: FileText, label: "Dokumen laporan", panel: "doc" as const }]
@@ -141,6 +152,33 @@ export function StudentNav({
   function MenuItem({ it }: { it: NavItem }) {
     const active = isActive(it);
     const dim = !it.primary && !active ? "opacity-65" : "opacity-100";
+    // Dropdown native <details> (idiom sama dgn kartu Tip) — tanpa JS, keyboard-accessible.
+    if (it.dropdown) {
+      return (
+        <details className="group">
+          <summary className={`${primaryItem} cursor-pointer list-none justify-between`}>
+            <span className="flex items-center gap-2">
+              <it.icon className="size-4" strokeWidth={2} aria-hidden />
+              Percakapan
+            </span>
+            <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+          </summary>
+          <div className="mt-1 flex flex-col gap-1 pl-2">
+            {it.dropdown.map((d) => (
+              <Link
+                key={d.href}
+                href={d.href}
+                onClick={() => onItem(it)}
+                aria-current={isActive({ ...it, href: d.href }) ? "page" : undefined}
+                className={`${normalItem} justify-start`}
+              >
+                {d.label}
+              </Link>
+            ))}
+          </div>
+        </details>
+      );
+    }
     const inner = (
       <>
         <span className="flex items-center gap-2">
@@ -200,6 +238,35 @@ export function StudentNav({
     const dot = it.badge ? (
       <span className="absolute right-1 top-1 size-2 rounded-full bg-primary-ink" aria-hidden />
     ) : null;
+    // Rail sempit tak muat dropdown → tiap tujuan jadi ikon terpisah (chat = primary, tanya kabar = sekunder).
+    if (it.dropdown) {
+      return (
+        <>
+          {it.dropdown.map((d) => {
+            const dActive = isActive({ ...it, href: d.href });
+            const dTone =
+              d.href === it.href
+                ? "bg-primary text-ink hover:bg-primary-deep"
+                : dActive
+                  ? "text-ink opacity-100 hover:bg-surface-alt"
+                  : "text-ink opacity-65 hover:bg-surface-alt hover:opacity-100";
+            return (
+              <Link
+                key={d.href}
+                href={d.href}
+                onClick={() => onItem(it)}
+                aria-label={d.label}
+                title={d.label}
+                aria-current={dActive ? "page" : undefined}
+                className={`${base} ${dTone}`}
+              >
+                <d.icon className="size-5" strokeWidth={2} aria-hidden />
+              </Link>
+            );
+          })}
+        </>
+      );
+    }
     if (it.href) {
       return (
         <Link
