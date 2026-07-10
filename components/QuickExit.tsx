@@ -4,15 +4,20 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 // DESIGN.md §3.2 — keluar cepat: hapus sesi lalu pergi ke situs netral.
-// ponytail: replace() di tab yang sama (bukan tab baru) — meninggalkan tab lama
+// PRODUKSI: replace() di tab yang sama (bukan tab baru) — meninggalkan tab lama
 // tetap terbuka justru membahayakan; replace juga menimpa entri riwayat.
+// DEMO (NEXT_PUBLIC_DEMO_MODE): buka tab baru supaya juri tak kehilangan app.
+// JANGAN pernah pakai perilaku demo di produksi — itu membocorkan halaman ke pelaku.
+const DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 function exit() {
   try {
     fetch("/api/session", { method: "DELETE", keepalive: true });
   } catch {
     /* tetap keluar walau gagal */
   }
-  window.location.replace("https://www.bbc.com/weather");
+  if (DEMO) window.open("https://www.bbc.com/weather", "_blank", "noopener");
+  else window.location.replace("https://www.bbc.com/weather");
 }
 
 export function QuickExit() {
