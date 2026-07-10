@@ -18,7 +18,7 @@ export function TindakLanjutButton({ reportId, status }: { reportId: string; sta
       onClick={() => next && startTransition(() => updateReportStatus(reportId, next))}
       className="flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-5 font-semibold text-ink shadow-[var(--shadow-soft)] transition-colors hover:bg-primary-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {!next ? "Laporan sudah selesai" : pending ? "Menyimpan…" : "Tindak lanjut laporan"}
+      {!next ? "Laporan sudah selesai" : pending ? "Menyimpan…" : "Penanganan BK"}
     </button>
   );
 }

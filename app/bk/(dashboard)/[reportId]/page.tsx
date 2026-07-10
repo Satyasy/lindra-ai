@@ -10,6 +10,7 @@ import {
   History,
   ListChecks,
   MessageSquare,
+  Phone,
   Route,
   User,
   Zap,
@@ -19,6 +20,7 @@ import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
 import { buildCaseRecommendation, type ActionSignals } from "@/lib/ai/recommend-action";
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
+import { SAPA_TEL, UPTD_PPA_TEL } from "@/lib/emergency-contacts";
 import { cn } from "@/lib/utils";
 import { StatusSelect } from "@/components/bk/StatusSelect";
 import { IdentityReveal } from "@/components/bk/IdentityReveal";
@@ -421,17 +423,23 @@ export default async function ReportDetailPage({
           {/* Panel aksi — bg dibedakan dari panel info; sticky ikut sidebar */}
           <Section title="Aksi cepat" icon={Zap} className="bg-surface-alt">
             <div className="space-y-2.5">
+              {/* Penanganan BK = majukan status (tangani in-house). Status bebas tetap via
+                  StatusSelect di header. SAPA 129 & UPTD PPA = quick-dial eskalasi eksternal. */}
               <TindakLanjutButton reportId={report.id} status={report.status} />
-              {/* ponytail: fitur ditunda (DESIGN.md §8) — stub disabled, bukan bangun dari nol */}
-              <button
-                type="button"
-                disabled
-                title="Segera hadir"
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-border px-4 text-sm font-semibold text-text-soft disabled:cursor-not-allowed"
+              <a
+                href={`tel:${SAPA_TEL}`}
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-border px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
               >
-                <MessageSquare className="size-4" aria-hidden />
-                Catat internal · Segera hadir
-              </button>
+                <Phone className="size-4" aria-hidden />
+                SAPA 129
+              </a>
+              <a
+                href={`tel:${UPTD_PPA_TEL}`}
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-border px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
+              >
+                <Phone className="size-4" aria-hidden />
+                UPTD PPA
+              </a>
             </div>
           </Section>
         </div>
