@@ -10,16 +10,18 @@ import { Button } from "@/components/ui/button";
 const ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const MAX_BYTES = 10 * 1024 * 1024; // cermin batas server (app/api/evidence)
+const MAX_LABEL = "10 MB"; // satu sumber teks batas — dipakai client & pesan 413
 
 type Item = {
   key: number;
   file: File;
   status: "uploading" | "done" | "error";
+  error?: string; // pesan dari server (mis. 413) — menang atas clientError
 };
 
 function clientError(file: File): string | null {
   if (!ALLOWED.has(file.type)) return "tipe tidak didukung";
-  if (file.size === 0 || file.size > MAX_BYTES) return "maks 10MB";
+  if (file.size === 0 || file.size > MAX_BYTES) return `terlalu besar — maks ${MAX_LABEL}`;
   return null;
 }
 
@@ -39,8 +41,8 @@ export function EvidenceUpload({
   const uploaded = items.filter((i) => i.status === "done");
   const canContinue = uploaded.length > 0;
 
-  const patch = (key: number, s: Item["status"]) =>
-    setItems((list) => list.map((i) => (i.key === key ? { ...i, status: s } : i)));
+  const patch = (key: number, s: Item["status"], error?: string) =>
+    setItems((list) => list.map((i) => (i.key === key ? { ...i, status: s, error } : i)));
 
   async function upload(item: Item) {
     patch(item.key, "uploading");
@@ -48,10 +50,12 @@ export function EvidenceUpload({
       const body = new FormData();
       body.append("file", item.file);
       const res = await fetch("/api/evidence", { method: "POST", body });
-      if (!res.ok) throw new Error(String(res.status));
-      patch(item.key, "done");
+      if (res.ok) return patch(item.key, "done");
+      // 413 dari app ATAU proxy (body limit) → sebut batas ukuran dengan jelas,
+      // bukan "gagal" generik. Status lain: pesan retryable.
+      patch(item.key, "error", res.status === 413 ? `terlalu besar — maks ${MAX_LABEL}` : "gagal, coba lagi");
     } catch {
-      patch(item.key, "error");
+      patch(item.key, "error", "gagal, coba lagi");
     }
   }
 
@@ -130,9 +134,9 @@ export function EvidenceUpload({
                   ? "mengunggah…"
                   : i.status === "done"
                     ? "terlampir"
-                    : clientError(i.file) ?? "gagal"}
+                    : i.error ?? clientError(i.file) ?? "gagal"}
               </span>
-              {i.status === "error" && !clientError(i.file) && (
+              {i.status === "error" && !clientError(i.file) && i.error === "gagal, coba lagi" && (
                 <button
                   type="button"
                   onClick={() => upload(i)}
