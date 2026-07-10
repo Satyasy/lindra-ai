@@ -4,8 +4,11 @@ import {
   updateSlots,
   advanceSlots,
   nextEmptyField,
+  identifyMissingBlocks,
+  isReadyForDraftOffer,
   DECLINED_SENTINEL,
   SLOT_ORDER,
+  REQUIRED_BLOCKS,
   type ReportDraft,
   type Slots,
 } from "./classify-narrative";
@@ -45,22 +48,23 @@ describe("updateSlots — sticky lock", () => {
 });
 
 describe("advanceSlots — target order + anti-stall + ready", () => {
-  it("target = field kosong pertama sesuai urutan", () => {
+  it("target = field kosong pertama sesuai urutan (keamanan dulu, W2 §5)", () => {
     const s: Slots = { ...emptySlots(), gambaran_kejadian: "filled" };
-    expect(advanceSlots(s).target).toBe("pelaku");
+    expect(advanceSlots(s).target).toBe("keamanan");
   });
 
   it("field sama gagal terisi 2x → di-skip, pindah ke berikutnya", () => {
-    let s: Slots = { ...emptySlots(), gambaran_kejadian: "filled" };
-    s = advanceSlots(s).slots; // ask #1 pelaku
-    expect(s.target).toBe("pelaku");
+    // keamanan & gambaran sudah resolved → field kosong pertama = waktu.
+    let s: Slots = { ...emptySlots(), keamanan: "filled", gambaran_kejadian: "filled" };
+    s = advanceSlots(s).slots; // ask #1 waktu
+    expect(s.target).toBe("waktu");
     expect(s.targetCount).toBe(1);
-    s = advanceSlots(s).slots; // ask #2 pelaku (masih kosong)
-    expect(s.target).toBe("pelaku");
+    s = advanceSlots(s).slots; // ask #2 waktu (masih kosong)
+    expect(s.target).toBe("waktu");
     expect(s.targetCount).toBe(2);
-    const r = advanceSlots(s); // giliran ke-3 → skip pelaku, target waktu
-    expect(r.slots.pelaku).toBe("skipped");
-    expect(r.target).toBe("waktu");
+    const r = advanceSlots(s); // giliran ke-3 → skip waktu, target lokasi
+    expect(r.slots.waktu).toBe("skipped");
+    expect(r.target).toBe("lokasi");
   });
 
   it("semua 8 blok terisi/skip → ready, tanpa target", () => {
@@ -105,7 +109,7 @@ describe("8-blok coverage — updateSlots mengunci semua blok", () => {
     for (const f of SLOT_ORDER) expect(advanced.slots[f]).toBe("filled");
   });
 
-  it("field yang di-decline (sentinel) dihitung tersentuh, bukan missing", () => {
+  it("field yang di-decline (sentinel) → status 'declined', dihitung tersentuh", () => {
     // Siswa menolak sebut pelaku & dampak → Tier 2 tulis sentinel ke field teks tsb.
     const s = updateSlots(emptySlots(), draftWith({
       kejadian: { locationCategory: "dalam-sekolah", waktu: "kemarin", deskripsi: "didorong" },
@@ -114,9 +118,9 @@ describe("8-blok coverage — updateSlots mengunci semua blok", () => {
       keamanan: { adaBahayaLangsung: null, deskripsi: DECLINED_SENTINEL },
       violenceType: ["kekerasan-fisik"],
     }));
-    expect(s.pelaku).toBe("filled"); // sentinel = tersentuh
-    expect(s.dampak).toBe("filled");
-    expect(s.keamanan).toBe("filled");
+    expect(s.pelaku).toBe("declined"); // sentinel = declined, bukan filled
+    expect(s.dampak).toBe("declined");
+    expect(s.keamanan).toBe("declined");
   });
 
   it("campuran dijawab-decline-belum ditanya: hanya yang belum tersentuh jadi target", () => {
@@ -126,10 +130,10 @@ describe("8-blok coverage — updateSlots mengunci semua blok", () => {
       violenceType: ["kekerasan-fisik"], // klasifikasi auto-fill via gambaran
     }));
     expect(s.gambaran_kejadian).toBe("filled");
-    expect(s.pelaku).toBe("filled");
+    expect(s.pelaku).toBe("declined");
     expect(s.klasifikasi).toBe("filled");
-    // target berikutnya = field kosong pertama sesuai urutan (waktu), bukan pelaku yang sudah decline
-    expect(nextEmptyField(s)).toBe("waktu");
+    // target berikutnya = field kosong pertama sesuai urutan baru (keamanan), bukan pelaku yang sudah decline
+    expect(nextEmptyField(s)).toBe("keamanan");
   });
 
   it("klasifikasi ter-fill bareng gambaran_kejadian, tak pernah jadi target sendirian", () => {
@@ -141,14 +145,41 @@ describe("8-blok coverage — updateSlots mengunci semua blok", () => {
   });
 
   it("transkrip menghindar berulang dari satu topik → anti-stall skip, lanjut", () => {
-    // gambaran terisi, pelaku terus dihindari (extraction tak pernah mengisi) → skip setelah 2x.
-    let s = updateSlots(emptySlots(), draftWith({
-      kejadian: { locationCategory: null, waktu: null, deskripsi: "diejek" },
-    }));
+    // keamanan/gambaran/waktu/lokasi/korban resolved; pelaku terus dihindari → skip setelah 2x.
+    let s: Slots = {
+      ...emptySlots(),
+      keamanan: "filled",
+      gambaran_kejadian: "filled",
+      waktu: "filled",
+      lokasi: "filled",
+      korban: "filled",
+    };
     s = advanceSlots(s).slots; // ask #1 pelaku
     s = advanceSlots(s).slots; // ask #2 pelaku
-    const r = advanceSlots(s); // giliran ke-3 → skip pelaku
+    const r = advanceSlots(s); // giliran ke-3 → skip pelaku, target dampak
     expect(r.slots.pelaku).toBe("skipped");
-    expect(r.target).toBe("waktu");
+    expect(r.target).toBe("dampak");
+  });
+});
+
+describe("identifyMissingBlocks + required/optional gate (W2 §3/§10)", () => {
+  it("identifyMissingBlocks = blok WAJIB yang masih empty; dampak opsional tak dihitung", () => {
+    const s = emptySlots();
+    expect(identifyMissingBlocks(s)).toEqual(REQUIRED_BLOCKS);
+    expect(identifyMissingBlocks(s)).not.toContain("dampak");
+  });
+
+  it("semua wajib resolved (dampak dibiarkan empty) → gate lolos", () => {
+    const s = emptySlots();
+    for (const f of REQUIRED_BLOCKS) s[f] = "filled";
+    expect(s.dampak).toBe("empty");
+    expect(identifyMissingBlocks(s)).toEqual([]);
+    expect(isReadyForDraftOffer(s)).toBe(true);
+  });
+
+  it("blok wajib di-decline semua → gate tetap lolos (tak infinite loop)", () => {
+    const s = emptySlots();
+    for (const f of REQUIRED_BLOCKS) s[f] = "declined";
+    expect(isReadyForDraftOffer(s)).toBe(true);
   });
 });

@@ -4,6 +4,7 @@ import {
   advanceSlots,
   isReadyForDraftOffer,
   isReadyToShowDraft,
+  identifyMissingBlocks,
   SLOT_ORDER,
 } from "./classify-narrative";
 import type { Slots } from "./classify-narrative";
@@ -32,6 +33,7 @@ describe("W3 evidence gate", () => {
   it("belum lengkap → belum ready walau bukti resolved", () => {
     const s = emptySlots();
     s.evidenceResolved = true;
+    expect(identifyMissingBlocks(s).length).toBeGreaterThan(0);
     expect(isReadyForDraftOffer(s)).toBe(false);
     expect(isReadyToShowDraft(s)).toBe(false);
   });
