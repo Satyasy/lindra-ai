@@ -93,9 +93,15 @@ model Followup {
   // BUKAN plaintext. escalated = penanda auto-escalate SAPA 129 sekali-jalan.
   contactEmail     String?
   proactiveEnabled Boolean   @default(false)
-  noProgressCount  Int       @default(0)
+  noProgressCount  Int       @default(0) // dinaikkan CRON saat kasus ter-flag tapi admin diam (bukan oleh user)
   lastCheckinAt    DateTime?
   escalated        Boolean   @default(false)
+
+  // W5 sesi follow-up (KABAR → CEK_KASUS). state = fase sesi aktif; transisi deterministik
+  // (business logic, bukan AI). followUpFlaggedAt = di-set saat user jawab "Iya" (masih perlu
+  // ditindaklanjuti) — timestamp agar bisa diurutkan di antrean BK; TIDAK menyentuh noProgressCount.
+  state             String    @default("kabar") // kabar | cek_kasus | flagged | closed | crisis_override
+  followUpFlaggedAt DateTime?
 }
 
 // Append-only, ditegakkan lewat REVOKE UPDATE/DELETE di level database (lihat migration)

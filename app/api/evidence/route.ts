@@ -50,7 +50,11 @@ export async function POST(request: Request) {
   }
 
   // Identifier internal disanitize — nama file asli siswa TIDAK disimpan/dilog
-  // (bisa bocorkan identitas). Linkage permanen & tampilan di draf → W4.
+  // (bisa bocorkan identitas). Evidence.reportId = laporan sesi ini sejak upload;
+  // submit hanya ubah status, jadi lampiran otomatis ikut record yang benar dan
+  // tak bisa nyebrang ke laporan lain (cookie sesi dihapus saat kirim).
+  // ponytail: TODO lampiran yatim (upload lalu batal, laporan tak pernah dikirim)
+  // menumpuk di status draft — butuh job/cron pembersih terpisah, di luar scope W4.
   const storedAs = `bukti-${randomUUID()}.${ext}`;
   const data = Buffer.from(await file.arrayBuffer());
   const evidence = await prisma.evidence.create({

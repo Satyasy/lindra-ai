@@ -1,9 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { encryptToBase64 } from "@/lib/identity-crypto";
 import { logAction } from "@/lib/audit/log-action";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
+import { DUMMY_FOLLOWUP_IMMEDIATE, SLA_THRESHOLD_HOURS } from "@/lib/config";
 
-// Email check-in pertama dikirim ~1 menit setelah disimpan (timing demo), bukan menunggu SLA.
-const FIRST_CHECKIN_MS = 60_000;
+// Jadwal email check-in pertama: DUMMY → segera (demo/testing); produksi → tunggu ambang.
+// Flag, bukan hardcode — delay produksi tak boleh terhapus shortcut testing.
+// ponytail: pakai SLA_THRESHOLD_HOURS sebagai knob delay pertama; angka bisa di-tune.
+const firstCheckinAt = () =>
+  DUMMY_FOLLOWUP_IMMEDIATE
+    ? new Date()
+    : new Date(Date.now() + SLA_THRESHOLD_HOURS * 3600_000);
 
 // Opt-in follow-up di layar konfirmasi (sesi sudah selesai → cookie hilang, jadi
 // diautentikasi lewat kode referensi yang baru diterima siswa). Email disimpan
@@ -11,6 +18,14 @@ const FIRST_CHECKIN_MS = 60_000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
+  // Opt-in butuh kode valid, tapi tetap batasi (10 / menit / IP) agar tak dipakai sondir kode.
+  if (!rateLimit(`fu-enable:${clientIp(request)}`, 10)) {
+    return Response.json(
+      { error: "terlalu banyak percobaan, coba lagi sebentar ya" },
+      { status: 429 }
+    );
+  }
+
   const { code, email, enabled } = await request.json().catch(() => ({}));
   if (typeof code !== "string" || !code.trim()) {
     return Response.json({ error: "input tidak valid" }, { status: 400 });
@@ -37,7 +52,7 @@ export async function POST(request: Request) {
   const data = {
     contactEmail: encryptToBase64(email.trim()),
     proactiveEnabled: true,
-    scheduledAt: new Date(Date.now() + FIRST_CHECKIN_MS),
+    scheduledAt: firstCheckinAt(),
   };
   const existing = await prisma.followup.findFirst({ where: { reportId: ref.reportId } });
   if (existing) {

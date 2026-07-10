@@ -9,7 +9,7 @@ import {
   updateHandlingStatus,
   sendConsultMessage,
 } from "@/app/bk/(dashboard)/actions";
-import { RISK, WORRY, HANDLING_LABEL, HANDLING_PILL, HANDLING_STATUS } from "./handling";
+import { RISK, WORRY, HANDLING_LABEL, HANDLING_PILL, HANDLING_STATUS, FLAGGED_BADGE } from "./handling";
 
 export type QueueMessage = { id: string; sender: string; content: string; timeLabel: string };
 export type QueueRowData = {
@@ -23,6 +23,8 @@ export type QueueRowData = {
   handlingStatus: string;
   unread: number;
   messages: QueueMessage[];
+  flaggedAt: string | null; // W5: user konfirmasi masih perlu ditindaklanjuti ("Iya")
+  noProgress: number; // W5: siklus kemandekan admin sejak ter-flag
 };
 export type StaffOpt = { id: string; name: string };
 
@@ -59,6 +61,15 @@ export function QueueRow({ row, staff }: { row: QueueRowData; staff: StaffOpt[] 
         {row.urgentVisum && (
           <span className="mt-1 block w-fit rounded-full bg-danger px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-white">
             visum
+          </span>
+        )}
+        {row.flaggedAt && (
+          <span
+            className={`mt-1 block w-fit rounded-full px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide ${FLAGGED_BADGE.cls}`}
+            title="Siswa mengonfirmasi kasus masih perlu ditindaklanjuti dan belum kalian buka"
+          >
+            {FLAGGED_BADGE.label}
+            {row.noProgress > 0 ? ` · mandek ${row.noProgress}` : ""}
           </span>
         )}
       </td>
