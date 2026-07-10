@@ -14,9 +14,17 @@ export function logAction(
     | "assigned"
     | "identity-opened"
     | "followup-enabled"
-    | "followup-checkin"
     | "auto-escalated"
-    | "evidence-added",
+    | "evidence-added"
+    | "evidence-opened"
+    // W5 follow-up proaktif (append-only, tak memuat email/kode/token di metadata)
+    | "followup-session-started"
+    | "followup-email-sent"
+    | "followup-case-flagged"
+    | "followup-session-closed"
+    | "followup-crisis-override"
+    | "followup-sapa129-offered"
+    | "noprogress-incremented",
   metadata?: Prisma.InputJsonValue
 ) {
   return prisma.auditLog.create({

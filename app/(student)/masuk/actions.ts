@@ -17,6 +17,25 @@ export async function resumeWithCode(_prev: ResumeState, formData: FormData): Pr
   if (!ref) return { error: "Kode itu tidak kami temukan. Coba periksa lagi ya — huruf kecil semua." };
 
   const store = await cookies();
+
+  // Kasus dengan follow-up proaktif aktif → arahkan ke sesi follow-up terstruktur
+  // (KABAR → CEK_KASUS), bukan resume intake. Set cookie follow-up (followupId); SENGAJA
+  // tidak set lindra_session → tombol "cerita lagi" nanti memulai intake BARU (bukan
+  // menyambung sesi ini), sesuai batas scope §7.2.
+  const followup = await prisma.followup.findFirst({
+    where: { reportId: ref.reportId, proactiveEnabled: true },
+  });
+  if (followup) {
+    store.set("lindra_followup", followup.id, {
+      httpOnly: true,
+      sameSite: "strict",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1800,
+    });
+    redirect("/followup"); // throw NEXT_REDIRECT — jangan bungkus try/catch
+  }
+
   store.set(SESSION_COOKIE, ref.reportId, {
     httpOnly: true,
     sameSite: "strict",

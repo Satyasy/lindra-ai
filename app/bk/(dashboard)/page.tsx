@@ -51,6 +51,8 @@ export default async function DashboardPage({
       include: {
         referralCode: true,
         chatThreads: { include: { messages: { orderBy: { createdAt: "asc" } } } },
+        // W5: sinyal "perlu tindak lanjut" (user konfirmasi "Iya") + kemandekan admin.
+        followups: { select: { followUpFlaggedAt: true, noProgressCount: true } },
       },
     }),
     prisma.staffAccount.findMany({ where: { role }, orderBy: { name: "asc" } }),
@@ -62,11 +64,23 @@ export default async function DashboardPage({
     }),
   ]);
 
-  // Urut urgensi tertinggi dulu, LALU paginasi. ponytail: sort di app cukup untuk
-  // skala antrean sekolah; pindah ke urutan DB kalau data membesar.
-  const sorted = all.sort(
-    (a, b) => (URGENCY_ORDER[a.urgencyLevel ?? ""] ?? 9) - (URGENCY_ORDER[b.urgencyLevel ?? ""] ?? 9)
-  );
+  // Urutan triase (W5): (1) kasus ter-flag user di atas yang tidak; (2) di antara ter-flag,
+  // PALING LAMA MANDEK dulu (noProgressCount desc, lalu flag paling tua) — kegagalan yang
+  // paling ingin ditangkap; (3) urgensi tertinggi. LALU paginasi. ponytail: sort di app
+  // cukup untuk skala antrean sekolah; pindah ke urutan DB kalau data membesar.
+  const flagOf = (r: (typeof all)[number]) => r.followups.find((f) => f.followUpFlaggedAt);
+  const sorted = all.sort((a, b) => {
+    const fa = flagOf(a);
+    const fb = flagOf(b);
+    if (!!fa !== !!fb) return fa ? -1 : 1;
+    if (fa && fb) {
+      if (fb.noProgressCount !== fa.noProgressCount) return fb.noProgressCount - fa.noProgressCount;
+      const ta = fa.followUpFlaggedAt!.getTime();
+      const tb = fb.followUpFlaggedAt!.getTime();
+      if (ta !== tb) return ta - tb; // flag lebih tua (mandek lebih lama) di atas
+    }
+    return (URGENCY_ORDER[a.urgencyLevel ?? ""] ?? 9) - (URGENCY_ORDER[b.urgencyLevel ?? ""] ?? 9);
+  });
   const total = sorted.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.min(Math.max(1, Number(sp.page) || 1), pageCount);
@@ -82,6 +96,7 @@ export default async function DashboardPage({
       if (m.sender === "staff") lastStaff = i;
     });
     const unread = messages.slice(lastStaff + 1).filter((m) => m.sender === "student").length;
+    const fu = r.followups.find((f) => f.followUpFlaggedAt);
     return {
       id: r.id,
       code: r.referralCode?.code ?? r.id.slice(-6),
@@ -92,6 +107,8 @@ export default async function DashboardPage({
       assignedToId: r.assignedToId,
       handlingStatus: r.handlingStatus,
       unread,
+      flaggedAt: fu?.followUpFlaggedAt?.toISOString() ?? null,
+      noProgress: fu?.noProgressCount ?? 0,
       messages: messages.map((m) => ({
         id: m.id,
         sender: m.sender,

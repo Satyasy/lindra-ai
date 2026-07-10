@@ -65,18 +65,32 @@ export async function GET(req: Request) {
       escalated++;
     }
 
+    // KEMANDEKAN ADMIN — kasus sudah ditandai user ("Iya", followUpFlaggedAt) TAPI admin
+    // tetap belum membuka (tak ada AuditLog 'opened') → noProgressCount++ tiap siklus.
+    // Ini SATU-SATUNYA penambah noProgressCount (BUKAN jawaban user). Begitu admin buka
+    // kasus (log 'opened'), kondisi gugur → increment berhenti & tawaran SAPA 129 berhenti
+    // (offer dihitung dari counter di sesi follow-up, lihat app/api/followup/chat).
+    const stalled = f.followUpFlaggedAt != null && !opened; // 'done' sudah di-continue di atas
+
     // EMAIL NETRAL — sapa kabar siswa. Dikirim saat laporan BELUM diproses ("belum
     // diterima" = tak ada AuditLog 'opened') maupun sudah diproses tapi belum selesai.
     // Template TANPA kode/link auto-login (lib/email). Reschedule check-in berikutnya.
     if (f.contactEmail) {
-      await sendFollowupEmail(decryptFromBase64(f.contactEmail)); // dekripsi hanya in-memory
+      const res = await sendFollowupEmail(decryptFromBase64(f.contactEmail)); // dekripsi hanya in-memory
       await prisma.followup.update({
         where: { id: f.id },
         data: {
           lastCheckinAt: now,
           scheduledAt: new Date(now.getTime() + SLA_THRESHOLD_HOURS * 3600_000),
+          ...(stalled ? { noProgressCount: { increment: 1 } } : {}),
         },
       });
+      if (res.sent) await logAction(f.reportId, "system", "followup-email-sent");
+      if (stalled) {
+        await logAction(f.reportId, "system", "noprogress-incremented", {
+          count: f.noProgressCount + 1,
+        });
+      }
       emailed++;
     }
   }
