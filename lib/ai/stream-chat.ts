@@ -12,6 +12,12 @@ export const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data
 export const NO_KEY_FALLBACK =
   "aku di sini, dengerin kok. cerita aja pelan-pelan, mulai dari mana pun yang kamu mau.";
 
+// Kuota Groq habis (429). HANYA di demo mode: pesan teknis eksplisit agar juri tahu
+// ini rate-limit, bukan AI mogok. Produksi tetap pakai NO_KEY_FALLBACK yang tenang —
+// siswa asli jangan pernah lihat error API (trauma-informed).
+const LIMIT_FALLBACK =
+  "[Demo] Kuota AI Groq sedang habis (rate limit / 429). Tunggu sebentar lalu coba lagi, atau pakai API key Groq yang berbeda untuk tiap slot.";
+
 export function buildMessages(sysContent: string, transcript: TranscriptTurn[]): ChatMessage[] {
   return [
     { role: "system", content: sysContent },
@@ -27,6 +33,10 @@ export async function streamChat(
 ): Promise<string> {
   const groqRes = await groqChat(messages, "student");
   if (!groqRes || !groqRes.ok || !groqRes.body) {
+    // 429 di demo → pesan limit eksplisit; selain itu tetap fallback tenang.
+    const isLimit = groqRes?.status === 429;
+    const demo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+    const fallback = isLimit && demo ? LIMIT_FALLBACK : NO_KEY_FALLBACK;
     if (!groqRes) {
       console.error("[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong");
     } else if (!groqRes.ok) {
@@ -34,8 +44,8 @@ export async function streamChat(
     } else {
       console.error("[Lapis2] Groq response tanpa body — fallback dipakai");
     }
-    controller.enqueue(sse({ type: "text", delta: NO_KEY_FALLBACK }));
-    return NO_KEY_FALLBACK;
+    controller.enqueue(sse({ type: "text", delta: fallback }));
+    return fallback;
   }
 
   let text = "";
