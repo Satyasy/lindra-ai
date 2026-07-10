@@ -12,6 +12,7 @@ import {
   ListChecks,
   MessageSquare,
   Paperclip,
+  Phone,
   Route,
   User,
   Zap,
