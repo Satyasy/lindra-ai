@@ -45,6 +45,13 @@ export const DEST_BADGE: Record<string, { label: string; cls: string }> = {
   "eskalasi-darurat": { label: "Eskalasi Darurat", cls: "bg-danger-soft text-danger-deep" },
 };
 
+// Badge "perlu tindak lanjut" (W5) — user KONFIRMASI kasus masih relevan lewat sesi
+// follow-up ("Iya") DAN admin belum membukanya. Maknanya BEDA dari "laporan baru".
+// BUKAN --danger (bukan sinyal krisis) — latar warm-soft (peach) sbg penanda perhatian.
+// Teks --ink (bukan --warm-deep: warm-deep di atas warm-soft cuma ~3.7:1, gagal AA utk
+// teks kecil 10px; --ink di atas warm-soft ~9.9:1).
+export const FLAGGED_BADGE = { label: "Perlu tindak lanjut", cls: "bg-warm-soft text-ink" };
+
 // Meter "Tingkat Kekhawatiran" — display-only, dipetakan dari urgencyLevel.
 // warm-butter (kuning) dipakai sebagai indikator display, bukan teks/aksi.
 export const WORRY: Record<string, { label: string; fill: string; pct: number }> = {

@@ -1,9 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 // Verifikasi kode follow-up yang dimasukkan MANUAL siswa (dari email netral yang
 // tak memuat kode). Sukses → set cookie sesi httpOnly (followupId) — TANPA kode/token
 // di URL, TANPA auto-login. Halaman sesi membaca cookie ini.
 export async function POST(request: Request) {
+  // Anti brute-force tebak kode: 5 percobaan / menit / IP.
+  if (!rateLimit(`fu-verify:${clientIp(request)}`, 5)) {
+    return Response.json(
+      { error: "terlalu banyak percobaan, coba lagi sebentar ya" },
+      { status: 429 }
+    );
+  }
+
   const { code } = await request.json().catch(() => ({}));
   if (typeof code !== "string" || !code.trim()) {
     return Response.json({ error: "input tidak valid" }, { status: 400 });
