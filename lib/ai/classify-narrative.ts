@@ -175,7 +175,7 @@ export async function composeReport(transcript: TranscriptTurn[]): Promise<Repor
 // Semua pure & sync (tanpa LLM). Orkestrasi turn ada di app/api/chat/route.ts.
 // ============================================================
 
-export type SlotStatus = "empty" | "filled" | "skipped";
+export type SlotStatus = "empty" | "filled" | "skipped" | "declined";
 // Satu slot per blok yang bisa digali natural. kejadian dipecah jadi 3 topik obrolan
 // (gambaran/waktu/lokasi) karena memang beda pertanyaan; blok lain 1 slot per blok.
 export type SlotField =
@@ -211,18 +211,34 @@ export interface Slots {
   [key: string]: string | number | boolean | null; // agar bisa disimpan langsung ke kolom Json Prisma
 }
 
-// Urutan gali: cerita dulu, keamanan di tengah, identitas belakangan.
+// Urutan gali (W2 §5): keamanan dulu, lalu kronologi kejadian, korban, pelaku,
+// dampak, pelapor; klasifikasi diturunkan (ter-fill bareng gambaran).
 // "bukti" SENGAJA tidak di sini (W3): bukti bukan lagi slot gathering verbal —
 // ditangani sebagai langkah widget upload terpisah SETELAH semua field ini selesai.
+// NOTE (business logic — ranah Revano): urutan ini keputusan prioritas W2 §5.
 export const SLOT_ORDER: SlotField[] = [
+  "keamanan",
   "gambaran_kejadian",
-  "pelaku",
   "waktu",
   "lokasi",
-  "dampak",
-  "keamanan",
-  "pelapor",
   "korban",
+  "pelaku",
+  "dampak",
+  "pelapor",
+  "klasifikasi",
+];
+
+// Blok WAJIB untuk melewati gate (W2 §10 #3). "dampak" opsional (di SLOT_ORDER,
+// jadi tetap DITAWARKAN, tapi tak menghalangi gate). "bukti" = langkah W3.
+// NOTE (business logic — ranah Revano): daftar wajib vs opsional ini W2 §10 #3.
+export const REQUIRED_BLOCKS: SlotField[] = [
+  "keamanan",
+  "gambaran_kejadian",
+  "waktu",
+  "lokasi",
+  "korban",
+  "pelaku",
+  "pelapor",
   "klasifikasi",
 ];
 
@@ -263,11 +279,19 @@ export function emptySlots(): Slots {
   };
 }
 
-// W3 gate. isReadyForDraftOffer = semua field gathering (W2) selesai — sinyal "info inti
-// lengkap". isReadyToShowDraft = itu DAN pertanyaan bukti sudah terjawab (upload/lewati);
+// Blok WAJIB yang belum resolved (belum "filled"/"skipped"/"declined") — W2 §2.
+export function identifyMissingBlocks(slots: Slots): SlotField[] {
+  return REQUIRED_BLOCKS.filter((f) => slots[f] === "empty");
+}
+
+// W3 gate (W2 §3/§9). isReadyForDraftOffer = semua blok WAJIB resolved.
+// isReadyToShowDraft = itu DAN pertanyaan bukti sudah terjawab (upload/lewati);
 // hanya ini yang boleh memicu tawaran draf, supaya makna gate W2 tak berubah.
+// Catatan: advanceSlots tetap menawarkan blok opsional (dampak) sebelum flip "ready",
+// dan dampak (SLOT_ORDER idx 6) ditawarkan sebelum wajib terakhir pelapor (idx 7) —
+// jadi di alur nyata identifyMissingBlocks()===[] berbarengan dengan advanced.ready.
 export function isReadyForDraftOffer(slots: Slots): boolean {
-  return nextEmptyField(slots) === null;
+  return identifyMissingBlocks(slots).length === 0;
 }
 export function isReadyToShowDraft(slots: Slots): boolean {
   return isReadyForDraftOffer(slots) && slots.evidenceResolved;
@@ -301,12 +325,40 @@ function fieldPresent(draft: ReportDraft, f: SlotField): boolean {
   }
 }
 
-// Kunci sticky: empty -> filled bila ekstraksi sekarang mengisinya.
-// filled/skipped TIDAK PERNAH berubah walau ekstraksi giliran ini beda.
+// Blok "tersentuh" karena siswa EKSPLISIT menolak/tidak tahu (Tier 2 menulis
+// DECLINED_SENTINEL ke field teks-nya). Enum/derived (lokasi/klasifikasi/bukti)
+// tak bisa membawa sentinel → selalu false.
+function fieldDeclined(draft: ReportDraft, f: SlotField): boolean {
+  const S = DECLINED_SENTINEL;
+  switch (f) {
+    case "gambaran_kejadian":
+      return draft.kejadian?.deskripsi === S;
+    case "pelaku":
+      return draft.terlapor?.deskripsi === S;
+    case "waktu":
+      return draft.kejadian?.waktu === S;
+    case "dampak":
+      return draft.dampak?.deskripsi === S;
+    case "keamanan":
+      return draft.keamanan?.deskripsi === S;
+    case "pelapor":
+      return draft.pelapor?.relasiDenganKorban === S;
+    case "korban":
+      return draft.korban?.kelas === S || draft.korban?.jenisKelamin === S;
+    case "lokasi":
+    case "klasifikasi":
+    case "bukti":
+      return false;
+  }
+}
+
+// Kunci sticky: empty -> filled/declined bila ekstraksi sekarang mengisinya.
+// filled/skipped/declined TIDAK PERNAH berubah walau ekstraksi giliran ini beda.
 export function updateSlots(prev: Slots, draft: ReportDraft): Slots {
   const next = { ...prev };
   for (const f of SLOT_ORDER) {
-    if (next[f] === "empty" && fieldPresent(draft, f)) next[f] = "filled";
+    if (next[f] === "empty" && fieldPresent(draft, f))
+      next[f] = fieldDeclined(draft, f) ? "declined" : "filled";
   }
   return next;
 }
