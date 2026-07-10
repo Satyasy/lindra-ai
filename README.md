@@ -40,7 +40,7 @@ Prasyarat: Docker Desktop yang sudah berjalan.
    cp .env.example .env
    ```
 
-   Isi minimal ketiga kunci `GROQ_API_KEY_*` agar fitur percakapan berfungsi. Kunci lain boleh dibiarkan kosong untuk demo (email akan dilewati bila `RESEND_API_KEY` kosong).
+   Isi minimal ketiga kunci `GROQ_API_KEY_*` agar fitur percakapan berfungsi, dan isi `GROQ_API_KEY_STT` agar tombol suara (voice-to-text) aktif — boleh diisi nilai yang sama dengan kunci lain. Kunci selebihnya boleh dibiarkan kosong untuk demo (email akan dilewati bila `RESEND_API_KEY` kosong).
 
 2. Bangun dan jalankan seluruh layanan:
 
@@ -113,7 +113,7 @@ Untuk masuk ke Portal BK (halaman `/bk`), gunakan salah satu akun berikut. Kata 
 | `GROQ_API_KEY_STUDENT` | ya | Percakapan utama siswa. |
 | `GROQ_API_KEY_BK` | ya | Klasifikasi lanjutan dan rekomendasi kasus. |
 | `GROQ_API_KEY_BACKUP` | ya | Cadangan otomatis saat kena batas laju. |
-| `GROQ_API_KEY_STT` | tidak | Transkripsi suara ke teks; kosongkan bila tidak dipakai. |
+| `GROQ_API_KEY_STT` | untuk suara | Transkripsi suara ke teks (voice-to-text). Wajib diisi agar tombol mic berfungsi; boleh sama nilainya dengan kunci lain. Kosongkan hanya bila fitur suara tidak dipakai. |
 | `NEXTAUTH_SECRET` | ya | Kunci penandatangan sesi. |
 | `NEXTAUTH_URL` | ya | URL dasar aplikasi (mis. http://localhost:3000). |
 | `IDENTITY_ENCRYPTION_KEY` | ya | Kunci AES-256-GCM (32 byte hex) untuk enkripsi identitas dan email. |
@@ -139,3 +139,11 @@ Perintah ini menjalankan pengujian unit dan integrasi. Sebagian pengujian, khusu
 - `lib/` — logika inti: mesin perutean, enkripsi identitas, otentikasi, pencatatan audit, integrasi AI.
 - `prisma/` — skema basis data, migrasi, dan skrip pengisian data contoh.
 - `components/` — komponen antarmuka.
+
+## Lisensi
+
+Dilisensikan di bawah [Apache License 2.0](LICENSE).
+
+---
+
+Tim Repesta — SMK Telkom Sidoarjo
