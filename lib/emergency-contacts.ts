@@ -5,3 +5,6 @@ export const GURU_BK_TEL = "081200000129"; // DUMMY placeholder
 export const SAPA_TEL = "129";
 // WhatsApp SAPA 129 (08111-129-129 → format internasional untuk wa.me)
 export const SAPA_WA = "62811129129";
+// UPTD PPA daerah — kontak eskalasi sisi BK/Satgas (aksi cepat).
+// ponytail: DUMMY, ganti dengan nomor UPTD PPA kabupaten/kota di satu tempat ini.
+export const UPTD_PPA_TEL = "081200000112"; // DUMMY placeholder
