@@ -1,86 +1,195 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, Loader2, Paperclip, TriangleAlert, X } from "lucide-react";
+import { Check, Loader2, Paperclip, RotateCw, ShieldCheck, TriangleAlert, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-// Upload bukti (§5.2). Dilepas dari posisi statis di textbox pada W1 — dipakai lagi
-// secara dinamis di akhir alur pada W3. JANGAN hapus. Self-contained: cukup mount
-// <EvidenceUpload /> di titik yang diinginkan.
-export function EvidenceUpload() {
+// Widget bukti dinamis (W3). Dilepas dari textbox di W1, dipakai lagi di sini sebagai
+// elemen INLINE di dalam thread — nempel ke pesan AI yang menanyakan bukti. Persist
+// selama belum resolved; setelah upload ≥1 file ATAU "lewati" → state "selesai".
+const ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
+const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+const MAX_BYTES = 10 * 1024 * 1024; // cermin batas server (app/api/evidence)
+
+type Item = {
+  key: number;
+  file: File;
+  status: "uploading" | "done" | "error";
+};
+
+function clientError(file: File): string | null {
+  if (!ALLOWED.has(file.type)) return "tipe tidak didukung";
+  if (file.size === 0 || file.size > MAX_BYTES) return "maks 10MB";
+  return null;
+}
+
+export function EvidenceUpload({
+  resolved,
+  onResolve,
+}: {
+  resolved: boolean;
+  onResolve: (mode: "uploaded" | "skipped") => void;
+}) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [attachment, setAttachment] = useState<
-    { name: string; status: "uploading" | "done" | "error" } | null
-  >(null);
+  const keyRef = useRef(0);
+  const [items, setItems] = useState<Item[]>([]);
+  const [submitted, setSubmitted] = useState<"uploaded" | "skipped" | null>(null);
 
-  async function uploadEvidence(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // reset agar file yang sama bisa dipilih lagi setelah dihapus
-    if (!file) return;
-    setAttachment({ name: file.name, status: "uploading" });
+  const isDone = resolved || submitted !== null;
+  const uploaded = items.filter((i) => i.status === "done");
+  const canContinue = uploaded.length > 0;
+
+  const patch = (key: number, s: Item["status"]) =>
+    setItems((list) => list.map((i) => (i.key === key ? { ...i, status: s } : i)));
+
+  async function upload(item: Item) {
+    patch(item.key, "uploading");
     try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", item.file);
       const res = await fetch("/api/evidence", { method: "POST", body });
       if (!res.ok) throw new Error(String(res.status));
-      setAttachment({ name: file.name, status: "done" });
+      patch(item.key, "done");
     } catch {
-      setAttachment({ name: file.name, status: "error" });
+      patch(item.key, "error");
     }
   }
 
+  function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ""; // reset agar file sama bisa dipilih lagi
+    const fresh: Item[] = files.map((file) => {
+      const err = clientError(file);
+      return { key: keyRef.current++, file, status: err ? "error" : "uploading" };
+    });
+    setItems((list) => [...list, ...fresh]);
+    // Validasi client hanya UX — server tetap re-validasi. Kirim yang lolos.
+    fresh.filter((i) => i.status === "uploading").forEach(upload);
+  }
+
+  function resolve(mode: "uploaded" | "skipped") {
+    if (isDone) return;
+    setSubmitted(mode);
+    onResolve(mode);
+  }
+
+  const wrap =
+    "bubble-in ml-[2.625rem] max-w-[min(88%,34rem)] rounded-[var(--radius-md)] border border-primary/25 bg-surface p-4 shadow-[var(--shadow-soft)]";
+
+  // State "selesai" — tetap tampil sebagai konfirmasi, tak hilang mendadak.
+  if (isDone) {
+    const mode = submitted ?? (uploaded.length > 0 ? "uploaded" : "skipped");
+    return (
+      <div className={wrap} aria-live="polite">
+        <p className="flex items-center gap-2 text-sm font-semibold text-primary-ink">
+          <ShieldCheck className="size-4" strokeWidth={2} aria-hidden />
+          {mode === "uploaded"
+            ? `${uploaded.length} bukti terlampir`
+            : "Tanpa lampiran bukti"}
+        </p>
+        {mode === "uploaded" && uploaded.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {uploaded.map((i) => (
+              <li key={i.key} className="flex items-center gap-1.5 text-sm text-text-soft">
+                <Check className="size-3.5 shrink-0 text-primary-deep" aria-hidden />
+                <span className="truncate">{i.file.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <>
-      {/* Chip lampiran terpilih — status unggah nyata */}
-      {attachment && (
-        <div className="mx-auto mb-2 flex w-full max-w-[760px]">
-          <span
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-              attachment.status === "error" ? "bg-danger-soft text-danger-deep" : "bg-surface-alt text-ink"
-            }`}
-          >
-            {attachment.status === "uploading" ? (
-              <Loader2 className="size-3.5 animate-spin text-primary-ink" aria-hidden />
-            ) : attachment.status === "done" ? (
-              <Check className="size-3.5 text-primary-deep" aria-hidden />
-            ) : (
-              <TriangleAlert className="size-3.5 text-danger-deep" aria-hidden />
-            )}
-            {attachment.name}
-            <span className="text-xs text-text-muted">
-              {attachment.status === "uploading"
-                ? "mengunggah…"
-                : attachment.status === "error"
-                  ? "gagal, coba lagi"
-                  : "terlampir"}
-            </span>
-            <button
-              type="button"
-              onClick={() => setAttachment(null)}
-              aria-label="Hapus lampiran"
-              className="ml-1 text-text-muted hover:text-foreground"
+    <div className={wrap}>
+      <p className="text-sm text-text">
+        Kalau ada foto, screenshot, video, atau dokumen sebagai bukti, kamu bisa lampirkan
+        di sini. Boleh dilewati kalau tidak ada.
+      </p>
+
+      {items.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {items.map((i) => (
+            <li
+              key={i.key}
+              className={`flex items-center gap-2 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-sm ${
+                i.status === "error" ? "bg-danger-soft text-danger-deep" : "bg-surface-alt text-ink"
+              }`}
             >
-              <X className="size-3.5" aria-hidden />
-            </button>
-          </span>
-        </div>
+              {i.status === "uploading" ? (
+                <Loader2 className="size-3.5 shrink-0 animate-spin text-primary-ink" aria-hidden />
+              ) : i.status === "done" ? (
+                <Check className="size-3.5 shrink-0 text-primary-deep" aria-hidden />
+              ) : (
+                <TriangleAlert className="size-3.5 shrink-0 text-danger-deep" aria-hidden />
+              )}
+              <span className="min-w-0 flex-1 truncate">{i.file.name}</span>
+              <span className="shrink-0 text-xs text-text-muted">
+                {i.status === "uploading"
+                  ? "mengunggah…"
+                  : i.status === "done"
+                    ? "terlampir"
+                    : clientError(i.file) ?? "gagal"}
+              </span>
+              {i.status === "error" && !clientError(i.file) && (
+                <button
+                  type="button"
+                  onClick={() => upload(i)}
+                  aria-label="Coba unggah lagi"
+                  className="shrink-0 text-primary-ink hover:text-primary-deep"
+                >
+                  <RotateCw className="size-3.5" aria-hidden />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setItems((list) => list.filter((x) => x.key !== i.key))}
+                aria-label="Hapus dari daftar"
+                className="shrink-0 text-text-muted hover:text-danger-deep"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
-      {/* Lampirkan bukti (§5.2) — paperclip lucide, bukan emoji */}
       <input
         ref={fileRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,application/pdf"
+        accept={ACCEPT}
+        multiple
         hidden
-        onChange={uploadEvidence}
+        onChange={pick}
       />
-      <button
-        type="button"
-        onClick={() => fileRef.current?.click()}
-        aria-label="Lampirkan bukti"
-        className="flex size-12 shrink-0 items-center justify-center rounded-full text-primary-ink transition-colors hover:bg-primary-soft"
-      >
-        <Paperclip className="size-5" strokeWidth={2} aria-hidden />
-      </button>
-    </>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileRef.current?.click()}
+          className="min-h-11 rounded-full px-4 font-semibold"
+        >
+          <Paperclip className="size-4" strokeWidth={2} aria-hidden />
+          Pilih file
+        </Button>
+        <Button
+          type="button"
+          onClick={() => resolve("uploaded")}
+          disabled={!canContinue}
+          className="min-h-11 rounded-full px-4 font-semibold"
+        >
+          Lanjut
+        </Button>
+        <button
+          type="button"
+          onClick={() => resolve("skipped")}
+          className="min-h-11 rounded-full px-4 text-sm font-medium text-text-soft underline-offset-2 hover:text-primary-ink hover:underline"
+        >
+          Tidak ada bukti / lewati
+        </button>
+      </div>
+    </div>
   );
 }

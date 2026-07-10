@@ -8,9 +8,10 @@ import {
   Check,
   FileText,
   History,
+  Image as ImageIcon,
   ListChecks,
   MessageSquare,
-  Phone,
+  Paperclip,
   Route,
   User,
   Zap,
@@ -22,6 +23,7 @@ import { buildCaseRecommendation, type ActionSignals } from "@/lib/ai/recommend-
 import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engine";
 import { SAPA_TEL, UPTD_PPA_TEL } from "@/lib/emergency-contacts";
 import { cn } from "@/lib/utils";
+import { NO_EVIDENCE_SENTINEL, evidenceKind, evidenceLabel } from "@/lib/evidence";
 import { StatusSelect } from "@/components/bk/StatusSelect";
 import { IdentityReveal } from "@/components/bk/IdentityReveal";
 import { TindakLanjutButton } from "@/components/bk/TindakLanjutButton";
@@ -79,6 +81,8 @@ function auditLabel(action: string, metadata: unknown): string {
     case "assigned":
       return m.assignedToId ? "Petugas ditugaskan" : "Penugasan petugas dilepas";
     case "identity-opened": return "Identitas pelapor dibuka";
+    case "evidence-added": return "Lampiran bukti ditambahkan";
+    case "evidence-opened": return "Lampiran bukti dibuka";
     default: return action;
   }
 }
@@ -159,6 +163,13 @@ export default async function ReportDetailPage({
     prisma.auditLog.findMany({ where: { reportId }, orderBy: { createdAt: "asc" } }),
   ]);
 
+  // Lampiran bukti — hanya id + mimeType (nama asli tak pernah ditampilkan).
+  const evidences = await prisma.evidence.findMany({
+    where: { reportId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, mimeType: true },
+  });
+
   const urg = URGENCY[report.urgencyLevel ?? "rendah"] ?? URGENCY.rendah;
   // Sinyal follow-up (informatif) — bukan Lindra mengambil alih peran BK
   const noProgress = report.followups.reduce((n, f) => Math.max(n, f.noProgressCount), 0);
@@ -212,6 +223,35 @@ export default async function ReportDetailPage({
           <Section title="Narasi laporan" icon={MessageSquare}>
             <p className="text-[1.0625rem] leading-[1.7] whitespace-pre-wrap text-text">
               {report.narrative ?? "(belum tersusun)"}
+            </p>
+          </Section>
+
+          <Section title="Lampiran bukti" icon={Paperclip}>
+            {evidences.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{NO_EVIDENCE_SENTINEL}</p>
+            ) : (
+              <ul className="space-y-2">
+                {evidences.map((e, i) => (
+                  <li key={e.id}>
+                    <a
+                      href={`/api/bk/evidence/${e.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-11 items-center gap-2.5 rounded-[var(--radius-md)] border px-3 text-sm font-medium text-primary-ink transition-colors hover:bg-primary-soft"
+                    >
+                      {evidenceKind(e.mimeType) === "foto" ? (
+                        <ImageIcon className="size-4 shrink-0" aria-hidden />
+                      ) : (
+                        <FileText className="size-4 shrink-0" aria-hidden />
+                      )}
+                      {evidenceLabel(e.mimeType, i)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3 text-[0.8125rem] text-muted-foreground">
+              Membuka lampiran tercatat di jejak audit. Nama file asli siswa tidak ditampilkan.
             </p>
           </Section>
 

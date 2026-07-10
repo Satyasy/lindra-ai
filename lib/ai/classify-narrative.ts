@@ -39,6 +39,11 @@ export interface ReportDraft {
   narrativeSummary: string;
 }
 
+// Sentinel decline: ditulis Tier 2 ke field teks saat siswa EKSPLISIT menolak/tidak
+// tahu suatu topik. Kalimat wajar (bukan placeholder teknis) → enak dibaca apa adanya
+// di draf, dan otomatis dianggap "tersentuh" oleh fieldPresent (string non-kosong → truthy).
+export const DECLINED_SENTINEL = "Siswa memilih tidak menjawab";
+
 const SYSTEM_PROMPT = `Kamu adalah mesin ekstraksi terstruktur untuk laporan kekerasan siswa. Dari transkrip percakapan siswa dengan chatbot, susun SATU objek JSON persis skema di bawah. Balas HANYA JSON valid, tanpa teks lain.
 
 SKEMA JSON (semua field wajib ada):
@@ -64,6 +69,7 @@ Field top-level urgencyLevel/perpetratorRole/locationCategory/violenceType HARUS
 
 ATURAN ISI:
 - Isi field null (atau [] untuk array) kalau informasinya BELUM tersedia dari transkrip. JANGAN mengarang, menebak, atau melengkapi yang tidak diceritakan siswa.
+- Kalau dari transkrip terlihat siswa EKSPLISIT menolak menjawab ATAU bilang tidak tahu untuk suatu topik (mis. "gak mau sebut orangnya", "lupa kapan", "gak mau cerita dampaknya"), tulis kalimat "${DECLINED_SENTINEL}" pada field TEKS yang relevan (terlapor.deskripsi, kejadian.waktu, kejadian.deskripsi, dampak.deskripsi, keamanan.deskripsi, bukti.deskripsi, pelapor.relasiDenganKorban, korban.kelas/jenisKelamin) — jangan biarkan null untuk topik yang jelas-jelas ditolak, dan jangan mengarang isinya. Untuk topik yang memang BELUM disinggung sama sekali, tetap null.
 - Kamu TIDAK PERNAH menyimpulkan siapa yang benar/salah. Kamu hanya mencatat apa yang diceritakan siswa.
 - "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai kronologi apa adanya dari sudut siswa, tanpa penilaian salah/benar dan tanpa menambah fakta.
 - "cederaFisik": true HANYA bila siswa menyebut ada luka/cedera fisik (lebam, berdarah, sakit, dsb). false bila jelas tak ada. null bila tak disinggung.
@@ -170,30 +176,71 @@ export async function composeReport(transcript: TranscriptTurn[]): Promise<Repor
 // ============================================================
 
 export type SlotStatus = "empty" | "filled" | "skipped";
-export type SlotField = "gambaran_kejadian" | "pelaku" | "waktu" | "dampak" | "lokasi";
+// Satu slot per blok yang bisa digali natural. kejadian dipecah jadi 3 topik obrolan
+// (gambaran/waktu/lokasi) karena memang beda pertanyaan; blok lain 1 slot per blok.
+export type SlotField =
+  | "gambaran_kejadian"
+  | "pelaku"
+  | "waktu"
+  | "lokasi"
+  | "dampak"
+  | "keamanan"
+  | "pelapor"
+  | "korban"
+  | "klasifikasi"
+  | "bukti";
 export type SessionPhase = "gathering" | "ready" | "done";
 
 export interface Slots {
   gambaran_kejadian: SlotStatus;
   pelaku: SlotStatus;
   waktu: SlotStatus;
-  dampak: SlotStatus;
   lokasi: SlotStatus;
+  dampak: SlotStatus;
+  keamanan: SlotStatus;
+  pelapor: SlotStatus;
+  korban: SlotStatus;
+  klasifikasi: SlotStatus;
+  bukti: SlotStatus;
   phase: SessionPhase;
   target: SlotField | null; // field yang ditanyakan giliran lalu (untuk anti-stall)
   targetCount: number; // berapa kali target ini sudah ditanyakan berturut-turut
-  [key: string]: string | number | null; // agar bisa disimpan langsung ke kolom Json Prisma
+  // W3: pertanyaan bukti ditanya SEKALI setelah semua field selesai (bukan slot gathering).
+  evidenceQuestionAsked: boolean; // AI sudah menanyakan bukti → jangan tanya ulang
+  evidenceResolved: boolean; // siswa upload ≥1 file ATAU tekan "lewati" → boleh tawarkan draf
+  [key: string]: string | number | boolean | null; // agar bisa disimpan langsung ke kolom Json Prisma
 }
 
-export const SLOT_ORDER: SlotField[] = ["gambaran_kejadian", "pelaku", "waktu", "dampak", "lokasi"];
+// Urutan gali: cerita dulu, keamanan di tengah, identitas belakangan.
+// "bukti" SENGAJA tidak di sini (W3): bukti bukan lagi slot gathering verbal —
+// ditangani sebagai langkah widget upload terpisah SETELAH semua field ini selesai.
+export const SLOT_ORDER: SlotField[] = [
+  "gambaran_kejadian",
+  "pelaku",
+  "waktu",
+  "lokasi",
+  "dampak",
+  "keamanan",
+  "pelapor",
+  "korban",
+  "klasifikasi",
+];
 
 // Frasa terbuka untuk di-inject ke prompt chat — BUKAN istilah teknis field.
 export const SLOT_DIRECTIVE: Record<SlotField, string> = {
   gambaran_kejadian: "apa yang sebenarnya terjadi / kronologinya",
   pelaku: "siapa yang melakukannya (jangan paksa sebut nama kalau dia ragu)",
   waktu: "kapan kejadian itu terjadi",
-  dampak: "gimana dampaknya ke dia selama ini",
   lokasi: "di mana kejadian itu terjadi",
+  dampak: "gimana dampaknya ke dia selama ini",
+  keamanan: "apakah dia aman sekarang atau kejadiannya masih berlangsung",
+  pelapor: "apakah ini dia alami sendiri atau dia menceritakan soal orang lain (santai, jangan memaksa)",
+  korban: "sedikit soal dirinya, kira-kira kelas berapa (santai, boleh dilewati kalau tidak mau)",
+  // klasifikasi diturunkan dari narasi, BUKAN ditanyakan — praktisnya selalu ter-fill
+  // bareng gambaran_kejadian (lihat fieldPresent) jadi hampir tak pernah jadi target.
+  // Jaring pengaman kalau toh muncul: buka ruang cerita, JANGAN menebak jenis kekerasan.
+  klasifikasi: "kalau masih ada bagian kejadian yang belum sempat diceritain, buka ruang buat itu (JANGAN menyebut/menebak jenis kekerasannya)",
+  bukti: "apakah ada bukti seperti chat/foto/pesan (kalau ada bisa dilampirkan nanti; kalau tidak ada, tetap lanjut tanpa menekan)",
 };
 
 export function emptySlots(): Slots {
@@ -201,14 +248,33 @@ export function emptySlots(): Slots {
     gambaran_kejadian: "empty",
     pelaku: "empty",
     waktu: "empty",
-    dampak: "empty",
     lokasi: "empty",
+    dampak: "empty",
+    keamanan: "empty",
+    pelapor: "empty",
+    korban: "empty",
+    klasifikasi: "empty",
+    bukti: "empty",
     phase: "gathering",
     target: null,
     targetCount: 0,
+    evidenceQuestionAsked: false,
+    evidenceResolved: false,
   };
 }
 
+// W3 gate. isReadyForDraftOffer = semua field gathering (W2) selesai — sinyal "info inti
+// lengkap". isReadyToShowDraft = itu DAN pertanyaan bukti sudah terjawab (upload/lewati);
+// hanya ini yang boleh memicu tawaran draf, supaya makna gate W2 tak berubah.
+export function isReadyForDraftOffer(slots: Slots): boolean {
+  return nextEmptyField(slots) === null;
+}
+export function isReadyToShowDraft(slots: Slots): boolean {
+  return isReadyForDraftOffer(slots) && slots.evidenceResolved;
+}
+
+// "Tersentuh" = ada isi ATAU sentinel decline (string non-kosong → truthy, ikut ke-catch di sini).
+// Boolean-only decline (keamanan/bukti) disimpan Tier 2 di field .deskripsi-nya sebagai sentinel.
 function fieldPresent(draft: ReportDraft, f: SlotField): boolean {
   switch (f) {
     case "gambaran_kejadian":
@@ -217,10 +283,21 @@ function fieldPresent(draft: ReportDraft, f: SlotField): boolean {
       return !!(draft.terlapor?.perpetratorRole || draft.terlapor?.deskripsi);
     case "waktu":
       return !!draft.kejadian?.waktu;
-    case "dampak":
-      return !!draft.dampak?.deskripsi;
     case "lokasi":
       return !!draft.kejadian?.locationCategory;
+    case "dampak":
+      return !!draft.dampak?.deskripsi;
+    case "keamanan":
+      return draft.keamanan?.adaBahayaLangsung != null || !!draft.keamanan?.deskripsi;
+    case "pelapor":
+      return !!draft.pelapor?.relasiDenganKorban;
+    case "korban":
+      return !!(draft.korban?.kelas || draft.korban?.jenisKelamin);
+    case "klasifikasi":
+      // Diturunkan dari kejadian: tersentuh begitu ada narasi kejadian (atau tipe sudah ter-derive).
+      return !!draft.kejadian?.deskripsi || draft.klasifikasi.violenceType.length > 0;
+    case "bukti":
+      return draft.bukti?.adaBukti != null || !!draft.bukti?.deskripsi;
   }
 }
 
