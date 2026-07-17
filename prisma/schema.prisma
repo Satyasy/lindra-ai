@@ -149,7 +149,7 @@ model ChatMessage {
 }
 
 // Potongan dokumen tata tertib + embedding untuk pipeline RAG.
-// Dimensi vector harus sinkron dengan EMBEDDING_DIMENSION di lib/config.ts.
+// Dimensi vector harus sinkron dengan EMBEDDING_DIMENSION di lib/ai/embed.ts.
 model SchoolPolicyChunk {
   id            String                       @id @default(cuid())
   documentTitle String

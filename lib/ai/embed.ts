@@ -11,13 +11,19 @@
 // Pola fallback sengaja identik dengan groqChat(): kembalikan null, jangan throw.
 // Pemanggil degradasi ke keyword-only. Vendor down != fitur mati.
 
-import { EMBEDDING_DIMENSION } from "@/lib/config";
+// Modul ini SENGAJA tanpa impor apa pun: scripts/ingest-policy.mjs memuatnya
+// langsung lewat type-stripping Node, yang tidak paham alias "@/" dari tsconfig.
+// Menambah impor di sini = membuat skrip ingest berhenti jalan.
 
 const EMBEDDING_URL = "https://api.openai.com/v1/embeddings";
 
-// 1536 dim — cocok persis dengan vector(1536) di prisma/schema.prisma, jadi tak
-// perlu migration. Ganti model = ganti EMBEDDING_DIMENSION + kolomnya sekaligus.
 const MODEL = "text-embedding-3-small";
+
+// Dimensi adalah properti MODEL di atas, jadi tinggal serumah dengannya — ini
+// satu-satunya tempat yang bisa membuatnya benar. Harus sama dengan vector(N)
+// pada SchoolPolicyChunk.embedding (prisma/schema.prisma). Ganti model =
+// ganti angka ini + migration kolomnya, sekaligus.
+export const EMBEDDING_DIMENSION = 1536;
 
 export async function embed(text: string): Promise<number[] | null> {
   const key = process.env.EMBEDDING_API_KEY;

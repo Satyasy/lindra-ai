@@ -13,6 +13,9 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+// Dimuat langsung sebagai .ts lewat type-stripping Node 22+. embed.ts sengaja
+// tanpa impor supaya ini jalan — Node tak paham alias "@/" dari tsconfig.
+import { embed, toVectorLiteral } from "../lib/ai/embed.ts";
 
 const [file, title] = process.argv.slice(2);
 if (!file || !title) {
@@ -33,6 +36,10 @@ if (chunks.length === 0) {
 
 const prisma = new PrismaClient();
 const removed = await prisma.schoolPolicyChunk.deleteMany({ where: { documentTitle: title } });
+
+let embedded = 0;
+// ponytail: embed satu per satu, berurutan. Korpus tata tertib cuma puluhan
+// paragraf jadi ini hitungan detik; pakai input array (batch) kalau sudah ribuan.
 for (const content of chunks) {
   // id deterministik dari judul+isi → aman kalau di-run ulang.
   const id = "pol-" + createHash("sha1").update(title + "|" + content).digest("hex").slice(0, 16);
@@ -41,6 +48,28 @@ for (const content of chunks) {
     update: { documentTitle: title, content },
     create: { id, documentTitle: title, content },
   });
+
+  // Prisma Client tidak bisa menulis kolom Unsupported("vector") — ia tak akan
+  // pernah muncul di `data` upsert di atas. Harus raw, terpisah.
+  const vec = await embed(content);
+  if (vec) {
+    await prisma.$executeRaw`
+      UPDATE "SchoolPolicyChunk" SET embedding = ${toVectorLiteral(vec)}::vector WHERE id = ${id}
+    `;
+    embedded++;
+  }
 }
+
 console.log(`Hapus ${removed.count} chunk lama "${title}", masukkan ${chunks.length} chunk baru.`);
+if (embedded === chunks.length) {
+  console.log(`Embedding: ${embedded}/${chunks.length} terisi.`);
+} else {
+  // Jangan diam. Chunk tanpa embedding tetap bisa dicari lewat keyword, tapi ia
+  // tak akan pernah muncul dari jalur vector — kegagalan senyap di sini terbaca
+  // sebagai "retrieval-nya jelek", bukan "EMBEDDING_API_KEY-nya kosong".
+  console.warn(
+    `Embedding: ${embedded}/${chunks.length} terisi — ${chunks.length - embedded} chunk hanya bisa ` +
+      `dicari lewat kata kunci. Cek EMBEDDING_API_KEY (kosong = semua dilewati) atau kuota vendor.`
+  );
+}
 await prisma.$disconnect();
