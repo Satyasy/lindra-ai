@@ -11,10 +11,6 @@
 // Pola fallback sengaja identik dengan groqChat(): kembalikan null, jangan throw.
 // Pemanggil degradasi ke keyword-only. Vendor down != fitur mati.
 
-// Modul ini SENGAJA tanpa impor apa pun: scripts/ingest-policy.mjs memuatnya
-// langsung lewat type-stripping Node, yang tidak paham alias "@/" dari tsconfig.
-// Menambah impor di sini = membuat skrip ingest berhenti jalan.
-
 const EMBEDDING_URL = "https://api.openai.com/v1/embeddings";
 
 const MODEL = "text-embedding-3-small";
