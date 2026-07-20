@@ -11,9 +11,12 @@
 // Pola fallback sengaja identik dengan groqChat(): kembalikan null, jangan throw.
 // Pemanggil degradasi ke keyword-only. Vendor down != fitur mati.
 
-const EMBEDDING_URL = "https://api.openai.com/v1/embeddings";
+// Vendor bisa diganti via env selama endpoint-nya OpenAI-compatible dan modelnya
+// bisa 1536 dim (Gemini via .../v1beta/openai/embeddings, Cohere compat, dst.).
+// Ganti vendor/model = vektor lama tak kompatibel → re-ingest korpus dokumen.
+const EMBEDDING_URL = process.env.EMBEDDING_BASE_URL ?? "https://api.openai.com/v1/embeddings";
 
-const MODEL = "text-embedding-3-small";
+const MODEL = process.env.EMBEDDING_MODEL ?? "text-embedding-3-small";
 
 // Dimensi adalah properti MODEL di atas, jadi tinggal serumah dengannya — ini
 // satu-satunya tempat yang bisa membuatnya benar. Harus sama dengan vector(N)
@@ -32,7 +35,9 @@ export async function embed(text: string): Promise<number[] | null> {
     const res = await fetch(EMBEDDING_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: MODEL, input }),
+      // dimensions eksplisit: default Gemini 3072, OpenAI v3 juga menerimanya —
+      // memaksa keduanya cocok dengan vector(1536) di skema.
+      body: JSON.stringify({ model: MODEL, input, dimensions: EMBEDDING_DIMENSION }),
     });
     if (!res.ok) return null;
 

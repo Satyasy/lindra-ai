@@ -112,12 +112,14 @@ Untuk masuk ke Portal BK (halaman `/bk`), gunakan salah satu akun berikut. Kata 
 | `DIRECT_DATABASE_URL` | ya | Koneksi superuser, hanya dipakai saat migrasi. |
 | `GROQ_API_KEY_STUDENT` | ya | Percakapan utama siswa. |
 | `GROQ_API_KEY_BK` | ya | Klasifikasi lanjutan dan rekomendasi kasus. |
-| `GROQ_API_KEY_BACKUP` | ya | Cadangan otomatis saat kena batas laju. |
+| `SAMBANOVA_API_KEY` | tidak | Failover otomatis ke SambaNova (model Llama sama) saat Groq kena batas laju (429). Bila kosong, galat 429 diteruskan. |
 | `GROQ_API_KEY_STT` | untuk suara | Transkripsi suara ke teks (voice-to-text). Wajib diisi agar tombol mic berfungsi; boleh sama nilainya dengan kunci lain. Kosongkan hanya bila fitur suara tidak dipakai. |
 | `NEXTAUTH_SECRET` | ya | Kunci penandatangan sesi. |
 | `NEXTAUTH_URL` | ya | URL dasar aplikasi (mis. http://localhost:3000). |
 | `IDENTITY_ENCRYPTION_KEY` | ya | Kunci AES-256-GCM (32 byte hex) untuk enkripsi identitas dan email. |
-| `EMBEDDING_API_KEY` | tidak | Kunci vendor embedding (OpenAI) untuk retrieval hybrid pasal di Portal BK. Groq tidak menyediakan endpoint embedding, sehingga ini penyedia kedua. Bila kosong, pencarian pasal otomatis turun ke jalur kata kunci — bukan galat. |
+| `EMBEDDING_API_KEY` | tidak | Kunci vendor embedding untuk retrieval hybrid pasal di Portal BK (Groq tidak punya endpoint embedding). Bila kosong, pencarian pasal otomatis turun ke jalur kata kunci — bukan galat. |
+| `EMBEDDING_BASE_URL` | tidak | Endpoint embeddings OpenAI-compatible. Default OpenAI; isi endpoint Gemini (`.../v1beta/openai/embeddings`) untuk free tier. Ganti vendor/model = re-ingest korpus dokumen. |
+| `EMBEDDING_MODEL` | tidak | Model embedding (default `text-embedding-3-small`). Harus mendukung 1536 dimensi. |
 | `RESEND_API_KEY` | tidak | Pengiriman email tindak lanjut; bila kosong email dilewati. |
 | `FOLLOWUP_EMAIL_FROM` | tidak | Alamat pengirim email tindak lanjut. |
 | `APP_URL` | tidak | URL dasar yang dipakai pada tautan di dalam email tindak lanjut. |

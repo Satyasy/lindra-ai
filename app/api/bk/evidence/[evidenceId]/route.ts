@@ -33,6 +33,8 @@ export async function GET(
       "Content-Type": evidence.mimeType,
       "Content-Disposition": `attachment; filename="${evidence.filename}"`,
       "Cache-Control": "no-store",
+      // Cegah MIME-sniffing browser me-render file "png" yang isinya HTML/script.
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

@@ -20,9 +20,13 @@ export function rateLimit(key: string, max: number, windowMs = 60_000): boolean 
   return true;
 }
 
-// IP klien dari header proxy (Vercel set x-forwarded-for). "unknown" → satu bucket bersama
-// (fail-closed ke arah lebih ketat, bukan bypass).
+// IP klien dari header proxy. Ambil elemen TERAKHIR: nginx kita menaruh IP asli di
+// paling belakang ($proxy_add_x_forwarded_for meng-append). Klien bisa memalsukan
+// elemen-elemen di DEPAN, jadi ambil [0] = bypass rate-limit (kirim XFF acak tiap
+// request → bucket baru terus). "unknown" → satu bucket bersama (fail-closed).
 export function clientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
-  return fwd ? (fwd.split(",")[0]?.trim() || "unknown") : "unknown";
+  if (!fwd) return "unknown";
+  const parts = fwd.split(",").map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts[parts.length - 1]! : "unknown";
 }

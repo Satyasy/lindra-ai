@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 // Publik — siswa memantau via kode referensi tanpa membuka identitas.
 // HANYA status yang dikembalikan, tidak pernah narasi/identitas.
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  // Kode = lin- + 4 byte hex (32-bit); tanpa limit ruang itu bisa disondir per-status.
+  // Sejajar dengan /api/followup/verify & /enable.
+  if (!rateLimit(`lacak:${clientIp(request)}`, 20)) {
+    return Response.json({ error: "terlalu banyak permintaan" }, { status: 429 });
+  }
   const { code } = await params;
   const ref = await prisma.referralCode.findUnique({
     where: { code: code.trim().toLowerCase() },

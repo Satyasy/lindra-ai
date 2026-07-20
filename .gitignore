@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+#.md
+CLAUDE.md
+AGENTS.md
+DESIGN.md
+
 # testing
 /coverage
 
@@ -36,7 +41,6 @@ yarn-error.log*
 
 # vercel
 .vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts

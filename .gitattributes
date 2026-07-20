@@ -1,0 +1,5 @@
+# Skrip shell WAJIB LF — CRLF merusak shebang & heredoc di Linux (user_data EC2,
+# bash di GitHub Actions). Cegah autocrlf Windows mengonversinya.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

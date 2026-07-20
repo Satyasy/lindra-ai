@@ -9,8 +9,11 @@ import { SLA_THRESHOLD_HOURS } from "@/lib/config";
 //   • Report BELUM pernah dibuka (tak ada AuditLog 'opened') & SLA breached →
 //     AUTO-ESCALATE SEKALI ke jalur SAPA 129 (routingLog), set escalated=true. BUKAN email.
 //   • Report sudah dibuka (proses jalan, belum selesai) → kirim email follow-up netral.
+// HANYA Bearer CRON_SECRET. Cabang x-vercel-cron dibuang: di EC2 header itu tak
+// dijamin platform, siapa pun bisa memalsukannya (curl -H "x-vercel-cron: 1") →
+// memicu email massal + escalate. systemd timer EC2 memakai Bearer (lihat user_data.sh);
+// bila kembali ke Vercel, set CRON_SECRET di project & pakai header Authorization.
 function authorized(req: Request): boolean {
-  if (req.headers.get("x-vercel-cron")) return true; // Vercel cron
   const secret = process.env.CRON_SECRET;
   return !!secret && req.headers.get("authorization") === `Bearer ${secret}`;
 }
