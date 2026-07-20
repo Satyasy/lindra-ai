@@ -1,0 +1,22 @@
+# Salin ke terraform.tfvars (gitignored) lalu isi nilai asli.
+app_repo_url = "https://github.com/Satyasy/lindra-ai.git"
+github_repo  = "Satyasy/lindra-ai" # owner/repo yang boleh deploy via OIDC (branch main)
+app_domain   = "" # mis. "lindra.example.sch.id" — kosong = pakai IP publik
+
+# Semua key ini → SSM SecureString /lindra/<KEY> → ditarik jadi .env saat boot,
+# lalu docker-compose meneruskannya ke container. Nama HARUS sama dengan yang
+# dibaca docker-compose.yml / override prod (lihat user_data.sh).
+app_secrets = {
+  NEXTAUTH_SECRET         = ""
+  IDENTITY_ENCRYPTION_KEY = "" # 32-byte hex (AES-256-GCM)
+  CRON_SECRET             = ""
+  GROQ_API_KEY_STUDENT    = ""
+  GROQ_API_KEY_BK         = ""
+  GROQ_API_KEY_STT        = "" # kosongkan bila fitur suara tak dipakai
+  SAMBANOVA_API_KEY       = "" # failover 429 (butuh billing SambaNova aktif)
+  EMBEDDING_API_KEY       = ""
+  EMBEDDING_BASE_URL      = "https://generativelanguage.googleapis.com/v1beta/openai/embeddings"
+  EMBEDDING_MODEL         = "gemini-embedding-001"
+  RESEND_API_KEY          = ""
+  FOLLOWUP_EMAIL_FROM     = "Lindra Teman <halo@lindra.resatya.dev>"
+}
