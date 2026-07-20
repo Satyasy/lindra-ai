@@ -41,7 +41,9 @@ services:
   app:
     build:
       args:
-        NEXT_PUBLIC_DEMO_MODE: "false"
+        # Di-inline saat build. demo_mode=true membuka entri /chat & /masuk di landing
+        # (gate CLAUDE.md §9). Default var = false (produksi nyata).
+        NEXT_PUBLIC_DEMO_MODE: "${demo_mode}"
     ports: !override
       - "127.0.0.1:3000:3000"
     environment:
@@ -86,9 +88,34 @@ http {
     include /etc/nginx/conf.d/*.conf;
 }
 EOF
+# TLS di origin HANYA bila domain di-set (di belakang Cloudflare "Full"): cert
+# self-signed (CF Full tak memvalidasi) + pulihkan IP klien asli dari CF-Connecting-IP
+# (tanpa ini limit_req salah — semua user berbagi IP edge Cloudflare). Snippet ssl
+# di-include ke server block agar blok utama tetap literal. Tanpa domain: file kosong.
+if [ -n "${app_domain}" ]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+    -keyout /etc/nginx/origin.key -out /etc/nginx/origin.crt \
+    -subj "/CN=${app_domain}" 2>/dev/null
+  cat > /etc/nginx/lindra-ssl.conf <<'SSL'
+listen 443 ssl default_server;
+ssl_certificate     /etc/nginx/origin.crt;
+ssl_certificate_key /etc/nginx/origin.key;
+SSL
+  {
+    echo "# Cloudflare real client IP (limit_req & log pakai IP asli, bukan IP edge CF)"
+    for ip in $(curl -fsSL https://www.cloudflare.com/ips-v4) $(curl -fsSL https://www.cloudflare.com/ips-v6); do
+      echo "set_real_ip_from $ip;"
+    done
+    echo "real_ip_header CF-Connecting-IP;"
+  } > /etc/nginx/conf.d/cloudflare-realip.conf
+else
+  : > /etc/nginx/lindra-ssl.conf
+fi
+
 cat > /etc/nginx/conf.d/lindra.conf <<'EOF'
 server {
     listen 80 default_server;
+    include /etc/nginx/lindra-ssl.conf;
     server_name ${app_domain != "" ? app_domain : "_"};
     client_max_body_size 26m;
     # Maks 10 koneksi konkuren per IP (T4 slowloris/SSE menggantung).

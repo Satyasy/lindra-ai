@@ -2,6 +2,7 @@
 app_repo_url = "https://github.com/Satyasy/lindra-ai.git"
 github_repo  = "Satyasy/lindra-ai" # owner/repo yang boleh deploy via OIDC (branch main)
 app_domain   = "" # mis. "lindra.example.sch.id" — kosong = pakai IP publik
+demo_mode    = false # true = buka entri /chat & /masuk di landing (demo juri, §9)
 
 # Semua key ini → SSM SecureString /lindra/<KEY> → ditarik jadi .env saat boot,
 # lalu docker-compose meneruskannya ke container. Nama HARUS sama dengan yang

@@ -20,6 +20,12 @@ variable "app_repo_url" {
   type        = string
 }
 
+variable "demo_mode" {
+  description = "true = buka entri /chat & /masuk di landing (demo juri, CLAUDE.md §9). Default false."
+  type        = bool
+  default     = false
+}
+
 variable "app_domain" {
   description = "Domain aplikasi (untuk nginx server_name & NEXTAUTH_URL). Kosong = pakai IP."
   type        = string
