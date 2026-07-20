@@ -117,8 +117,10 @@ Untuk masuk ke Portal BK (halaman `/bk`), gunakan salah satu akun berikut. Kata 
 | `NEXTAUTH_SECRET` | ya | Kunci penandatangan sesi. |
 | `NEXTAUTH_URL` | ya | URL dasar aplikasi (mis. http://localhost:3000). |
 | `IDENTITY_ENCRYPTION_KEY` | ya | Kunci AES-256-GCM (32 byte hex) untuk enkripsi identitas dan email. |
+| `EMBEDDING_API_KEY` | tidak | Kunci vendor embedding (OpenAI) untuk retrieval hybrid pasal di Portal BK. Groq tidak menyediakan endpoint embedding, sehingga ini penyedia kedua. Bila kosong, pencarian pasal otomatis turun ke jalur kata kunci — bukan galat. |
 | `RESEND_API_KEY` | tidak | Pengiriman email tindak lanjut; bila kosong email dilewati. |
 | `FOLLOWUP_EMAIL_FROM` | tidak | Alamat pengirim email tindak lanjut. |
+| `APP_URL` | tidak | URL dasar yang dipakai pada tautan di dalam email tindak lanjut. |
 | `CRON_SECRET` | tidak | Melindungi endpoint cron tindak lanjut. |
 | `SLA_THRESHOLD_HOURS` | tidak | Ambang waktu tindak lanjut, default 48. |
 | `NEXT_PUBLIC_DEMO_MODE` | tidak | Bila `true`, pintasan ke halaman chat ditampilkan di landing untuk keperluan demo. |

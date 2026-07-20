@@ -34,8 +34,10 @@ export const ROUTE_REASON: Record<RouteDestination, string> = {
 };
 
 export function determineRoute(report: RoutableReport): RoutingResult {
-  // Aturan 5 — kekerasan seksual: flag visum urgent, berlaku di rute mana pun
-  const urgentVisum = report.violenceType.includes("seksual");
+  // Aturan 5 — kekerasan seksual: flag visum urgent, berlaku di rute mana pun.
+  // Harus PERSIS kode taksonomi Permendikbudristek yang dipancarkan Tier 2
+  // (lib/ai/classify-narrative.ts) — Array.includes itu exact match, bukan substring.
+  const urgentVisum = report.violenceType.includes("kekerasan-seksual");
 
   // Aturan 1 — krisis: eskalasi darurat + SAPA 129 paralel sebagai jaring pengaman kedua
   if (report.urgencyLevel === "kritis") {

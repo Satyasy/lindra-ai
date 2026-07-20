@@ -1,13 +1,21 @@
 // ============================================================
-// RAG rekomendasi pasal tata tertib — VERSI SEDERHANA (keyword matching).
-// Retrieval murni keyword (BUKAN vector embedding). LLM hanya menjelaskan
-// kecocokan yang sudah ditemukan keyword matching — tidak menentukannya,
-// dan tidak pernah mengarang kecocokan. Modul Nabil.
-// Versi vector (pgvector) ditunda — lihat Task 4 di panduan.
+// RAG rekomendasi pasal tata tertib — HYBRID (vector + keyword).
+//
+// Dua jalur retrieval berjalan berdampingan lalu digabung dengan Reciprocal
+// Rank Fusion. Keyword menangkap istilah harfiah; vector menangkap makna
+// ("dijulidin di grup" -> pasal "perundungan siber", nol kata kunci sama).
+// Jalur vector butuh EMBEDDING_API_KEY; tanpa itu ia dilewati dan hasilnya
+// keyword murni — vendor down bukan fitur mati.
+//
+// Yang TIDAK berubah, dan tidak boleh berubah: LLM hanya MENJELASKAN kecocokan
+// yang sudah ditentukan sistem — tidak pernah memilihnya, tidak pernah
+// mengarangnya. Kalau kedua jalur kosong, hasilnya kosong. Modul Nabil.
 // ============================================================
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { groqChat } from "./groq-client";
+import { embed, toVectorLiteral } from "./embed";
 
 export interface PolicyRecommendation {
   chunkId: string;
@@ -20,8 +28,26 @@ export interface PolicyRecommendation {
 // recommendArticles MENGECUALIKAN awalan ini; recommendLaws HANYA yang berawalan ini.
 export const UU_TITLE_PREFIX = "UU ";
 
+// Bentuk `where` retrieval: hanya-UU, atau semua-kecuali-UU.
+type PolicyWhere =
+  | { documentTitle: { startsWith: string } }
+  | { NOT: { documentTitle: { startsWith: string } } };
+
 const MIN_SCORE = 2; // ambang minimal jumlah kata kunci yang cocok
 const MAX_RESULTS = 5;
+
+// Lantai relevansi jalur vector — cosine distance, makin kecil makin mirip.
+// WAJIB ada: jalur keyword punya rem (MIN_SCORE) dan berani balik kosong, tapi
+// pgvector SELALU mengembalikan top-k. Tanpa lantai ini, narasi yang tidak
+// melanggar apa pun tetap disodori 5 pasal "paling tidak jauh" — persis
+// automation-bias yang harus dihindari. Kalibrasi kalau hasilnya terasa longgar.
+export const MAX_DISTANCE = 0.6;
+
+// Berapa kandidat vector diambil sebelum disaring lantai + difusikan.
+const VECTOR_CANDIDATES = 10;
+
+// Konstanta standar RRF. Meredam dominasi peringkat teratas satu jalur.
+const RRF_K = 60;
 
 // Stopword umum Bahasa Indonesia + kata pola narasi ("siswa menyatakan bahwa...").
 const STOPWORDS = new Set([
@@ -79,13 +105,42 @@ async function explain(narrativeSummary: string, quote: string): Promise<string>
   }
 }
 
-// Retrieval keyword bersama (dipakai tata tertib & UU). `where` menyaring baris
-// mana yang dicari; scoring/quote/explain identik supaya tak ada duplikasi logika.
-async function retrieve(
-  narrativeSummary: string,
-  where: { documentTitle: { startsWith: string } } | { NOT: { documentTitle: { startsWith: string } } }
-): Promise<{ id: string; documentTitle: string; quote: string; reasoning: string }[]> {
-  const keywords = extractKeywords(narrativeSummary);
+export interface PolicyChunk {
+  id: string;
+  documentTitle: string;
+  content: string;
+}
+
+// Fusi dua daftar TERURUT (paling relevan di indeks 0) dengan Reciprocal Rank
+// Fusion: skor = Σ 1/(RRF_K + peringkat). Menggabungkan PERINGKAT, bukan skor —
+// jadi tidak perlu bobot w1/w2, yang mustahil dikalibrasi tanpa data eval karena
+// skala keduanya beda (hitungan kata 0..N vs cosine distance 0..2). Chunk yang
+// muncul di kedua jalur naik dengan sendirinya.
+//
+// Murni & tanpa I/O supaya bisa diuji tanpa DB maupun jaringan.
+export function fuse(keywordRanked: PolicyChunk[], vectorRanked: PolicyChunk[]): PolicyChunk[] {
+  const scores = new Map<string, number>();
+  const byId = new Map<string, PolicyChunk>();
+
+  for (const list of [keywordRanked, vectorRanked]) {
+    list.forEach((chunk, rank) => {
+      scores.set(chunk.id, (scores.get(chunk.id) ?? 0) + 1 / (RRF_K + rank));
+      byId.set(chunk.id, chunk);
+    });
+  }
+
+  return [...scores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, MAX_RESULTS)
+    .map(([id]) => byId.get(id)!);
+}
+
+// Jalur keyword — tidak berubah dari versi sebelumnya. Ini juga jalur bertahan
+// hidup saat vendor embedding tak tersedia.
+async function keywordSearch(
+  keywords: string[],
+  where: PolicyWhere
+): Promise<PolicyChunk[]> {
   if (keywords.length === 0) return [];
 
   const chunks = await prisma.schoolPolicyChunk.findMany({
@@ -93,20 +148,74 @@ async function retrieve(
     select: { id: true, documentTitle: true, content: true },
   });
 
-  const scored = chunks
+  return chunks
     .map((c) => {
       const low = c.content.toLowerCase();
       const score = keywords.reduce((n, k) => (low.includes(k) ? n + 1 : n), 0);
       return { chunk: c, score };
     })
-    .filter((s) => s.score >= MIN_SCORE)
+    .filter((s) => s.score >= MIN_SCORE) // tak lolos ambang — jangan mengarang
     .sort((a, b) => b.score - a.score)
-    .slice(0, MAX_RESULTS);
+    .slice(0, MAX_RESULTS)
+    .map((s) => s.chunk);
+}
 
-  if (scored.length === 0) return []; // tak ada yang lolos ambang — jangan mengarang
+// Jalur vector — pgvector, cosine distance (<=>). Prisma tak bisa menanyakan
+// kolom Unsupported("vector"), jadi harus raw.
+// ponytail: tanpa index (ivfflat/hnsw) — korpus tata tertib cuma puluhan chunk,
+// full scan lebih cepat daripada index di ukuran ini. Tambah index kalau tembus ribuan.
+async function vectorSearch(
+  narrativeSummary: string,
+  where: PolicyWhere
+): Promise<PolicyChunk[]> {
+  const vec = await embed(narrativeSummary);
+  if (!vec) return []; // tanpa key / vendor gagal -> hybrid degradasi ke keyword
+
+  // Filter judul disamakan dengan `where` jalur keyword; $queryRaw tak menerima
+  // objek `where` Prisma, jadi disusun sebagai fragmen SQL ter-parameter.
+  const pattern = `${UU_TITLE_PREFIX}%`;
+  const titleFilter =
+    "documentTitle" in where
+      ? Prisma.sql`"documentTitle" LIKE ${pattern}`
+      : Prisma.sql`"documentTitle" NOT LIKE ${pattern}`;
+
+  const rows = await prisma.$queryRaw<(PolicyChunk & { distance: number })[]>`
+    SELECT id, "documentTitle", content, embedding <=> ${toVectorLiteral(vec)}::vector AS distance
+    FROM "SchoolPolicyChunk"
+    WHERE embedding IS NOT NULL
+      AND ${titleFilter}
+    ORDER BY distance ASC
+    LIMIT ${VECTOR_CANDIDATES}
+  `;
+
+  return rows.filter((r) => r.distance <= MAX_DISTANCE).map(({ id, documentTitle, content }) => ({
+    id,
+    documentTitle,
+    content,
+  }));
+}
+
+// Retrieval hybrid bersama (dipakai tata tertib & UU). `where` menyaring baris
+// mana yang dicari; scoring/quote/explain identik supaya tak ada duplikasi logika.
+async function retrieve(
+  narrativeSummary: string,
+  where: PolicyWhere
+): Promise<{ id: string; documentTitle: string; quote: string; reasoning: string }[]> {
+  const keywords = extractKeywords(narrativeSummary);
+
+  // Dua jalur paralel — jalur vector menunggu vendor, jalur keyword tidak perlu ikut menunggu.
+  const [keywordHits, vectorHits] = await Promise.all([
+    keywordSearch(keywords, where),
+    vectorSearch(narrativeSummary, where),
+  ]);
+
+  const hits = fuse(keywordHits, vectorHits);
+  if (hits.length === 0) return []; // kedua jalur kosong — jangan mengarang
 
   return Promise.all(
-    scored.map(async ({ chunk }) => {
+    hits.map(async (chunk) => {
+      // Hit yang hanya datang dari jalur vector bisa saja tak memuat satu pun
+      // keyword; pickQuote sudah menangani itu (fallback ke ~240 char pertama).
       const quote = pickQuote(chunk.content, keywords);
       return {
         id: chunk.id,

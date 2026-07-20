@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Inbox, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { FileText, Inbox, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { Logo } from "@/components/Logo";
+
+const NAV = [
+  { href: "/bk", label: "Antrean Laporan", icon: Inbox },
+  { href: "/bk/dokumen", label: "Dokumen Aturan", icon: FileText },
+] as const;
 
 // Shell interaktif Portal BK — sidebar bisa diciutkan ke ICON RAIL (~w-16) agar
 // antrean melebar. State di useState (instan) + cookie "bk-sidebar-collapsed"
@@ -27,6 +34,7 @@ export function BKShell({
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const pathname = usePathname();
   const accentVar = {
     "--role-accent": isSatgas ? "var(--role-satgas)" : "var(--role-bk)",
   } as React.CSSProperties;
@@ -95,19 +103,38 @@ export function BKShell({
 
         {/* Nav — item ikon-saja saat collapsed tetap punya label (sr-only) + tooltip */}
         <nav className="flex-1">
-          <span
-            className={`relative flex items-center rounded-[var(--radius-sm)] bg-white/10 py-2.5 text-sm font-medium ${
-              collapsed ? "justify-center px-2" : "gap-2.5 px-3"
-            }`}
-            title={collapsed ? "Antrean Laporan" : undefined}
-          >
-            <span
-              className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--role-accent)]"
-              aria-hidden
-            />
-            <Inbox className="size-4 shrink-0 text-[color:var(--role-accent)]" strokeWidth={2} aria-hidden />
-            <span className={collapsed ? "sr-only" : ""}>Antrean Laporan</span>
-          </span>
+          <ul className="flex flex-col gap-1">
+            {NAV.map(({ href, label, icon: Icon }) => {
+              // "/bk" cocok persis saja — kalau pakai startsWith, ia ikut menyala
+              // di setiap sub-rute dan dua item aktif bersamaan.
+              const active = href === "/bk" ? pathname === "/bk" : pathname.startsWith(href);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    title={collapsed ? label : undefined}
+                    className={`relative flex min-h-11 items-center rounded-[var(--radius-sm)] py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--role-accent)] ${
+                      collapsed ? "justify-center px-2" : "gap-2.5 px-3"
+                    } ${active ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"}`}
+                  >
+                    {active && (
+                      <span
+                        className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--role-accent)]"
+                        aria-hidden
+                      />
+                    )}
+                    <Icon
+                      className={`size-4 shrink-0 ${active ? "text-[color:var(--role-accent)]" : ""}`}
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                    <span className={collapsed ? "sr-only" : ""}>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
         {/* Keluar */}

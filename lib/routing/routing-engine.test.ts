@@ -35,12 +35,24 @@ describe("routing engine — satu test per aturan", () => {
     ]);
   });
 
+  // Nilai di bawah HARUS kode taksonomi yang benar-benar dipancarkan Tier 2.
+  // Versi lama test ini menyuapkan "seksual" — nilai yang pipeline aslinya tidak
+  // pernah hasilkan — sehingga lolos hijau sementara flag-nya mati di produksi.
   it("aturan 5: kekerasan seksual -> flag urgentVisum di rute mana pun", () => {
-    expect(determineRoute({ ...base, violenceType: ["seksual"] }).urgentVisum).toBe(true);
+    expect(determineRoute({ ...base, violenceType: ["kekerasan-seksual"] }).urgentVisum).toBe(true);
     expect(
-      determineRoute({ ...base, perpetratorRole: "guru-staf", violenceType: ["seksual"] })
+      determineRoute({ ...base, perpetratorRole: "guru-staf", violenceType: ["kekerasan-seksual"] })
         .urgentVisum
     ).toBe(true);
+  });
+
+  it("aturan 5: kode taksonomi Tier 2 yang asli memicu urgentVisum (regresi)", () => {
+    // Penjaga anti-drift: kode ini disalin dari taksonomi di prompt Tier 2.
+    // Kalau ada yang mengubah salah satu sisi tanpa sisi lain, test ini gagal.
+    const KODE_TIER2 = "kekerasan-seksual";
+    expect(determineRoute({ ...base, violenceType: [KODE_TIER2] }).urgentVisum).toBe(true);
+    // Substring TIDAK boleh cukup — Array.includes exact match.
+    expect(determineRoute({ ...base, violenceType: ["seksual"] }).urgentVisum).toBe(false);
   });
 
   it("aturan 6: default antar-siswa satu sekolah -> dashboard BK", () => {

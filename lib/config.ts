@@ -10,9 +10,9 @@ export const SAPA129_THRESHOLD = Number(process.env.SAPA129_THRESHOLD ?? 2);
 // Flag, BUKAN hardcode — supaya delay produksi tak terhapus shortcut testing.
 export const DUMMY_FOLLOWUP_IMMEDIATE = process.env.DUMMY_FOLLOWUP_IMMEDIATE === "true";
 
-// Harus sama dengan dimensi vector(N) di prisma/schema.prisma (SchoolPolicyChunk.embedding).
-// Koordinasikan dengan Nabil sebelum mengubah — placeholder sampai model embedding dipilih.
-export const EMBEDDING_DIMENSION = 1536;
+// EMBEDDING_DIMENSION pindah ke lib/ai/embed.ts — dimensi itu properti dari model
+// embedding, jadi ia serumah dengan tempat model dipilih. Model sudah ditentukan
+// (text-embedding-3-small, 1536), jadi ini bukan placeholder lagi.
 
 // Gate retrieval pasal UU pada narasi rekomendasi kasus. Default OFF: section UU
 // disembunyikan TOTAL dari response (beda dgn "dicari tapi kosong"). Retrieval nyata

@@ -131,6 +131,13 @@ function coerceDraft(raw: unknown, transcript: TranscriptTurn[]): ReportDraft {
 
   const asBool = (v: unknown): boolean | null => (typeof v === "boolean" ? v : null);
 
+  // Guard enum untuk DUA field yang dibaca langsung routing engine. Merge dangkal
+  // di bawah meneruskan output model 8b apa adanya; enum-nya cuma didokumentasikan
+  // di prompt, tak pernah dipaksakan di kode. Nilai halusinasi harus jadi null
+  // (-> default dashboard-bk yang aman), bukan string asing yang lolos ke Prisma.
+  const asEnum = <T extends string>(v: unknown, allowed: readonly T[]): T | null =>
+    typeof v === "string" && (allowed as readonly string[]).includes(v) ? (v as T) : null;
+
   const base = safeDefault(transcript);
   // Merge dangkal: pakai nilai model bila ada, kalau tidak jatuh ke default.
   return {
@@ -138,6 +145,9 @@ function coerceDraft(raw: unknown, transcript: TranscriptTurn[]): ReportDraft {
     ...(o as Partial<ReportDraft>),
     urgencyLevel: urgency,
     violenceType: Array.isArray(o.violenceType) ? (o.violenceType as string[]) : [],
+    // Input routing engine (lib/routing/routing-engine.ts) — di luar enum → null.
+    perpetratorRole: asEnum(o.perpetratorRole, ["siswa", "guru-staf", "orangtua-wali"] as const),
+    locationCategory: asEnum(o.locationCategory, ["dalam-sekolah", "lintas-sekolah"] as const),
     // Sinyal rule-engine: guard tipe (input jalur legal) — non-boolean → null.
     cederaFisik: asBool(o.cederaFisik),
     sudahBerulang: asBool(o.sudahBerulang),
