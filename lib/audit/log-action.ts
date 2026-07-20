@@ -17,6 +17,7 @@ export function logAction(
     | "auto-escalated"
     | "evidence-added"
     | "evidence-opened"
+    | "evidence-removed"
     // W5 follow-up proaktif (append-only, tak memuat email/kode/token di metadata)
     | "followup-session-started"
     | "followup-email-sent"

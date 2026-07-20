@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, Copy, FileText, Image as ImageIcon, Paperclip, Send, UserRound } from "lucide-react";
+import { ArrowLeft, Check, Copy, Eye, FileText, Image as ImageIcon, Loader2, Paperclip, Plus, Send, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,20 @@ import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engin
 import { FOLLOWUP_CONSENT } from "@/lib/followup-copy";
 import { NO_EVIDENCE_SENTINEL, type EvidenceKind } from "@/lib/evidence";
 
+// Mirror batas /api/evidence — filter picker; server tetap re-validasi.
+const EVIDENCE_ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
+
+type EvidenceItem = { id: string; kind: EvidenceKind };
+
 export function DraftReview({ sessionId }: { sessionId: string }) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [narrative, setNarrative] = useState<string | null>(null);
-  const [evidence, setEvidence] = useState<EvidenceKind[]>([]);
+  const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
+  const [addingEvidence, setAddingEvidence] = useState(false);
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [askName, setAskName] = useState(false);
   const [identity, setIdentity] = useState("");
@@ -65,6 +75,47 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
     });
     if (res.ok) setFollowupSaved(true);
     else setFollowupError("Gagal mengaktifkan follow-up. Coba lagi sebentar ya.");
+  }
+
+  async function refetchEvidence() {
+    const r = await fetch(`/api/draft/${sessionId}`);
+    if (r.ok) {
+      const d = await r.json();
+      setEvidence(Array.isArray(d.evidence) ? d.evidence : []);
+    }
+  }
+
+  async function addEvidence(files: FileList | null) {
+    const list = Array.from(files ?? []);
+    if (list.length === 0) return;
+    setEvidenceError(null);
+    setAddingEvidence(true);
+    try {
+      for (const file of list) {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/evidence", { method: "POST", body });
+        if (!res.ok)
+          setEvidenceError(
+            res.status === 413
+              ? "Ada file yang terlalu besar — maksimal 10 MB."
+              : res.status === 415
+                ? "Ada file yang tipenya tidak didukung (hanya JPG/PNG/WebP/PDF)."
+                : "Sebagian bukti gagal ditambahkan. Coba lagi sebentar ya."
+          );
+      }
+      await refetchEvidence();
+    } finally {
+      setAddingEvidence(false);
+    }
+  }
+
+  async function deleteEvidence(id: string) {
+    setConfirmDelete(null);
+    setViewing((v) => (v === id ? null : v));
+    const res = await fetch(`/api/evidence/${id}`, { method: "DELETE" });
+    if (res.ok) setEvidence((list) => list.filter((e) => e.id !== id));
+    else setEvidenceError("Gagal menghapus bukti. Coba lagi sebentar ya.");
   }
 
   // ===== Layar konfirmasi (DESIGN.md §5.4) =====
@@ -208,28 +259,123 @@ export function DraftReview({ sessionId }: { sessionId: string }) {
         {narrative ?? "Menyusun draf…"}
       </div>
 
-      {/* Lampiran bukti — label generik saja, nama file asli tidak pernah ditampilkan */}
+      {/* Bukti terlampir — kelola sebelum kirim: lihat / tambah / hapus. Label generik,
+          nama file asli tak pernah ditampilkan. */}
       <div className="mb-8 rounded-[var(--radius-lg)] border bg-background p-6 shadow-[var(--shadow-soft)]">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
+        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink">
           <Paperclip className="size-4 text-primary-ink" aria-hidden />
-          Lampiran bukti
+          Bukti terlampir
         </h2>
+        <p className="mb-3 text-sm text-text-soft">
+          Kamu bisa menambah atau menghapus bukti di sini sebelum mengirim. Boleh kosong kalau tidak ada.
+        </p>
+
         {evidence.length === 0 ? (
           <p className="text-sm text-text-soft">{NO_EVIDENCE_SENTINEL}</p>
         ) : (
           <ul className="space-y-2">
-            {evidence.map((kind, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-text">
-                {kind === "foto" ? (
-                  <ImageIcon className="size-4 shrink-0 text-primary-ink" aria-hidden />
-                ) : (
-                  <FileText className="size-4 shrink-0 text-primary-ink" aria-hidden />
+            {evidence.map((e, i) => (
+              <li key={e.id} className="rounded-[var(--radius-md)] border bg-surface-alt p-2.5">
+                <div className="flex items-center gap-2 text-sm text-text">
+                  {e.kind === "foto" ? (
+                    <ImageIcon className="size-4 shrink-0 text-primary-ink" aria-hidden />
+                  ) : (
+                    <FileText className="size-4 shrink-0 text-primary-ink" aria-hidden />
+                  )}
+                  <span className="flex-1">
+                    Bukti {i + 1} ({e.kind})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setViewing((v) => (v === e.id ? null : e.id))}
+                    aria-expanded={viewing === e.id}
+                    className="flex min-h-11 items-center gap-1 rounded-full px-3 text-xs font-medium text-primary-ink hover:bg-primary-soft"
+                  >
+                    <Eye className="size-3.5" aria-hidden />
+                    {viewing === e.id ? "Tutup" : "Lihat"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(e.id)}
+                    aria-label={`Hapus bukti ${i + 1}`}
+                    className="flex size-11 items-center justify-center rounded-full text-text-soft hover:bg-danger-soft hover:text-danger-deep"
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </button>
+                </div>
+
+                {viewing === e.id && (
+                  <div className="mt-2">
+                    {e.kind === "foto" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/api/evidence/${e.id}`}
+                        alt={`Pratinjau bukti ${i + 1}`}
+                        className="max-h-64 rounded-[var(--radius-md)] border"
+                      />
+                    ) : (
+                      <a
+                        href={`/api/evidence/${e.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-primary-ink underline underline-offset-4"
+                      >
+                        Buka dokumen
+                      </a>
+                    )}
+                  </div>
                 )}
-                Bukti {i + 1} ({kind})
+
+                {confirmDelete === e.id && (
+                  <div className="mt-2 flex items-center gap-3 rounded-[var(--radius-md)] bg-danger-soft px-3 py-2 text-sm text-danger-deep">
+                    <span className="flex-1">Hapus bukti ini?</span>
+                    <button
+                      type="button"
+                      onClick={() => deleteEvidence(e.id)}
+                      className="font-semibold underline underline-offset-2"
+                    >
+                      Ya, hapus
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(null)}
+                      className="font-medium text-text-soft underline underline-offset-2"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         )}
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept={EVIDENCE_ACCEPT}
+          multiple
+          hidden
+          onChange={(ev) => {
+            addEvidence(ev.target.files);
+            ev.target.value = "";
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileRef.current?.click()}
+          disabled={addingEvidence}
+          className="mt-3 min-h-11 rounded-full font-semibold"
+        >
+          {addingEvidence ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <Plus className="size-4" aria-hidden />
+          )}
+          {addingEvidence ? "Menambahkan…" : "Tambah bukti"}
+        </Button>
+        {evidenceError && <p className="mt-2 text-sm text-danger">{evidenceError}</p>}
       </div>
 
       {askName && (
