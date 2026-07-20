@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { FollowupToggle } from "@/components/followup/FollowupToggle";
@@ -47,6 +48,8 @@ export default function LacakPage() {
 
   return (
     <div className="mx-auto w-full max-w-[620px] px-4 py-12 pb-28">
+      {/* Logo = jalan kembali ke beranda (mark-only utk chrome siswa, §1.4/aturan 8) */}
+      <Logo href="/" wordmark={false} markClassName="h-9" className="mb-8 py-1" />
       <h1 className="mb-2 text-2xl text-foreground">Lihat perkembangan laporanmu</h1>
       <p className="mb-8 text-text-soft">
         Masukkan kode referensi yang kamu simpan saat mengirim laporan.

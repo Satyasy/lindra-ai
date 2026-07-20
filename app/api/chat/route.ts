@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { detectCrisisSignal, CRISIS_RESPONSE } from "@/lib/ai/crisis-check";
+import { detectMetaProbe, META_PROBE_RESPONSE } from "@/lib/ai/meta-probe";
 import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 import { followupSystemPrompt } from "@/lib/ai/prompts/followup-context-injection";
 import {
@@ -144,6 +145,11 @@ export async function POST(request: Request) {
           where: { id: reportId! },
           data: { urgencyLevel: "kritis" },
         });
+      } else if (detectMetaProbe(message)) {
+        // Tier 1.5 — upaya ekstraksi/override instruksi sistem: deflektor dalam
+        // persona TANPA memanggil model (model bisa dibujuk bocor; ini tak bisa).
+        assistantText = META_PROBE_RESPONSE;
+        controller.enqueue(sse({ type: "text", delta: META_PROBE_RESPONSE }));
       } else if (followupMode) {
         // Sesi follow-up: narasi sudah ada, tak ada gathering ulang.
         assistantText = await streamChat(
