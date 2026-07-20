@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   ListChecks,
   MessageSquare,
+  MessagesSquare,
   Paperclip,
   Phone,
   Route,
@@ -25,6 +26,7 @@ import { ROUTE_REASON, type RouteDestination } from "@/lib/routing/routing-engin
 import { SAPA_TEL, UPTD_PPA_TEL } from "@/lib/emergency-contacts";
 import { cn } from "@/lib/utils";
 import { NO_EVIDENCE_SENTINEL, evidenceKind, evidenceLabel } from "@/lib/evidence";
+import { readTranscript } from "@/lib/transcript";
 import { StatusSelect } from "@/components/bk/StatusSelect";
 import { IdentityReveal } from "@/components/bk/IdentityReveal";
 import { TindakLanjutButton } from "@/components/bk/TindakLanjutButton";
@@ -83,6 +85,7 @@ function auditLabel(action: string, metadata: unknown): string {
       return m.assignedToId ? "Petugas ditugaskan" : "Penugasan petugas dilepas";
     case "identity-opened": return "Identitas pelapor dibuka";
     case "evidence-added": return "Lampiran bukti ditambahkan";
+    case "evidence-removed": return "Lampiran bukti dihapus";
     case "evidence-opened": return "Lampiran bukti dibuka";
     default: return action;
   }
@@ -171,6 +174,11 @@ export default async function ReportDetailPage({
     select: { id: true, mimeType: true },
   });
 
+  // Percakapan asli siswa (rev 3b) — konteks di balik narasi. rawTranscript ter-seal
+  // di DB; readTranscript membukanya. Tanggal kejadian pasti opsional dari draf siswa.
+  const transcript = readTranscript(report.rawTranscript);
+  const tanggalKejadian = asStr(draftData.waktu_tanggal);
+
   const urg = URGENCY[report.urgencyLevel ?? "rendah"] ?? URGENCY.rendah;
   // Sinyal follow-up (informatif) — bukan Lindra mengambil alih peran BK
   const noProgress = report.followups.reduce((n, f) => Math.max(n, f.noProgressCount), 0);
@@ -222,9 +230,51 @@ export default async function ReportDetailPage({
         {/* KONTEN UTAMA — kiri 8/12 */}
         <div className="space-y-6 lg:col-span-2">
           <Section title="Narasi laporan" icon={MessageSquare}>
+            {tanggalKejadian && (
+              <p className="mb-3 text-sm text-text-soft">
+                <span className="font-medium text-ink">Tanggal kejadian:</span>{" "}
+                {new Date(`${tanggalKejadian}T00:00:00`).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
             <p className="text-[1.0625rem] leading-[1.7] whitespace-pre-wrap text-text">
               {report.narrative ?? "(belum tersusun)"}
             </p>
+          </Section>
+
+          <Section title="Riwayat percakapan" icon={MessagesSquare}>
+            <p className="mb-3 text-[0.8125rem] text-muted-foreground">
+              Percakapan asli siswa dengan Lindra — untuk memahami konteks di balik narasi.
+              Isi apa adanya, belum dirangkum.
+            </p>
+            {transcript.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Tidak ada percakapan tersimpan.</p>
+            ) : (
+              <details>
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary-ink">
+                  Tampilkan percakapan ({transcript.length} pesan)
+                </summary>
+                <div className="mt-4 space-y-3">
+                  {transcript.map((t, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "rounded-[var(--radius-md)] p-3 text-sm leading-relaxed",
+                        t.role === "user" ? "bg-primary-soft text-ink" : "bg-surface-alt text-text"
+                      )}
+                    >
+                      <p className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-text-soft">
+                        {t.role === "user" ? "Siswa" : "Lindra"}
+                      </p>
+                      <p className="whitespace-pre-wrap">{t.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </Section>
 
           <Section title="Lampiran bukti" icon={Paperclip}>

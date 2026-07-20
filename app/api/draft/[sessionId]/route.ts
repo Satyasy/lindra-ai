@@ -8,6 +8,7 @@ const FIELDS: (keyof StructuredDraft)[] = [
   "gambaran_kejadian",
   "pelaku",
   "waktu",
+  "waktu_tanggal",
   "dampak",
   "lokasi",
   "narasi",
@@ -53,14 +54,15 @@ export async function GET(
     });
   }
 
-  // Blok bukti = kind generik per lampiran (foto/dokumen), TANPA nama/id file.
+  // Blok bukti = { id, kind generik } per lampiran. id dipakai siswa untuk
+  // lihat/hapus dari draf (route /api/evidence/[id]); nama file asli tak pernah keluar.
   // Kosong → frontend render sentinel "Tidak ada bukti dilampirkan".
   const evidences = await prisma.evidence.findMany({
     where: { reportId: sessionId },
     orderBy: { createdAt: "asc" },
-    select: { mimeType: true },
+    select: { id: true, mimeType: true },
   });
-  const evidence = evidences.map((e) => evidenceKind(e.mimeType));
+  const evidence = evidences.map((e) => ({ id: e.id, kind: evidenceKind(e.mimeType) }));
 
   return Response.json(
     { narrative, urgencyLevel, status: report.status, draft, evidence },

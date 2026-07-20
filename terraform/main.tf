@@ -132,6 +132,7 @@ resource "aws_instance" "app" {
     # (IP metadata saat user_data jalan masih IP ephemeral, bukan EIP)
     app_origin = var.app_domain != "" ? "https://${var.app_domain}" : "http://${aws_eip.app.public_ip}"
     app_domain = var.app_domain
+    demo_mode  = var.demo_mode
   })
 
   tags = { Name = "lindra-app" }

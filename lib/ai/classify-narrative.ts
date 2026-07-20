@@ -83,7 +83,8 @@ ATURAN ISI:
 - Isi field null (atau [] untuk array) kalau informasinya BELUM tersedia dari transkrip. JANGAN mengarang, menebak, atau melengkapi yang tidak diceritakan siswa.
 - Kalau dari transkrip terlihat siswa EKSPLISIT menolak menjawab ATAU bilang tidak tahu untuk suatu topik (mis. "gak mau sebut orangnya", "lupa kapan", "gak mau cerita dampaknya"), tulis kalimat "${DECLINED_SENTINEL}" pada field TEKS yang relevan (terlapor.deskripsi, kejadian.waktu, kejadian.deskripsi, dampak.deskripsi, keamanan.deskripsi, bukti.deskripsi, pelapor.relasiDenganKorban, korban.kelas/jenisKelamin) — jangan biarkan null untuk topik yang jelas-jelas ditolak, dan jangan mengarang isinya. Untuk topik yang memang BELUM disinggung sama sekali, tetap null.
 - Kamu TIDAK PERNAH menyimpulkan siapa yang benar/salah. Kamu hanya mencatat apa yang diceritakan siswa.
-- "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai kronologi apa adanya dari sudut siswa, tanpa penilaian salah/benar dan tanpa menambah fakta.
+- "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai kronologi apa adanya dari sudut siswa, tanpa penilaian salah/benar dan tanpa menambah fakta. Susun RUNUT secara kronologis dalam kalimat yang rapi, mengalir, dan mudah dibaca guru BK dalam sekali baca (boleh beberapa kalimat atau paragraf pendek bila ceritanya panjang) — rapikan tata bahasa dari obrolan siswa, tapi JANGAN menghapus fakta yang diceritakan, JANGAN menambah yang tidak diceritakan, dan tetap pola "Siswa menyatakan bahwa...".
+- Untuk field deskripsi naratif (kejadian.deskripsi dan dampak.deskripsi), tuangkan yang diceritakan siswa selengkap yang ada di transkrip dalam kalimat utuh yang mudah dibaca — bukan satu kata, bukan potongan mentah — namun tetap TANPA menambah atau menebak yang tak diceritakan.
 - "cederaFisik": true HANYA bila siswa menyebut ada luka/cedera fisik (lebam, berdarah, sakit, dsb). false bila jelas tak ada. null bila tak disinggung.
 - "sudahBerulang": true bila kejadian disebut terjadi lebih dari sekali. false bila jelas sekali saja. null bila tak jelas.
 - "relasiKuasaTimpang": true bila ada ketimpangan relasi kuasa (mis. kakak kelas ke adik kelas, guru ke siswa, senior ke junior). false bila jelas setara. null bila tak jelas.
@@ -426,6 +427,7 @@ export interface StructuredDraft {
   gambaran_kejadian: string;
   pelaku: string;
   waktu: string;
+  waktu_tanggal: string; // tanggal pasti opsional (date picker siswa) — teks `waktu` tetap sumber nuansa ("kemarin sore/tiap hari"). AI tak pernah mengisi ini.
   dampak: string;
   lokasi: string;
   narasi: string;
@@ -450,6 +452,7 @@ export function toStructuredDraft(draft: ReportDraft): StructuredDraft {
       (draft.terlapor?.perpetratorRole ? PELAKU_LABEL[draft.terlapor.perpetratorRole] : "") ??
       "",
     waktu: draft.kejadian?.waktu ?? "",
+    waktu_tanggal: "", // hanya diisi siswa lewat date picker, bukan hasil ekstraksi AI
     dampak: draft.dampak?.deskripsi ?? "",
     lokasi: draft.kejadian?.locationCategory ? LOKASI_LABEL[draft.kejadian.locationCategory] : "",
     narasi: draft.narrativeSummary,

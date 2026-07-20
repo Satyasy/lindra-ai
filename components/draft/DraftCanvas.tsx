@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
+  CalendarDays,
   Check,
   Clock,
   FileText,
@@ -21,15 +22,21 @@ export type StructuredDraft = {
   gambaran_kejadian: string;
   pelaku: string;
   waktu: string;
+  waktu_tanggal: string; // tanggal pasti opsional (date picker) — teks `waktu` tetap simpan nuansa
   dampak: string;
   lokasi: string;
   narasi: string;
 };
 
 // Rincian singkat (input pendek) — narasi ditangani terpisah di bawah.
-const DETAIL_FIELDS: { key: keyof StructuredDraft; label: string; icon: LucideIcon; area?: boolean }[] = [
+const DETAIL_FIELDS: { key: keyof StructuredDraft; label: string; icon: LucideIcon; area?: boolean; hint?: string }[] = [
   { key: "gambaran_kejadian", label: "Apa yang terjadi", icon: MessageSquareText, area: true },
-  { key: "pelaku", label: "Siapa yang terlibat", icon: User },
+  {
+    key: "pelaku",
+    label: "Siapa yang terlibat",
+    icon: User,
+    hint: "Kalau kamu sudah siap, boleh tulis namanya — ini membantu guru BK menindaklanjuti. Tetap boleh dikosongkan kalau belum mau.",
+  },
   { key: "waktu", label: "Kapan", icon: Clock },
   { key: "lokasi", label: "Di mana", icon: MapPin },
   { key: "dampak", label: "Dampaknya ke kamu", icon: Activity, area: true },
@@ -117,7 +124,7 @@ export function DraftCanvas({
           {/* Rincian singkat — tiap section muncul bertahap (stagger 150ms) */}
           <div className="space-y-5">
             <p className="text-[0.75rem] font-semibold uppercase tracking-wide text-text-muted">Rincian</p>
-            {DETAIL_FIELDS.map(({ key, label, icon: Icon, area }, i) => (
+            {DETAIL_FIELDS.map(({ key, label, icon: Icon, area, hint }, i) => (
               <div
                 key={key}
                 className="section-stagger space-y-1.5"
@@ -148,14 +155,40 @@ export function DraftCanvas({
                     className={`${fieldClass} min-h-11`}
                   />
                 )}
+                {hint && <p className="text-[0.75rem] leading-snug text-text-soft">{hint}</p>}
               </div>
             ))}
+
+            {/* Tanggal pasti opsional — teks "Kapan" tetap menyimpan nuansa samar/berulang
+                dari chat. Native <input type=date>, default kosong (tanggal kejadian ≠ hari ini). */}
+            <div
+              className="section-stagger space-y-1.5"
+              style={{ ["--i" as string]: DETAIL_FIELDS.length } as React.CSSProperties}
+            >
+              <label
+                htmlFor="draft-waktu_tanggal"
+                className="flex items-center gap-1.5 text-[0.875rem] font-medium text-ink"
+              >
+                <CalendarDays className="size-4 text-text-muted" strokeWidth={2} aria-hidden />
+                Tanggal kejadian (opsional)
+              </label>
+              <input
+                id="draft-waktu_tanggal"
+                type="date"
+                value={draft.waktu_tanggal ?? ""}
+                onChange={(e) => set("waktu_tanggal", e.target.value)}
+                className={`${fieldClass} min-h-11`}
+              />
+              <p className="text-[0.75rem] leading-snug text-text-soft">
+                Kalau kamu ingat tanggal pastinya, pilih di sini. Kalau tidak, biarkan kosong — cukup ceritakan di kolom &ldquo;Kapan&rdquo;.
+              </p>
+            </div>
           </div>
 
           {/* Narasi = teks yang dikirim ke BK — dibedakan dgn tint surface-alt */}
           <div
             className="section-stagger mt-7 space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface-alt p-4"
-            style={{ ["--i" as string]: DETAIL_FIELDS.length } as React.CSSProperties}
+            style={{ ["--i" as string]: DETAIL_FIELDS.length + 1 } as React.CSSProperties}
           >
             <label htmlFor="draft-narasi" className="block text-[0.875rem] font-semibold text-ink">
               Narasi laporan
