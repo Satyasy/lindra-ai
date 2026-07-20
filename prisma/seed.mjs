@@ -63,66 +63,8 @@ const REPORTS = [
     narrative: "Siswa menyatakan bahwa ia takut berangkat sekolah dan lebih sering menyendiri agar tidak jadi sasaran.",
     chat: [["staff", "kita jadwalkan ngobrol ya, kamu pilih waktunya."], ["student", "boleh kak, makasih."]] },
 
-  { id: "seed-b04", code: "DUMMY-04", urgency: "tinggi", status: "ditinjau", handling: "eskalasi-hukum", assign: BIMA,
-    at: "2026-07-07T05:44:00+07:00",
-    narrative: "Siswa menyatakan bahwa ia ingin membuat laporan agar pihak sekolah dapat membantu menyelesaikan masalah yang dialaminya." },
-
-  { id: "seed-b05", code: "DUMMY-05", urgency: "sedang", status: "terkirim", handling: "belum-diassign", assign: null,
-    at: "2026-07-06T16:20:00+07:00",
-    narrative: "Siswa merasa tidak nyaman dengan perkataan teman yang merendahkan dirinya di depan umum." },
-
-  { id: "seed-b06", code: "DUMMY-06", urgency: "tinggi", status: "terkirim", handling: "belum-diassign", assign: null,
-    at: "2026-07-06T14:10:00+07:00",
-    narrative: "Siswa menyatakan bahwa ia berkali-kali dipaksa menyerahkan uang jajannya oleh kakak kelas di kamar mandi sekolah." },
-
-  { id: "seed-b07", code: "DUMMY-07", urgency: "rendah", status: "terkirim", handling: "belum-diassign", assign: null,
-    at: "2026-07-06T10:05:00+07:00",
-    narrative: "Siswa merasa sering dikucilkan dari kelompok belajar dan tidak diajak bicara oleh teman-teman sekelas." },
-
-  { id: "seed-b08", code: "DUMMY-08", urgency: "sedang", status: "ditinjau", handling: "dijadwalkan", assign: RINA,
-    at: "2026-07-05T13:30:00+07:00",
-    narrative: "Siswa menyatakan bahwa foto dirinya yang memalukan disebarkan di grup angkatan tanpa izin." },
-
-  { id: "seed-b09", code: "DUMMY-09", urgency: "kritis", status: "terkirim", handling: "belum-diassign", assign: null,
-    at: "2026-07-05T08:15:00+07:00",
-    narrative: "Siswa menyatakan bahwa ia diancam akan dipukul sepulang sekolah kalau melapor ke guru.",
-    chat: [["student", "kak, aku beneran takut pulang sendiri hari ini."]] },
-
-  { id: "seed-b10", code: "DUMMY-10", urgency: "rendah", status: "terkirim", handling: "belum-diassign", assign: null,
-    at: "2026-07-04T15:40:00+07:00",
-    narrative: "Siswa merasa sering menjadi bahan ejekan teman soal logat dan cara bicaranya." },
-
-  { id: "seed-b11", code: "DUMMY-11", urgency: "tinggi", status: "ditinjau", handling: "investigasi", assign: SARI,
-    at: "2026-07-04T09:20:00+07:00",
-    narrative: "Siswa menyatakan bahwa barang-barangnya sering disembunyikan dan sengaja dirusak oleh beberapa teman." },
-
-  // ── Selesai (Riwayat Selesai) ──
-  { id: "seed-b12", code: "DUMMY-12", urgency: "sedang", status: "selesai", handling: "selesai", assign: RINA,
-    at: "2026-07-02T11:00:00+07:00",
-    narrative: "Cekcok antar teman yang sempat memanas; sudah dimediasi dan kedua pihak berdamai." },
-
-  { id: "seed-b13", code: "DUMMY-13", urgency: "rendah", status: "selesai", handling: "selesai", assign: null,
-    at: "2026-07-01T16:45:00+07:00",
-    narrative: "Salah paham di grup chat kelas; sudah diklarifikasi dan tidak berlanjut." },
-
-  { id: "seed-b14", code: "DUMMY-14", urgency: "tinggi", status: "selesai", handling: "selesai", assign: BIMA,
-    at: "2026-06-30T10:30:00+07:00",
-    narrative: "Intimidasi berulang oleh senior; sudah ditindaklanjuti dan pelaku dibina bersama wali kelas." },
-
-  { id: "seed-b15", code: "DUMMY-15", urgency: "sedang", status: "selesai", handling: "selesai", assign: SARI,
-    at: "2026-06-29T13:15:00+07:00",
-    narrative: "Ejekan soal penampilan fisik; sudah dilakukan pembinaan dan pemantauan berkala." },
-
-  // ── UJI KEAMANAN — TAK BOLEH muncul di antrean BK ──
-  { id: "seed-r3", code: "SEC-GURU", destination: "satgas-eksternal", perpetratorRole: "guru-staf",
-    urgency: "tinggi", status: "ditinjau", handling: "belum-diassign", assign: null, urgentVisum: true,
-    violenceType: ["seksual"], at: "2026-07-07T09:00:00+07:00",
-    narrative: "Siswa menyatakan bahwa seorang guru memintanya bertemu berdua lalu melakukan hal yang membuatnya sangat tidak nyaman. [PENANDA-GURU-STAF]" },
-
-  { id: "seed-r4", code: "SEC-ORTU", destination: "sapa129", perpetratorRole: "orangtua-wali",
-    urgency: "tinggi", status: "terkirim", handling: "belum-diassign", assign: null,
-    violenceType: ["fisik"], at: "2026-07-06T20:00:00+07:00",
-    narrative: "Siswa menyatakan bahwa ia sering dipukul di rumah oleh walinya saat nilainya turun. [PENANDA-ORTU-WALI]" },
+  // ponytail: dummy BK dikurangi jadi 3 (kritis/tinggi/sedang). Skenario guru-staf/
+  // orangtua-wali (routing ke satgas/sapa129) dites live, bukan dari seed.
 ];
 
 for (const r of REPORTS) {

@@ -83,10 +83,10 @@ ATURAN ISI:
 - Isi field null (atau [] untuk array) kalau informasinya BELUM tersedia dari transkrip. JANGAN mengarang, menebak, atau melengkapi yang tidak diceritakan siswa.
 - Kalau dari transkrip terlihat siswa EKSPLISIT menolak menjawab ATAU bilang tidak tahu untuk suatu topik (mis. "gak mau sebut orangnya", "lupa kapan", "gak mau cerita dampaknya"), tulis kalimat "${DECLINED_SENTINEL}" pada field TEKS yang relevan (terlapor.deskripsi, kejadian.waktu, kejadian.deskripsi, dampak.deskripsi, keamanan.deskripsi, bukti.deskripsi, pelapor.relasiDenganKorban, korban.kelas/jenisKelamin) — jangan biarkan null untuk topik yang jelas-jelas ditolak, dan jangan mengarang isinya. Untuk topik yang memang BELUM disinggung sama sekali, tetap null.
 - Kamu TIDAK PERNAH menyimpulkan siapa yang benar/salah. Kamu hanya mencatat apa yang diceritakan siswa.
-- "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai kronologi apa adanya dari sudut siswa, tanpa penilaian salah/benar dan tanpa menambah fakta. Susun RUNUT secara kronologis dalam kalimat yang rapi, mengalir, dan mudah dibaca guru BK dalam sekali baca (boleh beberapa kalimat atau paragraf pendek bila ceritanya panjang) — rapikan tata bahasa dari obrolan siswa, tapi JANGAN menghapus fakta yang diceritakan, JANGAN menambah yang tidak diceritakan, dan tetap pola "Siswa menyatakan bahwa...".
-- Untuk field deskripsi naratif (kejadian.deskripsi dan dampak.deskripsi), tuangkan yang diceritakan siswa selengkap yang ada di transkrip dalam kalimat utuh yang mudah dibaca — bukan satu kata, bukan potongan mentah — namun tetap TANPA menambah atau menebak yang tak diceritakan.
+- "narrativeSummary" ditulis dalam pola "Siswa menyatakan bahwa..." — merangkai ULANG kronologi HANYA dari apa yang benar-benar diucapkan siswa, memakai kata & kerangka siswa sendiri, tanpa penilaian salah/benar. Boleh merapikan tata bahasa & menyusunnya runut agar mudah dibaca guru BK, TAPI: (a) JANGAN menambah fakta, sebab, atau detail apa pun yang tak diucapkan siswa; (b) DILARANG menyinggung SEBERAPA SERING kejadian terjadi — jangan pernah menulis "hanya sekali", "baru sekali", "sekali-kali", "berulang", "sering", dsb — KECUALI siswa sendiri yang menyebut frekuensinya; (c) DILARANG memberi label jenis kejadian yang tak diucapkan siswa (mis. menulis "pemalakan", "perundungan", "bullying"/"dibully"/"nge-bully", "penganiayaan", "pemerasan" padahal siswa tak menyebut istilah/maknanya); (d) DILARANG mengganti kata kerja/istilah siswa dengan sinonim yang MENGGESER atau MENAMBAH makna — kalau siswa bilang "nyerobot antrian" tulis "menyerobot antrian" (BUKAN "mencuri", "pemalsuan", "curang"), kalau bilang "negur" tulis "menegur" (BUKAN "membela diri"). Pakai apa adanya dari cerita siswa. Setia & ringkas lebih penting daripada panjang/lengkap.
+- Untuk field deskripsi (kejadian.deskripsi, dampak.deskripsi): tulis dalam kalimat utuh yang mudah dibaca, TAPI hanya memuat yang siswa ceritakan — jangan melengkapi, menebak sebab, menambah kata sifat, atau memberi label yang tak diucapkan. Kalau detailnya sedikit, biarkan singkat; lebih baik kurang daripada mengarang.
 - "cederaFisik": true HANYA bila siswa menyebut ada luka/cedera fisik (lebam, berdarah, sakit, dsb). false bila jelas tak ada. null bila tak disinggung.
-- "sudahBerulang": true bila kejadian disebut terjadi lebih dari sekali. false bila jelas sekali saja. null bila tak jelas.
+- "sudahBerulang": true HANYA bila siswa menyebut kejadian terjadi lebih dari sekali. false HANYA bila siswa EKSPLISIT bilang cuma sekali / belum pernah sebelumnya. Menceritakan satu kejadian tanpa menyebut frekuensi = null (JANGAN dianggap false).
 - "relasiKuasaTimpang": true bila ada ketimpangan relasi kuasa (mis. kakak kelas ke adik kelas, guru ke siswa, senior ke junior). false bila jelas setara. null bila tak jelas.
 
 TAKSONOMI violenceType (Permendikbudristek 46/2023 Pasal 6 & 8 — pakai PERSIS kode ini, jangan bikin kategori sendiri):
@@ -444,16 +444,20 @@ const PELAKU_LABEL: Record<string, string> = {
   "orangtua-wali": "Orang tua / wali",
 };
 
+// Kapitalkan huruf pertama field bebas (estetika draf — siswa mengetik huruf kecil).
+const capFirst = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+
 export function toStructuredDraft(draft: ReportDraft): StructuredDraft {
   return {
-    gambaran_kejadian: draft.kejadian?.deskripsi ?? "",
-    pelaku:
+    gambaran_kejadian: capFirst(draft.kejadian?.deskripsi ?? ""),
+    pelaku: capFirst(
       draft.terlapor?.deskripsi ??
-      (draft.terlapor?.perpetratorRole ? PELAKU_LABEL[draft.terlapor.perpetratorRole] : "") ??
-      "",
-    waktu: draft.kejadian?.waktu ?? "",
+        (draft.terlapor?.perpetratorRole ? PELAKU_LABEL[draft.terlapor.perpetratorRole] : "") ??
+        ""
+    ),
+    waktu: capFirst(draft.kejadian?.waktu ?? ""),
     waktu_tanggal: "", // hanya diisi siswa lewat date picker, bukan hasil ekstraksi AI
-    dampak: draft.dampak?.deskripsi ?? "",
+    dampak: capFirst(draft.dampak?.deskripsi ?? ""),
     lokasi: draft.kejadian?.locationCategory ? LOKASI_LABEL[draft.kejadian.locationCategory] : "",
     narasi: draft.narrativeSummary,
   };

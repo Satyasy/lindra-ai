@@ -94,6 +94,37 @@ const EXAMPLES: { transcript: string; output: ReportDraft }[] = [
         "Siswa menyatakan bahwa saat jam kosong ia ditampar oleh seorang teman sekelas setelah terjadi cekcok mengenai contekan. Siswa menyatakan kejadian ini baru terjadi sekali dan biasanya hubungan mereka baik-baik saja.",
     },
   },
+
+  // Contoh 4 — KESETIAAN pada kata siswa. "nyerobot antri" tetap "menyerobot antrian"
+  // (BUKAN "mencuri"/"pemalsuan"/"dibully"); frekuensi TAK disebut → sudahBerulang null
+  // & narasi TANPA kata "sekali"/"berulang"; "negur" tetap "menegur" (bukan "membela diri").
+  {
+    transcript:
+      "user: kemarin pas istirahat di kelas, temen sekelasku nyerobot antrian pas mau jajan, aku negur, eh dia malah marah balik terus mukul aku\nuser: sekarang aman sih tapi masih kesel sama takut, aku sendiri yang ngalamin, kelas 8",
+    output: {
+      pelapor: { relasiDenganKorban: "korban sendiri" },
+      korban: { kelas: "8", jenisKelamin: null },
+      terlapor: { perpetratorRole: "siswa", deskripsi: "teman sekelas yang menyerobot antrian" },
+      kejadian: {
+        locationCategory: "dalam-sekolah",
+        waktu: "kemarin saat jam istirahat",
+        deskripsi: "dipukul oleh teman sekelas setelah menegur temannya yang menyerobot antrian saat hendak jajan",
+      },
+      klasifikasi: { violenceType: ["kekerasan-fisik"] },
+      bukti: { adaBukti: null, deskripsi: null },
+      dampak: { deskripsi: "masih merasa kesal dan takut" },
+      keamanan: { adaBahayaLangsung: false, deskripsi: "sekarang merasa aman" },
+      cederaFisik: null,
+      sudahBerulang: null,
+      relasiKuasaTimpang: null,
+      urgencyLevel: "sedang",
+      perpetratorRole: "siswa",
+      locationCategory: "dalam-sekolah",
+      violenceType: ["kekerasan-fisik"],
+      narrativeSummary:
+        "Siswa menyatakan bahwa kemarin saat jam istirahat di kelas, seorang teman sekelasnya menyerobot antrian ketika hendak jajan. Siswa menegur temannya, tetapi temannya justru marah dan memukulnya. Siswa menyatakan sekarang merasa aman namun masih kesal dan takut, dan bahwa ia sendiri yang mengalaminya.",
+    },
+  },
 ];
 
 export const TIER2_FEWSHOT: ChatMessage[] = EXAMPLES.flatMap(({ transcript, output }) => [
