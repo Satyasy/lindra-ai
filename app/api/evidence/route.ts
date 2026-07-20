@@ -17,6 +17,23 @@ const ALLOWED: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
+// Cocokkan beberapa byte awal dengan MIME yang diklaim (whitelist di ALLOWED).
+function magicBytesMatch(buf: Buffer, mime: string): boolean {
+  const b = buf;
+  switch (mime) {
+    case "image/jpeg":
+      return b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+    case "image/png":
+      return b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+    case "image/webp": // "RIFF"...."WEBP"
+      return b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP";
+    case "application/pdf":
+      return b.toString("ascii", 0, 4) === "%PDF";
+    default:
+      return false;
+  }
+}
+
 export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
@@ -57,6 +74,11 @@ export async function POST(request: Request) {
   // menumpuk di status draft — butuh job/cron pembersih terpisah, di luar scope W4.
   const storedAs = `bukti-${randomUUID()}.${ext}`;
   const data = Buffer.from(await file.arrayBuffer());
+  // file.type dikendalikan klien — verifikasi magic bytes agar "png" yang sebenarnya
+  // HTML/SVG/exe tak lolos. Cocokkan signature dengan MIME yang diklaim.
+  if (!magicBytesMatch(data, file.type)) {
+    return NextResponse.json({ error: "isi file tidak cocok dengan tipenya" }, { status: 415 });
+  }
   const evidence = await prisma.evidence.create({
     data: { reportId: reportId!, filename: storedAs, mimeType: file.type, size: file.size, data },
     select: { id: true },

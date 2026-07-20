@@ -118,6 +118,8 @@ export async function POST(request: Request) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-store",
       Connection: "keep-alive",
+      // nginx (EC2) mem-buffer respons secara default → SSE muncul sekaligus di akhir
+      "X-Accel-Buffering": "no",
     },
   });
 }

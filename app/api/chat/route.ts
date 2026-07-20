@@ -57,6 +57,12 @@ export async function POST(request: Request) {
   if (!isControl && (typeof message !== "string" || !message.trim())) {
     return Response.json({ error: "message wajib diisi" }, { status: 400 });
   }
+  // Batas panjang: pesan masuk transkrip yang dikirim ULANG ke LLM tiap giliran —
+  // pesan raksasa membengkakkan row DB + menembus token limit Groq. 4000 char cukup
+  // untuk cerita panjang sekalipun.
+  if (!isControl && (message as string).length > 4000) {
+    return Response.json({ error: "pesan terlalu panjang" }, { status: 413 });
+  }
 
   // Identitas sesi = cookie httpOnly, bukan input klien (id report dipakai langsung sebagai sesi)
   const cookieStore = await cookies();
@@ -199,6 +205,8 @@ export async function POST(request: Request) {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-store",
     Connection: "keep-alive",
+    // nginx (EC2) mem-buffer respons secara default → SSE muncul sekaligus di akhir
+    "X-Accel-Buffering": "no",
   });
   if (isNew) {
     const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";

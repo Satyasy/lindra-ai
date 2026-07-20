@@ -10,6 +10,13 @@ const MAX_BYTES = 25 * 1024 * 1024; // limit Groq Whisper
 // Proxy STT ke Groq Whisper. Audio hidup hanya selama request ini — tak pernah ditulis
 // ke disk/DB (prinsip privasi trauma-informed). Key free-tier terpisah dari 3 key AI.
 export async function POST(request: Request) {
+  // Tolak lewat Content-Length SEBELUM mem-buffer body ke memori. formData() di bawah
+  // mengalokasi seluruh body dulu; tanpa guard ini, body 500MB berulang = OOM container.
+  // (nginx client_max_body_size juga menolak di edge; ini pertahanan berlapis di app.)
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BYTES + 1024 * 1024) {
+    return NextResponse.json({ error: "rekaman terlalu besar (maks 25MB)" }, { status: 413 });
+  }
   // Validasi audio dulu (murah, tanpa DB) — tolak input jelas-jelas buruk sebelum apa pun.
   const form = await request.formData().catch(() => null);
   const audio = form?.get("audio");

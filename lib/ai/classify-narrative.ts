@@ -8,6 +8,18 @@
 import { groqChat, type ChatMessage } from "./groq-client";
 import { TIER2_FEWSHOT } from "./prompts/tier2-fewshot";
 
+// Taksonomi resmi (Permendikbudristek 46/2023) — satu-satunya nilai violenceType
+// yang boleh masuk DB. Harus sinkron dengan prompt TAKSONOMI di bawah.
+const VIOLENCE_TYPES = [
+  "kekerasan-fisik",
+  "kekerasan-psikis",
+  "perundungan",
+  "kekerasan-seksual",
+  "diskriminasi-intoleransi",
+  "kebijakan-kekerasan",
+  "lainnya",
+] as const;
+
 export interface TranscriptTurn {
   role: "user" | "assistant";
   content: string;
@@ -144,7 +156,14 @@ function coerceDraft(raw: unknown, transcript: TranscriptTurn[]): ReportDraft {
     ...base,
     ...(o as Partial<ReportDraft>),
     urgencyLevel: urgency,
-    violenceType: Array.isArray(o.violenceType) ? (o.violenceType as string[]) : [],
+    // Saring ke kode taksonomi resmi (Permendikbudristek 46/2023). Tanpa ini, elemen
+    // non-string (mis. `[{...}]` dari injection) meledakkan kolom String[] Prisma di
+    // dalam ReadableStream tanpa try/catch, dan string karangan lolos tampil ke BK.
+    violenceType: Array.isArray(o.violenceType)
+      ? (o.violenceType.filter(
+          (v): v is string => typeof v === "string" && (VIOLENCE_TYPES as readonly string[]).includes(v)
+        ))
+      : [],
     // Input routing engine (lib/routing/routing-engine.ts) — di luar enum → null.
     perpetratorRole: asEnum(o.perpetratorRole, ["siswa", "guru-staf", "orangtua-wali"] as const),
     locationCategory: asEnum(o.locationCategory, ["dalam-sekolah", "lintas-sekolah"] as const),
