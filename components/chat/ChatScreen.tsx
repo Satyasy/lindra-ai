@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCheck, FileText, Send, Smile } from "lucide-react";
+import { CheckCheck, FileText, RotateCcw, Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmergencyBar } from "@/components/EmergencyBar";
 import { MicButton } from "@/components/chat/MicButton";
@@ -144,6 +144,9 @@ export function ChatScreen({
   const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  // Pesan gagal terkirim (sambungan error) — disimpan agar bisa dikirim ULANG lewat
+  // tombol, tanpa siswa mengetik ulang (temuan #5). null = tak ada error.
+  const [failed, setFailed] = useState<{ text: string; panic: boolean; control?: "resolve-evidence" } | null>(null);
   const [phase, setPhase] = useState<Phase>(resumed ? "gathering" : "opening");
   const [infoMode, setInfoMode] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
@@ -196,12 +199,14 @@ export function ChatScreen({
   }
 
   // control "resolve-evidence" (W3): sinyal tanpa pesan/bubble siswa — buka gate draf.
-  async function send(text: string, panic = false, control?: "resolve-evidence") {
+  async function send(text: string, panic = false, control?: "resolve-evidence", retry = false) {
     if ((!text.trim() && !control) || sending) return;
     markStarted(); // pesan pertama → sidebar mengempis, hero keluar, chat melebar
+    setFailed(null); // kirim baru / kirim ulang → buang state error lama
     setInput("");
     setSending(true);
-    if (!control) setMessages((m) => [...m, { role: "user", content: text, ts: Date.now() }]);
+    // retry: bubble siswa sudah ada dari percobaan yang gagal — jangan digandakan.
+    if (!control && !retry) setMessages((m) => [...m, { role: "user", content: text, ts: Date.now() }]);
 
     const reduce = prefersReducedMotion();
     // Pengali jeda dari bobot emosional pesan siswa (dirasakan, tak terlihat).
@@ -281,10 +286,9 @@ export function ChatScreen({
         if (streamDone) break;
       }
     } catch {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: "maaf, sambungannya lagi bermasalah. coba kirim lagi ya.", ts: Date.now() },
-      ]);
+      // Sambungan putus → simpan pesan gagal supaya bisa dikirim ulang lewat tombol
+      // (siswa tak perlu mengetik ulang). Tombol "Coba lagi" muncul di bawah thread.
+      setFailed({ text, panic, control });
     } finally {
       setSending(false);
       setPhase((p) => (p === "danger" ? p : "gathering"));
@@ -474,6 +478,24 @@ export function ChatScreen({
               className="min-h-11 rounded-full px-5 font-semibold"
             >
               Buka draf
+            </Button>
+          </div>
+        )}
+        {/* Sambungan error (#5) — muncul HANYA saat pengiriman gagal. Teks tenang &
+            token netral (BUKAN --danger: hiccup koneksi bukan krisis). Kirim ulang
+            pesan tersimpan tanpa siswa mengetik ulang. */}
+        {failed && !sending && (
+          <div className="bubble-in flex flex-wrap items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface-alt px-5 py-4 shadow-[var(--shadow-soft)]">
+            <p className="flex-1 text-sm text-text-soft">
+              Sambungannya lagi bermasalah. Pesanmu tersimpan — coba kirim lagi.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => send(failed.text, failed.panic, failed.control, true)}
+              className="min-h-11 rounded-full px-5 font-semibold"
+            >
+              <RotateCcw className="size-4" strokeWidth={2} aria-hidden />
+              Coba lagi
             </Button>
           </div>
         )}
