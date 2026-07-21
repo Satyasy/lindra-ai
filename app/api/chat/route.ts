@@ -24,7 +24,7 @@ const SESSION_COOKIE = "lindra_session";
 // Panel TIDAK terbuka otomatis; klien menampilkan tombol [Belum]/[Buat Draf] di
 // bawah pesan ini, dan panel baru meluncur saat siswa menekan "Buat Draf".
 const COMPOSE_CONFIRM =
-  "terima kasih sudah cerita sejauh ini. aku rasa aku sudah cukup memahami ceritamu. kalau kamu setuju, aku bisa bantu menyusunnya jadi draf laporan.";
+  "makasih ya udah berani cerita sejauh ini — aku dengerin semua dan aku percaya kamu. kalau kamu udah siap aku bisa bantu rapihin ceritamu jadi draf buat BK, tapi kalau masih mau cerita dulu juga nggak apa-apa, aku di sini.";
 
 // W3 — giliran tepat setelah SEMUA field inti selesai: tanyakan bukti SEKALI, natural.
 // Widget upload muncul di UI setelah pesan ini; jangan menawarkan draf di sini.
