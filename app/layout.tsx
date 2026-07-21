@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { CookieConsent } from "@/components/CookieConsent";
 
 // SELF-HOST (DESIGN.md §1.5) — tanpa CDN font pihak ketiga,
 // kunjungan siswa tidak boleh bocor ke luar
@@ -27,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${generalSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   );
 }

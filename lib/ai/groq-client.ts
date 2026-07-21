@@ -1,59 +1,22 @@
-// Wrapper Groq — kerja infra Revano (bukan prompt).
-// Key 1 (student) untuk percakapan utama, Key 2 (bk) untuk Tier 2 + RAG.
-// Saat 429, failover ke SambaNova (provider berbeda = kuota berbeda; key Groq
-// cadangan lama percuma karena limit dihitung per akun). Lihat Bagian IV.4.2 panduan.
+// Wrapper Groq — SATU API key (plan Developer) untuk semua model LLM. `keyType` hanya
+// memilih MODEL: "student" = 70B untuk percakapan siswa, "bk" = 8B-instant untuk Tier 2
+// + RAG (model beda, key sama). Failover SambaNova dihapus: plan Developer punya limit
+// tinggi sehingga 429 langka, dan tiap pemanggil sudah mendegradasi anggun saat galat.
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const SAMBANOVA_URL = "https://api.sambanova.ai/v1/chat/completions";
 
-// Pilihan model final milik Nabil — ini default sesuai dokumen panduan.
-// Model SambaNova = bobot Llama yang sama (nama katalog beda) supaya perilaku
-// prompt Tier 2 tidak berubah saat failover.
+// Pilihan model final milik Nabil — default sesuai dokumen panduan.
 const MODELS = {
   student: "llama-3.3-70b-versatile",
   bk: "llama-3.1-8b-instant",
 } as const;
 
-// SambaNova mendeprekasi Meta-Llama-3.1-8B-Instruct (410 saat dipanggil) → failover
-// BK dulu diam-diam jatuh ke safeDefault (perpetratorRole null → salah rute!). Pakai
-// 70B yang MASIH ada di katalog SambaNova; lebih berat tapi jalur ini jarang & lebih
-// akurat utk ekstraksi. ponytail: cek `curl /v1/models` kalau SambaNova deprekasi lagi.
-const SAMBANOVA_MODELS = {
-  student: "Meta-Llama-3.3-70B-Instruct",
-  bk: "Meta-Llama-3.3-70B-Instruct",
-} as const;
-
-const KEYS = {
-  student: () => process.env.GROQ_API_KEY_STUDENT,
-  bk: () => process.env.GROQ_API_KEY_BK,
-} as const;
-
-export type GroqKeyType = keyof typeof KEYS;
+export type GroqKeyType = keyof typeof MODELS;
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 // Opsional, non-breaking: mode JSON Groq (format OpenAI). Default undefined = perilaku lama.
 export type ResponseFormat = { type: "json_object" };
-
-async function request(
-  url: string,
-  key: string,
-  model: string,
-  messages: ChatMessage[],
-  stream: boolean,
-  responseFormat?: ResponseFormat
-) {
-  return fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream,
-      ...(responseFormat ? { response_format: responseFormat } : {}),
-    }),
-  });
-}
 
 // Mengembalikan null bila key belum dikonfigurasi (dev tanpa key tetap jalan via fallback pemanggil)
 export async function groqChat(
@@ -62,13 +25,17 @@ export async function groqChat(
   stream = true,
   responseFormat?: ResponseFormat
 ): Promise<Response | null> {
-  const primary = KEYS[keyType]();
-  if (!primary) return null;
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return null;
 
-  let res = await request(GROQ_URL, primary, MODELS[keyType], messages, stream, responseFormat);
-  const snKey = process.env.SAMBANOVA_API_KEY;
-  if (res.status === 429 && snKey) {
-    res = await request(SAMBANOVA_URL, snKey, SAMBANOVA_MODELS[keyType], messages, stream, responseFormat);
-  }
-  return res;
+  return fetch(GROQ_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: MODELS[keyType],
+      messages,
+      stream,
+      ...(responseFormat ? { response_format: responseFormat } : {}),
+    }),
+  });
 }

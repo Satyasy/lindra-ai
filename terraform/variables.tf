@@ -37,6 +37,6 @@ variable "app_secrets" {
   type        = map(string)
   sensitive   = true
   # Kunci yang diharapkan: NEXTAUTH_SECRET, IDENTITY_ENCRYPTION_KEY, CRON_SECRET,
-  # GROQ_API_KEY_STUDENT, GROQ_API_KEY_BK, SAMBANOVA_API_KEY, GROQ_API_KEY_STT,
+  # GROQ_API_KEY (satu key Groq untuk chat + Tier 2 + suara),
   # EMBEDDING_API_KEY, RESEND_API_KEY, FOLLOWUP_EMAIL_FROM
 }

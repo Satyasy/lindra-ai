@@ -8,7 +8,7 @@ const GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 const MAX_BYTES = 25 * 1024 * 1024; // limit Groq Whisper
 
 // Proxy STT ke Groq Whisper. Audio hidup hanya selama request ini — tak pernah ditulis
-// ke disk/DB (prinsip privasi trauma-informed). Key free-tier terpisah dari 3 key AI.
+// ke disk/DB (prinsip privasi trauma-informed). Satu GROQ_API_KEY dipakai bersama chat & Tier 2.
 export async function POST(request: Request) {
   // Tolak lewat Content-Length SEBELUM mem-buffer body ke memori. formData() di bawah
   // mengalokasi seluruh body dulu; tanpa guard ini, body 500MB berulang = OOM container.
@@ -49,9 +49,9 @@ export async function POST(request: Request) {
     });
   }
 
-  const key = process.env.GROQ_API_KEY_STT;
+  const key = process.env.GROQ_API_KEY;
   if (!key) {
-    console.error("[STT] GROQ_API_KEY_STT tidak ter-set");
+    console.error("[STT] GROQ_API_KEY tidak ter-set");
     return NextResponse.json(
       { error: "fitur suara belum aktif, ketik manual dulu ya" },
       { status: 503 }

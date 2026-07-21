@@ -33,7 +33,7 @@ jobs:
             --document-name AWS-RunShellScript \
             --comment "deploy ${{ github.sha }}" \
             --timeout-seconds 1800 \
-            --parameters 'commands=["cd /opt/lindra/app && git pull --ff-only && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build app && docker image prune -f"]' \
+            --parameters 'commands=["cd /opt/lindra/app && git pull --ff-only && bash scripts/refresh-env.sh && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build app && docker image prune -f"]' \
             --query Command.CommandId --output text)
           echo "command: $CMD_ID"
           while :; do
