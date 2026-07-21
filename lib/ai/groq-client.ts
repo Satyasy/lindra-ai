@@ -14,9 +14,13 @@ const MODELS = {
   bk: "llama-3.1-8b-instant",
 } as const;
 
+// SambaNova mendeprekasi Meta-Llama-3.1-8B-Instruct (410 saat dipanggil) → failover
+// BK dulu diam-diam jatuh ke safeDefault (perpetratorRole null → salah rute!). Pakai
+// 70B yang MASIH ada di katalog SambaNova; lebih berat tapi jalur ini jarang & lebih
+// akurat utk ekstraksi. ponytail: cek `curl /v1/models` kalau SambaNova deprekasi lagi.
 const SAMBANOVA_MODELS = {
   student: "Meta-Llama-3.3-70B-Instruct",
-  bk: "Meta-Llama-3.1-8B-Instruct",
+  bk: "Meta-Llama-3.3-70B-Instruct",
 } as const;
 
 const KEYS = {

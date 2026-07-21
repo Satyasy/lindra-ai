@@ -125,6 +125,37 @@ const EXAMPLES: { transcript: string; output: ReportDraft }[] = [
         "Siswa menyatakan bahwa kemarin saat jam istirahat di kelas, seorang teman sekelasnya menyerobot antrian ketika hendak jajan. Siswa menegur temannya, tetapi temannya justru marah dan memukulnya. Siswa menyatakan sekarang merasa aman namun masih kesal dan takut, dan bahwa ia sendiri yang mengalaminya.",
     },
   },
+
+  // Contoh 5 — KOREKSI/RALAT: mula-mula "dipukul" lalu diralat "hampir dipukul, dicegah".
+  // Pakai versi TERAKHIR: cederaFisik=false, narasi "hampir ... tetapi dicegah" (BUKAN
+  // "dipukul"), dan jenis geser ke kekerasan-psikis (ancaman/intimidasi, tanpa kontak fisik).
+  {
+    transcript:
+      "user: kemarin aku dipukul\nuser: kan aku lagi antri jajan di kantin, temenku nyerobot, aku tegur, dia malah marah mau mukul aku\nuser: iya hampir dipukul, tapi keburu dicegah temennya jadi nggak sampai kena\nuser: sekarang aman sih, tapi aku takut ketemu dia lagi, aku sendiri yang ngalamin",
+    output: {
+      pelapor: { relasiDenganKorban: "korban sendiri" },
+      korban: { kelas: null, jenisKelamin: null },
+      terlapor: { perpetratorRole: "siswa", deskripsi: "teman yang menyerobot antrian" },
+      kejadian: {
+        locationCategory: "dalam-sekolah",
+        waktu: "kemarin saat antri jajan di kantin",
+        deskripsi: "hampir dipukul oleh temannya setelah menegur temannya yang menyerobot antrian, tetapi keburu dicegah temannya sehingga tidak sampai terkena",
+      },
+      klasifikasi: { violenceType: ["kekerasan-psikis"] },
+      bukti: { adaBukti: null, deskripsi: null },
+      dampak: { deskripsi: "takut bertemu temannya lagi" },
+      keamanan: { adaBahayaLangsung: false, deskripsi: "sekarang merasa aman" },
+      cederaFisik: false,
+      sudahBerulang: null,
+      relasiKuasaTimpang: null,
+      urgencyLevel: "sedang",
+      perpetratorRole: "siswa",
+      locationCategory: "dalam-sekolah",
+      violenceType: ["kekerasan-psikis"],
+      narrativeSummary:
+        "Siswa menyatakan bahwa kemarin saat antri jajan di kantin, seorang temannya menyerobot antrian. Siswa menegur temannya, tetapi temannya marah dan nyaris memukulnya; menurut siswa pukulan itu keburu dicegah oleh teman yang lain sehingga tidak sampai terkena. Siswa menyatakan sekarang merasa aman namun takut bertemu temannya lagi, dan bahwa ia sendiri yang mengalaminya.",
+    },
+  },
 ];
 
 export const TIER2_FEWSHOT: ChatMessage[] = EXAMPLES.flatMap(({ transcript, output }) => [
