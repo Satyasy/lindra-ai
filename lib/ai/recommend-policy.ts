@@ -40,14 +40,16 @@ const MAX_RESULTS = 5;
 // WAJIB ada: jalur keyword punya rem (MIN_SCORE) dan berani balik kosong, tapi
 // pgvector SELALU mengembalikan top-k. Tanpa lantai ini, narasi yang tidak
 // melanggar apa pun tetap disodori 5 pasal "paling tidak jauh" — persis
-// automation-bias yang harus dihindari. Kalibrasi kalau hasilnya terasa longgar.
-export const MAX_DISTANCE = 0.6;
+// automation-bias yang harus dihindari.
+// Kalibrasi (gemini-embedding-001): kasus jelas "dipukul teman" mendapat pasal
+// relevan pada 0.32–0.39 dan pasal jelas melenceng (presensi/dispensasi) pada
+// ~0.43. Lantai 0.6 lama = cosine sim 0.4 → nyaris tak menyaring apa pun. 0.45
+// (sim ~0.55) mulai membuang yang jelas tak nyambung. TETAP kalibrasi ulang
+// dengan korpus tata tertibmu sendiri — nilai ini dari satu contoh.
+export const MAX_DISTANCE = 0.45;
 
 // Berapa kandidat vector diambil sebelum disaring lantai + difusikan.
 const VECTOR_CANDIDATES = 10;
-
-// Konstanta standar RRF. Meredam dominasi peringkat teratas satu jalur.
-const RRF_K = 60;
 
 // Stopword umum Bahasa Indonesia + kata pola narasi ("siswa menyatakan bahwa...").
 const STOPWORDS = new Set([
@@ -111,28 +113,32 @@ export interface PolicyChunk {
   content: string;
 }
 
-// Fusi dua daftar TERURUT (paling relevan di indeks 0) dengan Reciprocal Rank
-// Fusion: skor = Σ 1/(RRF_K + peringkat). Menggabungkan PERINGKAT, bukan skor —
-// jadi tidak perlu bobot w1/w2, yang mustahil dikalibrasi tanpa data eval karena
-// skala keduanya beda (hitungan kata 0..N vs cosine distance 0..2). Chunk yang
-// muncul di kedua jalur naik dengan sendirinya.
+// Gabung VEKTOR-DULU. Vektor = sinyal relevansi tepercaya: sudah terurut jarak
+// & lolos MAX_DISTANCE, jadi urutannya yang dipakai. Keyword hanya MENAMBAH recall
+// di bawahnya (chunk lolos-ambang yang tak masuk kandidat vektor). Dedup by id,
+// kemunculan pertama menang → posisi vektor menang atas keyword. Dipotong MAX_RESULTS.
 //
-// Murni & tanpa I/O supaya bisa diuji tanpa DB maupun jaringan.
-export function fuse(keywordRanked: PolicyChunk[], vectorRanked: PolicyChunk[]): PolicyChunk[] {
-  const scores = new Map<string, number>();
-  const byId = new Map<string, PolicyChunk>();
-
-  for (const list of [keywordRanked, vectorRanked]) {
-    list.forEach((chunk, rank) => {
-      scores.set(chunk.id, (scores.get(chunk.id) ?? 0) + 1 / (RRF_K + rank));
-      byId.set(chunk.id, chunk);
-    });
+// Menggantikan Reciprocal Rank Fusion lama. RRF memberi bobot SAMA ke keyword, jadi
+// chunk berkosakata-umum yang kebetulan muncul di DUA jalur (mis. "presensi/
+// dispensasi" — berbagi "sekolah/izin/sakit" dengan narasi) terangkat ke atas pasal
+// yang benar-benar cocok makna tapi tak ketangkap keyword ("kekerasan fisik", karena
+// bahasa siswa != bahasa formal aturan). Di rekomendasi pasal, promosi-kosakata-umum
+// itu automation-bias — persis yang harus dihindari modul ini.
+//
+// Murni & tanpa I/O supaya bisa diuji tanpa DB maupun jaringan. Vektor kosong
+// (vendor down / korpus belum di-embed) → hasil = keyword murni (jalur bertahan hidup).
+export function mergeVectorFirst(
+  vectorRanked: PolicyChunk[],
+  keywordRanked: PolicyChunk[]
+): PolicyChunk[] {
+  const seen = new Set<string>();
+  const out: PolicyChunk[] = [];
+  for (const chunk of [...vectorRanked, ...keywordRanked]) {
+    if (seen.has(chunk.id)) continue;
+    seen.add(chunk.id);
+    out.push(chunk);
   }
-
-  return [...scores.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, MAX_RESULTS)
-    .map(([id]) => byId.get(id)!);
+  return out.slice(0, MAX_RESULTS);
 }
 
 // Jalur keyword — tidak berubah dari versi sebelumnya. Ini juga jalur bertahan
@@ -209,7 +215,7 @@ async function retrieve(
     vectorSearch(narrativeSummary, where),
   ]);
 
-  const hits = fuse(keywordHits, vectorHits);
+  const hits = mergeVectorFirst(vectorHits, keywordHits);
   if (hits.length === 0) return []; // kedua jalur kosong — jangan mengarang
 
   return Promise.all(
