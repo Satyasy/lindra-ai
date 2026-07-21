@@ -8,7 +8,7 @@ const encoder = new TextEncoder();
 // Encode satu event SSE.
 export const sse = (data: object) => encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
 
-// Balasan saat GROQ_API_KEY_STUDENT belum diisi — alur tetap demoable tanpa key.
+// Balasan saat GROQ_API_KEY belum diisi — alur tetap demoable tanpa key.
 export const NO_KEY_FALLBACK =
   "aku di sini, dengerin kok. cerita aja pelan-pelan, mulai dari mana pun yang kamu mau.";
 
@@ -16,7 +16,7 @@ export const NO_KEY_FALLBACK =
 // ini rate-limit, bukan AI mogok. Produksi tetap pakai NO_KEY_FALLBACK yang tenang —
 // siswa asli jangan pernah lihat error API (trauma-informed).
 const LIMIT_FALLBACK =
-  "[Demo] Kuota AI Groq sedang habis (rate limit / 429). Tunggu sebentar lalu coba lagi, atau pakai API key Groq yang berbeda untuk tiap slot.";
+  "[Demo] Kuota AI Groq sedang habis (rate limit / 429). Tunggu sebentar lalu coba lagi ya.";
 
 export function buildMessages(sysContent: string, transcript: TranscriptTurn[]): ChatMessage[] {
   return [
@@ -38,7 +38,7 @@ export async function streamChat(
     const demo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
     const fallback = isLimit && demo ? LIMIT_FALLBACK : NO_KEY_FALLBACK;
     if (!groqRes) {
-      console.error("[Lapis2] groqChat return null — GROQ_API_KEY_STUDENT tidak ter-set/kosong");
+      console.error("[Lapis2] groqChat return null — GROQ_API_KEY tidak ter-set/kosong");
     } else if (!groqRes.ok) {
       console.error(`[Lapis2] Groq API gagal — status ${groqRes.status}: ${await groqRes.text()}`);
     } else {

@@ -40,7 +40,7 @@ Prasyarat: Docker Desktop yang sudah berjalan.
    cp .env.example .env
    ```
 
-   Isi minimal ketiga kunci `GROQ_API_KEY_*` agar fitur percakapan berfungsi, dan isi `GROQ_API_KEY_STT` agar tombol suara (voice-to-text) aktif — boleh diisi nilai yang sama dengan kunci lain. Kunci selebihnya boleh dibiarkan kosong untuk demo (email akan dilewati bila `RESEND_API_KEY` kosong).
+   Isi `GROQ_API_KEY` (satu key Groq untuk percakapan, Tier 2, dan suara/voice-to-text) agar fitur AI berfungsi. Kunci selebihnya boleh dibiarkan kosong untuk demo (email akan dilewati bila `RESEND_API_KEY` kosong).
 
 2. Bangun dan jalankan seluruh layanan:
 
@@ -110,10 +110,7 @@ Untuk masuk ke Portal BK (halaman `/bk`), gunakan salah satu akun berikut. Kata 
 | --- | --- | --- |
 | `DATABASE_URL` | ya | Koneksi sebagai peran aplikasi `lindra_app` (tanpa hak ubah/hapus audit_log). |
 | `DIRECT_DATABASE_URL` | ya | Koneksi superuser, hanya dipakai saat migrasi. |
-| `GROQ_API_KEY_STUDENT` | ya | Percakapan utama siswa. |
-| `GROQ_API_KEY_BK` | ya | Klasifikasi lanjutan dan rekomendasi kasus. |
-| `SAMBANOVA_API_KEY` | tidak | Failover otomatis ke SambaNova (model Llama sama) saat Groq kena batas laju (429). Bila kosong, galat 429 diteruskan. |
-| `GROQ_API_KEY_STT` | untuk suara | Transkripsi suara ke teks (voice-to-text). Wajib diisi agar tombol mic berfungsi; boleh sama nilainya dengan kunci lain. Kosongkan hanya bila fitur suara tidak dipakai. |
+| `GROQ_API_KEY` | ya | Satu key Groq (plan Developer) untuk percakapan siswa, klasifikasi Tier 2/rekomendasi kasus, dan transkripsi suara (voice-to-text). |
 | `NEXTAUTH_SECRET` | ya | Kunci penandatangan sesi. |
 | `NEXTAUTH_URL` | ya | URL dasar aplikasi (mis. http://localhost:3000). |
 | `IDENTITY_ENCRYPTION_KEY` | ya | Kunci AES-256-GCM (32 byte hex) untuk enkripsi identitas dan email. |
