@@ -281,24 +281,46 @@ export default async function ReportDetailPage({
             {evidences.length === 0 ? (
               <p className="text-sm text-muted-foreground">{NO_EVIDENCE_SENTINEL}</p>
             ) : (
-              <ul className="space-y-2">
-                {evidences.map((e, i) => (
-                  <li key={e.id}>
-                    <a
-                      href={`/api/bk/evidence/${e.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex min-h-11 items-center gap-2.5 rounded-[var(--radius-md)] border px-3 text-sm font-medium text-primary-ink transition-colors hover:bg-primary-soft"
-                    >
-                      {evidenceKind(e.mimeType) === "foto" ? (
-                        <ImageIcon className="size-4 shrink-0" aria-hidden />
-                      ) : (
-                        <FileText className="size-4 shrink-0" aria-hidden />
-                      )}
-                      {evidenceLabel(e.mimeType, i)}
-                    </a>
-                  </li>
-                ))}
+              <ul className="space-y-3">
+                {evidences.map((e, i) => {
+                  const kind = evidenceKind(e.mimeType);
+                  return (
+                    <li key={e.id} className="rounded-[var(--radius-md)] border p-3">
+                      {/* Preview inline foto/video (route sudah serve inline + nosniff).
+                          preload="none": video baru diunduh saat BK menekan play — halaman
+                          dengan banyak lampiran tak auto-tarik puluhan MB. */}
+                      {kind === "foto" ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`/api/bk/evidence/${e.id}`}
+                          alt={evidenceLabel(e.mimeType, i)}
+                          className="mb-2 max-h-80 w-auto max-w-full rounded-[var(--radius-sm)]"
+                        />
+                      ) : kind === "video" ? (
+                        <video
+                          src={`/api/bk/evidence/${e.id}`}
+                          controls
+                          preload="none"
+                          className="mb-2 max-h-80 w-full rounded-[var(--radius-sm)] bg-ink"
+                        />
+                      ) : null}
+                      <a
+                        href={`/api/bk/evidence/${e.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-h-11 items-center gap-2.5 text-sm font-medium text-primary-ink hover:underline"
+                      >
+                        {kind === "foto" ? (
+                          <ImageIcon className="size-4 shrink-0" aria-hidden />
+                        ) : (
+                          <FileText className="size-4 shrink-0" aria-hidden />
+                        )}
+                        {evidenceLabel(e.mimeType, i)}
+                        {kind === "dokumen" ? " — unduh" : ""}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <p className="mt-3 text-[0.8125rem] text-muted-foreground">
