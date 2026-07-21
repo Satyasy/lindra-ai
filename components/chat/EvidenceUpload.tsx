@@ -1,27 +1,33 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { Check, Loader2, Paperclip, RotateCw, ShieldCheck, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Widget bukti dinamis (W3). Dilepas dari textbox di W1, dipakai lagi di sini sebagai
 // elemen INLINE di dalam thread — nempel ke pesan AI yang menanyakan bukti. Persist
 // selama belum resolved; setelah upload ≥1 file ATAU "lewati" → state "selesai".
-const ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
-const MAX_BYTES = 10 * 1024 * 1024; // cermin batas server (app/api/evidence)
-const MAX_LABEL = "10 MB"; // satu sumber teks batas — dipakai client & pesan 413
+const ACCEPT =
+  "image/jpeg,image/png,image/webp,application/pdf,video/mp4,video/webm,video/quicktime";
+const ALLOWED = new Set(ACCEPT.split(","));
+// cermin batas server (app/api/evidence): foto/PDF 10MB, video 25MB
+const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+const maxFor = (f: File) => (f.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_BYTES);
+const maxLabel = (f: File) => (f.type.startsWith("video/") ? "25 MB" : "10 MB");
 
 type Item = {
   key: number;
   file: File;
   status: "uploading" | "done" | "error";
+  progress?: number; // 0–100 selama uploading (XHR onprogress)
   error?: string; // pesan dari server (mis. 413) — menang atas clientError
 };
 
 function clientError(file: File): string | null {
   if (!ALLOWED.has(file.type)) return "tipe tidak didukung";
-  if (file.size === 0 || file.size > MAX_BYTES) return `terlalu besar — maks ${MAX_LABEL}`;
+  if (file.size === 0 || file.size > maxFor(file)) return `terlalu besar — maks ${maxLabel(file)}`;
   return null;
 }
 
@@ -41,22 +47,34 @@ export function EvidenceUpload({
   const uploaded = items.filter((i) => i.status === "done");
   const canContinue = uploaded.length > 0;
 
-  const patch = (key: number, s: Item["status"], error?: string) =>
-    setItems((list) => list.map((i) => (i.key === key ? { ...i, status: s, error } : i)));
+  const patch = (key: number, p: Partial<Item>) =>
+    setItems((list) => list.map((i) => (i.key === key ? { ...i, ...p } : i)));
 
-  async function upload(item: Item) {
-    patch(item.key, "uploading");
-    try {
-      const body = new FormData();
-      body.append("file", item.file);
-      const res = await fetch("/api/evidence", { method: "POST", body });
-      if (res.ok) return patch(item.key, "done");
+  function upload(item: Item) {
+    patch(item.key, { status: "uploading", progress: 0, error: undefined });
+    // XHR (bukan fetch) — fetch tak punya progress upload; video 25MB tanpa progress
+    // terasa menggantung. onprogress → persentase + bar terpantau.
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/evidence");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) patch(item.key, { progress: Math.round((e.loaded / e.total) * 100) });
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        toast.success("Bukti berhasil terlampir");
+        return patch(item.key, { status: "done" });
+      }
       // 413 dari app ATAU proxy (body limit) → sebut batas ukuran dengan jelas,
       // bukan "gagal" generik. Status lain: pesan retryable.
-      patch(item.key, "error", res.status === 413 ? `terlalu besar — maks ${MAX_LABEL}` : "gagal, coba lagi");
-    } catch {
-      patch(item.key, "error", "gagal, coba lagi");
-    }
+      patch(item.key, {
+        status: "error",
+        error: xhr.status === 413 ? `terlalu besar — maks ${maxLabel(item.file)}` : "gagal, coba lagi",
+      });
+    };
+    xhr.onerror = () => patch(item.key, { status: "error", error: "gagal, coba lagi" });
+    const body = new FormData();
+    body.append("file", item.file);
+    xhr.send(body);
   }
 
   function pick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -128,10 +146,20 @@ export function EvidenceUpload({
               ) : (
                 <TriangleAlert className="size-3.5 shrink-0 text-danger-deep" aria-hidden />
               )}
-              <span className="min-w-0 flex-1 truncate">{i.file.name}</span>
+              <span className="min-w-0 flex-1 truncate">
+                {i.file.name}
+                {i.status === "uploading" && (
+                  <span className="mt-1 block h-1 overflow-hidden rounded-full bg-border" aria-hidden>
+                    <span
+                      className="block h-full rounded-full bg-primary-deep transition-[width] duration-200"
+                      style={{ width: `${i.progress ?? 0}%` }}
+                    />
+                  </span>
+                )}
+              </span>
               <span className="shrink-0 text-xs text-text-muted">
                 {i.status === "uploading"
-                  ? "mengunggah…"
+                  ? `mengunggah… ${i.progress ?? 0}%`
                   : i.status === "done"
                     ? "terlampir"
                     : i.error ?? clientError(i.file) ?? "gagal"}

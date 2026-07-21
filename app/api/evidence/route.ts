@@ -6,15 +6,23 @@ import { logAction } from "@/lib/audit/log-action";
 
 const SESSION_COOKIE = "lindra_session";
 
-// Batas kepercayaan: hanya foto/PDF, maksimal 10MB. Bukti bisa berisi wajah minor —
+// Batas kepercayaan: foto/PDF 10MB, video 25MB (pas di bawah nginx client_max_body_size
+// 26m — jangan naikkan tanpa menaikkan nginx). Bukti bisa berisi wajah minor —
 // jangan longgar soal tipe/ukuran. Validasi ini WAJIB di server; validasi klien cuma UX.
+// Video disimpan APA ADANYA (tanpa transcode/kompresi): re-encode mengubah barang bukti
+// (bisa berujung visum/hukum) dan ffmpeg membekukan t4g.medium yang dipakai bareng app+db.
+// ponytail: bytea di Postgres — pindah ke disk/S3 bila total evidence > beberapa GB.
 const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
 // mime → ekstensi untuk identifier internal yang disanitize (nama asli siswa dibuang).
 const ALLOWED: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "application/pdf": "pdf",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov", // iPhone merekam .mov — wajib didukung
 };
 
 // Cocokkan beberapa byte awal dengan MIME yang diklaim (whitelist di ALLOWED).
@@ -29,6 +37,11 @@ function magicBytesMatch(buf: Buffer, mime: string): boolean {
       return b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP";
     case "application/pdf":
       return b.toString("ascii", 0, 4) === "%PDF";
+    case "video/mp4":
+    case "video/quicktime": // container ISO-BMFF: [4-byte size]"ftyp" di offset 4
+      return b.toString("ascii", 4, 8) === "ftyp";
+    case "video/webm": // header EBML
+      return b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3;
     default:
       return false;
   }
@@ -47,8 +60,12 @@ export async function POST(request: Request) {
       { status: 415 }
     );
   }
-  if (file.size === 0 || file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "ukuran file maksimal 10MB" }, { status: 413 });
+  const maxBytes = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_BYTES;
+  if (file.size === 0 || file.size > maxBytes) {
+    return NextResponse.json(
+      { error: `ukuran file maksimal ${maxBytes / 1024 / 1024}MB` },
+      { status: 413 }
+    );
   }
 
   // Sesi = cookie httpOnly, sama seperti /api/chat. Buat report kalau bukti dilampirkan

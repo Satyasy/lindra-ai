@@ -7,9 +7,10 @@
 
 export const NO_EVIDENCE_SENTINEL = "Tidak ada bukti dilampirkan";
 
-export type EvidenceKind = "foto" | "dokumen";
+export type EvidenceKind = "foto" | "video" | "dokumen";
 
 export function evidenceKind(mimeType: string): EvidenceKind {
+  if (mimeType.startsWith("video/")) return "video";
   return mimeType.startsWith("image/") ? "foto" : "dokumen";
 }
 

@@ -27,11 +27,14 @@ export async function GET(
     evidenceId: evidence.id,
   });
 
+  // Preview inline HANYA untuk foto/video (magic-bytes sudah diverifikasi saat upload,
+  // + nosniff). PDF tetap attachment — viewer PDF permukaan serangan lebih luas.
+  const inline = /^(image|video)\//.test(evidence.mimeType);
   // filename sudah disanitize sejak W3 ("bukti-<uuid>.ext") — aman jadi nama unduhan.
   return new Response(new Uint8Array(evidence.data), {
     headers: {
       "Content-Type": evidence.mimeType,
-      "Content-Disposition": `attachment; filename="${evidence.filename}"`,
+      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${evidence.filename}"`,
       "Cache-Control": "no-store",
       // Cegah MIME-sniffing browser me-render file "png" yang isinya HTML/script.
       "X-Content-Type-Options": "nosniff",
