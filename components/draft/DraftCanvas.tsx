@@ -57,6 +57,8 @@ export function DraftCanvas({
   const router = useRouter();
   const [draft, setDraft] = useState<StructuredDraft>(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  // Kode HTTP kegagalan terakhir — 409/403 punya pesan & aksi khusus (bukan "coba lagi").
+  const [errCode, setErrCode] = useState<number | null>(null);
 
   const set = (key: keyof StructuredDraft, value: string) => {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -65,16 +67,25 @@ export function DraftCanvas({
 
   async function save(): Promise<boolean> {
     setStatus("saving");
+    setErrCode(null);
     try {
       const res = await fetch(`/api/draft/${sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ draft }),
       });
-      if (!res.ok) throw new Error();
-      setStatus("saved");
-      return true;
+      if (res.ok) {
+        setStatus("saved");
+        return true;
+      }
+      // 409: laporan sudah terkirim (mis. dari tab lain). 403: cookie sesi tak
+      // cocok/hilang (sudah kirim sebelumnya, atau browser di-restart dan cookie
+      // sesi lenyap). Dua-duanya BUKAN "coba lagi" — beri jalan keluar di footer.
+      setErrCode(res.status);
+      setStatus("error");
+      return false;
     } catch {
+      setErrCode(null);
       setStatus("error");
       return false;
     }
@@ -209,7 +220,31 @@ export function DraftCanvas({
 
         <footer className="space-y-2 border-t border-border px-5 py-4 max-sm:pb-16">
           {status === "error" && (
-            <p className="text-[0.8125rem] text-danger">Gagal menyimpan. Coba lagi sebentar ya.</p>
+            <p className="text-[0.8125rem] text-danger">
+              {errCode === 409
+                ? "Laporan ini sudah terkirim, jadi tidak bisa diubah lagi. "
+                : errCode === 403
+                  ? "Sesimu sudah berakhir atau laporan sudah terkirim sebelumnya. Salin dulu bagian yang kamu ubah kalau penting, lalu "
+                  : "Gagal menyimpan. Coba lagi sebentar ya."}
+              {errCode === 409 && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/draft")}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  Buka status
+                </button>
+              )}
+              {errCode === 403 && (
+                <button
+                  type="button"
+                  onClick={() => location.reload()}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  muat ulang
+                </button>
+              )}
+            </p>
           )}
           <div className="flex gap-2">
             <Button
