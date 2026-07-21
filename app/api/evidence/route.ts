@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
 
+import { SESSION_MAX_AGE } from "@/lib/session";
+
 const SESSION_COOKIE = "lindra_session";
 
 // Batas kepercayaan: foto/PDF 10MB, video 25MB (pas di bawah nginx client_max_body_size
@@ -113,6 +115,7 @@ export async function POST(request: Request) {
       httpOnly: true,
       sameSite: "strict",
       path: "/",
+      maxAge: SESSION_MAX_AGE,
       secure: process.env.NODE_ENV === "production",
     });
   }

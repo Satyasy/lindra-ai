@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE } from "@/lib/session";
+import { SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/session";
 
 export type ResumeState = { error: string } | null;
 
@@ -25,7 +25,7 @@ export async function resumeWithCode(_prev: ResumeState, formData: FormData): Pr
   // Selalu simpan cookie sesi lama (reportId) → chat lama TETAP bisa dibuka lewat dropdown
   // nav, walaupun kita default ke sesi tanya-kabar. (Ganti keputusan §7.2 lama: dua chat
   // kini bisa diakses bersamaan, atas permintaan produk.)
-  store.set(SESSION_COOKIE, ref.reportId, { httpOnly: true, sameSite: "strict", path: "/", secure });
+  store.set(SESSION_COOKIE, ref.reportId, { httpOnly: true, sameSite: "strict", path: "/", maxAge: SESSION_MAX_AGE, secure });
 
   // Siswa lama yang laporannya sudah punya narasi (kasus nyata) → default ke sesi tanya-kabar
   // (KABAR → CEK_KASUS). Intake yang belum kelar (belum ada narasi) → langsung lanjut /chat.

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit/log-action";
 
+import { SESSION_MAX_AGE } from "@/lib/session";
+
 const SESSION_COOKIE = "lindra_session";
 const GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 const MAX_BYTES = 25 * 1024 * 1024; // limit Groq Whisper
@@ -45,6 +47,7 @@ export async function POST(request: Request) {
       httpOnly: true,
       sameSite: "strict",
       path: "/",
+      maxAge: SESSION_MAX_AGE,
       secure: process.env.NODE_ENV === "production",
     });
   }

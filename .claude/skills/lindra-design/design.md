@@ -22,7 +22,7 @@
 
 ### Aturan yang TIDAK BOLEH dilanggar (trauma-informed)
 
-1. **QuickExit di setiap halaman siswa** — tombol "Keluar cepat" fixed, buka `https://www.bbc.com/weather` di tab baru + hapus session. Shortcut: **Shift 3× dalam 5 detik** (BUKAN Escape).
+1. **QuickExit di setiap halaman siswa** — tombol "Keluar cepat" fixed, buka `https://www.bbc.com/weather` di tab baru + hapus session. **Hanya via klik tombol — tanpa shortcut keyboard** (shortcut Shift 3× lama dihapus: terlalu sensitif, ketrigger saat mengetik).
 2. **Jalur darurat selalu terjangkau — sisi siswa HANYA SAPA 129 + Guru BK** (Polisi 110 & Ambulans 119 dihapus dari semua permukaan darurat siswa; link `tel:`). SAPA 129 juga jadi jaring pengaman kedua otomatis saat krisis terdeteksi.
 3. **Transparansi AI** — pesan pertama chat memperkenalkan Lindra sebagai AI, bukan manusia, bukan layanan darurat, dan menegaskan siswa pegang kendali.
 4. **REVISI — TAB title netral; logo Lindra di chrome siswa DIIZINKAN (keputusan pemilik produk).** Browser tab/document title aplikasi siswa boleh tetap netral **"Catatan Harian"** (perangkat siswa bisa diawasi pelaku), tetapi **logo Lindra (`/lindra-logo.png`) BOLEH tampil** di nav/header aplikasi siswa dan mengarah ke "/". Branding wordmark "Lindra" penuh tetap utama di Situs Informasi publik dan Portal BK. Di dalam isi percakapan, AI tetap memperkenalkan diri sebagai "Lindra" (transparansi AI).
@@ -130,7 +130,7 @@ Pill (`rounded-full`), weight 600, min-height 50px, padding-x 24px. Varian `prim
 
 ### 3.2 QuickExit — tidak berubah, hanya dipakai di permukaan siswa
 
-Fixed `top-4 right-4`, z-970, pill, bg `--danger`, teks putih 600, min-height 48px, ikon X, shadow-lift, label **"Keluar cepat"**. Klik → buka `bbc.com/weather` + hapus session. Keyboard: Shift 3× / 5 detik. Mobile ≤640px → pindah ke bawah full-width.
+Fixed `top-4 right-4`, z-970, pill, bg `--danger`, teks putih 600, min-height 48px, ikon X, shadow-lift, label **"Keluar cepat"**. Klik → buka `bbc.com/weather` + hapus session. Tanpa shortcut keyboard (klik saja). Mobile ≤640px → pindah ke bawah full-width.
 
 ### 3.3 EmergencyBar — tidak berubah
 

@@ -18,6 +18,8 @@ import { sse, buildMessages, streamChat } from "@/lib/ai/stream-chat";
 import { logAction } from "@/lib/audit/log-action";
 import { readTranscript, sealTranscript } from "@/lib/transcript";
 
+import { SESSION_MAX_AGE } from "@/lib/session";
+
 const SESSION_COOKIE = "lindra_session";
 
 // Ajakan menyusun draf — MEMINTA IZIN dulu (bukan mengumumkan draf sudah muncul).
@@ -218,7 +220,7 @@ export async function POST(request: Request) {
     const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
     headers.set(
       "Set-Cookie",
-      `${SESSION_COOKIE}=${reportId}; HttpOnly; SameSite=Strict; Path=/${secure}`
+      `${SESSION_COOKIE}=${reportId}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MAX_AGE}${secure}`
     );
   }
   return new Response(stream, { headers });
